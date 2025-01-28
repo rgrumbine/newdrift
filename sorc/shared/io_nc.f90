@@ -21,6 +21,7 @@ SUBROUTINE initialize_in(nvar, fname, ncid, varid, nx, ny)
   INTEGER i
   INTEGER retcode
 
+!debug:
   PRINT *,'entered initialize_in'
 !! This is the cice_inst variable set -- much more extensive
 !  varnames(1) = "TLON"
@@ -65,8 +66,11 @@ SUBROUTINE initialize_in(nvar, fname, ncid, varid, nx, ny)
     CALL check(retcode)
   ENDDO
 
+  !RG: Read this in from netcdf file
   nx = 4500
   ny = 3298
+
+  PRINT *,'leaving initialize_in'
 
 RETURN
 END subroutine initialize_in
@@ -98,7 +102,7 @@ SUBROUTINE initial_read(fname, drift_name, outname, nx, ny, nvar, ncid, varid, &
 
 ! Forcing / velocities
   !Get first set of data and construct the local metric for drifting
-  CALL read(nx, ny, nvar, ncid, varid, allvars)
+  CALL readin(nx, ny, nvar, ncid, varid, allvars)
 
 !cice_inst:
 !  ulat = allvars(:,:,4)
@@ -110,7 +114,7 @@ SUBROUTINE initial_read(fname, drift_name, outname, nx, ny, nvar, ncid, varid, &
 
 !  !----------- Initialize buoys, this should be a read in 
 !  CALL initialize_drifter(drift_name, ncid_drift, varid_driftin, nvar_out, buoys)
-  nbuoy = 89700
+  nbuoy = 593100
 !  CALL close_out(ncid_drift)
 
 ! Initialize Output -- need definite sizes
@@ -119,7 +123,7 @@ SUBROUTINE initial_read(fname, drift_name, outname, nx, ny, nvar, ncid, varid, &
 END SUBROUTINE initial_read
 
 !----------------------------------------------------------------
-SUBROUTINE read(nx, ny, nvars, ncid, varid, allvars)
+SUBROUTINE readin(nx, ny, nvars, ncid, varid, allvars)
   IMPLICIT none
   INTEGER, intent(in)    :: nvars
   INTEGER, intent(in)    :: nx, ny, ncid, varid(nvars)
@@ -225,7 +229,6 @@ SUBROUTINE outvars(ncid, varid, nvar, buoys, nbuoy)
 
   !RG: separate initial write -- just ilat, ilon, from later writes, clat, clon, distance, bear
   DO i = 1, nvar
-
     retcode = nf90_put_var(ncid, varid(i), var(:,i) )
     CALL check(retcode)
   ENDDO
@@ -249,7 +252,7 @@ END subroutine close_out
 
 !----------------------------------------------------------------
 ! Write out results -- drift distance and direction
-SUBROUTINE writeout(ncid_out, varid_out, nvar_out, buoys, nbuoy, close)
+SUBROUTINE writeout(ncid_out, varid_out, nvar_out, buoys, nbuoy, closeout)
   USE drifter_mod
 
   IMPLICIT none
@@ -258,12 +261,12 @@ SUBROUTINE writeout(ncid_out, varid_out, nvar_out, buoys, nbuoy, close)
   INTEGER, intent(in) ::  varid_out(nvar_out)
 
   TYPE(drifter) :: buoys(nbuoy)
-  LOGICAL, intent(in) :: close
+  LOGICAL, intent(in) :: closeout
 
-  CALL outvars(ncid_out, varid_out, nvar_out, buoys, nbuoy )
-
-  IF (close) THEN
+  IF (closeout) THEN
     CALL close_out(ncid_out)
+  ELSE
+    CALL outvars(ncid_out, varid_out, nvar_out, buoys, nbuoy )
   ENDIF
 
 END SUBROUTINE writeout

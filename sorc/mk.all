@@ -1,7 +1,11 @@
+%.o: shared/%.f90
+	$(FC) $(FOPTS) $< -o $(@)
+%.o: inline/%.f90
+	$(FC) $(FOPTS) $< -o $(@)
+%.o: offline/%.f90
+	$(FC) $(FOPTS) $< -o $(@)
 
 %.o: %.f90
-	$(FC) $(FOPTS) $< -o $(@)
-%.o: shared/%.f90
 	$(FC) $(FOPTS) $< -o $(@)
 %.o: %.F90
 	$(FC) $(FOPTS) $< -o $(@)

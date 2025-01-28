@@ -14,11 +14,12 @@ cp ../fix/drift_ref.nc drift_in.nc
 
 #base=$HOME/rtofs/
 #macos base=/Volumes/Data/rtofs/
-base=$HOME/clim_data/rtofs/rtofs.20241001/
+base=$HOME/clim_data/rtofs/rtofs.20241101/
 
 #for hhh in 000
 hhh=000
-while [ $hhh -le 192 ] 
+#while [ $hhh -le 192 ] 
+while [ $hhh -le 001 ] 
 do
   fname=rtofs_glo_2ds_f${hhh}_ice.nc
 
@@ -54,5 +55,4 @@ done
 #  subroutine that accepts initial (full) drifters, forcing, and dt
 #    returns updated locations
 #  accepts info on whether/where to write out
-#offline:
-#   
+

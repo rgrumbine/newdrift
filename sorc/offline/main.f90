@@ -1,5 +1,4 @@
 PROGRAM newdrift
-  !USE netcdf
 
   USE drifter_mod
   USE io
@@ -37,13 +36,13 @@ PROGRAM newdrift
 
 !For drifter 
   CLASS(drifter), allocatable :: buoys(:)
-  INTEGER nbuoys, nactual
+  INTEGER nbuoys, ngood, nactual
 
 ! Read from .nc file (or argument to main)
   INTEGER nx, ny
 ! Names
   CHARACTER(90) fname, drift_name, outname, tmp, tmp2
-  LOGICAL close
+  LOGICAL closeout
 
 
 ! -- Begin main for offline ----
@@ -63,6 +62,8 @@ PROGRAM newdrift
 
 ! Forcing / velocities
   CALL initialize_in(nvar, fname, ncid, varid, nx, ny)
+!debug:
+  PRINT *,nvar, fname, ncid, varid, nx, ny
 
 ! Initialize Output -- need definite sizes
   ALLOCATE(allvars(nx, ny, nvar))
@@ -71,9 +72,14 @@ PROGRAM newdrift
 
   !RG: really initialize_io
   !Get first set of data and construct the local metric for drifting
+  drift_name = 'null.nc'
   CALL initial_read(fname, drift_name, outname, nx, ny, nvar, ncid, varid, &
                     allvars, ulon, ulat, dx, dy, rot, &
                     dimids, ncid_out, varid_out, nvar_out, nbuoys)
+  PRINT *,'initial read results'
+  PRINT *,fname, drift_name, outname, nx, ny, nvar, ncid, varid
+  PRINT *,MAXVAL(ulon), MAXVAL(ulat), MAXVAL(dx), MAXVAL(dy)
+  PRINT *,dimids, ncid_out, varid_out, nvar_out, nbuoys
 
 
 !cice_inst:
@@ -88,46 +94,53 @@ PROGRAM newdrift
   u    = allvars(:,:,6)
   v    = allvars(:,:,7)
 
-  !---------------------------------------------------------
+  PRINT *,'in main, parcelling out aice, u, v'
+  PRINT *,"aice",MAXVAL(aice), MINVAL(aice)
+  PRINT *,"u",MAXVAL(u), MINVAL(u)
+  PRINT *,"v",MAXVAL(v), MINVAL(v)
+
+
+!---------------------------------------------------------
 !  !RG: Should com from initial read, reading in buoy file
-  nbuoys = (nx/5)*(ny/5)
+  ratio = 5
+  nbuoys = (nx/ratio)*(ny/ratio)
   ALLOCATE(buoys(nbuoys))
   PRINT *,'allocated the ',nbuoys,' buoys'
 
-  CALL zero_buoys(buoys, nbuoys)
-  PRINT *,'back from zero_buoys'
+  DO i = 1, nbuoys
+    CALL buoys(k)%zero()
+  ENDDO
 
 ! Dummy for testing
   PRINT *,'calling dummy buoys'
-  CALL dummy_buoys(aice, dx, dy, u, v, ulat, ulon, nx, ny, buoys, nbuoys)
+  CALL dummy_buoys(aice, dx, dy, u, v, ulat, ulon, nx, ny, ratio, buoys, nbuoys, ngood)
   PRINT *,'returned from calling dummy buoys'
 
   nactual = nbuoys
+  PRINT *,'nactual ',ngood
 
 !----------------------------------------------------------------
 ! RUN
 ! run(buoys, u, v, dx, dy, dt, nx, ny, nstep, nvar, ncid, varid, allvars)
 
-! First time step:
+  closeout = .FALSE.
 
-  u = allvars(:,:,6)
-  v = allvars(:,:,7)
-  !DEALLOCATE(allvars)
+! First time step (u,v, etc. in hand):
   CALL run(buoys, nactual, u, v, dx, dy, nx, ny, dt, dtout)
+  CALL writeout(ncid_out, varid_out, nvar_out, buoys, nactual, closeout)
 
-! Iterate
-! -- one file with many time steps, many files 1 time step each
-  !debug: nstep = 1
-  !initial read has taken care of this: CALL read(nx, ny, nvar, ncid, varid, allvars)
+! Iterate as needed:
   DO n = 2, nstep
-
-    !CALL read(nx, ny, nvar, ncid, varid, allvars)
+    CALL readin(nx, ny, nvar, ncid, varid, allvars)
+    u = allvars(:,:,6)
+    v = allvars(:,:,7)
     CALL run(buoys, nactual, u, v, dx, dy, nx, ny, dt, dtout)
+    CALL writeout(ncid_out, varid_out, nvar_out, buoys, nactual, closeout)
   ENDDO
 
 !----------------------------------------------------------------
 ! WRITE Write out results -- drift distance and direction
-  close = .TRUE.
-  CALL writeout(ncid_out, varid_out, nvar_out, buoys, nactual, close)
+  closeout = .TRUE.
+  CALL writeout(ncid_out, varid_out, nvar_out, buoys, nactual, closeout)
 
 END program newdrift

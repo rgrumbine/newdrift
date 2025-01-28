@@ -15,10 +15,9 @@ MODULE drifter_mod
 
 
 CONTAINS
-  SUBROUTINE zero(buoy, k)
+  SUBROUTINE zero(buoy)
     IMPLICIT none
     CLASS(drifter), intent(inout) :: buoy
-    INTEGER k
     buoy%x = 0.
     buoy%y = 0.
     buoy%ilat = 0.
@@ -69,14 +68,11 @@ SUBROUTINE run(buoys, nbuoy, u, v, dx, dy, nx, ny, dt, dtout)
 
   INTEGER k
 
-
   DO k = 1, nbuoy
     !c-like (object-like) 
     CALL buoys(k)%move(u, v, dx, dy, dt, nx, ny)
 
   ENDDO
-
-  ! output time level if requested
 
 END SUBROUTINE run
 
