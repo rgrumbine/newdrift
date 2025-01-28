@@ -102,7 +102,7 @@ PROGRAM newdrift
 
 !---------------------------------------------------------
 !  !RG: Should com from initial read, reading in buoy file
-  ratio = 5
+  ratio = 1
   nbuoys = (nx/ratio)*(ny/ratio)
   ALLOCATE(buoys(nbuoys))
   PRINT *,'allocated the ',nbuoys,' buoys'

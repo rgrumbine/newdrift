@@ -105,14 +105,14 @@ SUBROUTINE local_metric(ulat, ulon, dx, dy, rot, nx, ny)
   rot = 0.
   CALL local_cartesian(ulat, dx, dy, nx, ny)
 
-  !DO j = 1, ny-1
-  !DO i = 1, nx-1
-  !  dlatdi(i,j) = ulat(i+1,j) - ulat(i,j)
-  !  dlondi(i,j) = ulon(i+1,j) - ulon(i,j)
-  !  dlatdj(i,j) = ulat(i,j+1) - ulat(i,j)
-  !  dlondj(i,j) = ulon(i,j+1) - ulon(i,j)
-  !ENDDO
-  !ENDDO
+  DO j = 1, ny-1
+  DO i = 1, nx-1
+    dlatdi(i,j) = ulat(i+1,j) - ulat(i,j)
+    dlondi(i,j) = ulon(i+1,j) - ulon(i,j)
+    dlatdj(i,j) = ulat(i,j+1) - ulat(i,j)
+    dlondj(i,j) = ulon(i,j+1) - ulon(i,j)
+  ENDDO
+  ENDDO
   !rot = atan2(?,?)
 
   RETURN

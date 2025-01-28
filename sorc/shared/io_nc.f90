@@ -114,7 +114,8 @@ SUBROUTINE initial_read(fname, drift_name, outname, nx, ny, nvar, ncid, varid, &
 
 !  !----------- Initialize buoys, this should be a read in 
 !  CALL initialize_drifter(drift_name, ncid_drift, varid_driftin, nvar_out, buoys)
-  nbuoy = 593100
+!  nbuoy = 593100
+  nbuoy = nx*ny
 !  CALL close_out(ncid_drift)
 
 ! Initialize Output -- need definite sizes
