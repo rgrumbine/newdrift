@@ -6,7 +6,8 @@ set -xe
 #drift_in -- file with full 6 values drifters, set to -99 for i,j,clat, clon
 #  at readin/initialize, set i,j and clat/clon = ilat/ilon
 
-cp ../fix/drift_ref.nc drift_in.nc
+#cp ../fix/drift_ref.nc drift_in.nc
+cp ../fix/out.nc drift_in.nc
 
 #Loop:
 #forecast hours 000 to 072 by 1

@@ -14,7 +14,7 @@ PROGRAM newdrift
   INTEGER ncid, varid(nvar)
   INTEGER ncid_out, ncid_drift
 
-  INTEGER varid_out(nvar_out), varid_driftic(nvar_drift)
+  INTEGER varid_out(nvar_out), varid_drift(nvar_drift)
   INTEGER dimids(1)
   
 ! Read from input (or argument to main)
@@ -37,11 +37,12 @@ PROGRAM newdrift
 !For drifter 
   CLASS(drifter), allocatable :: buoys(:)
   INTEGER nbuoys, ngood, nactual
+  CHARACTER(90) drift_name
 
 ! Read from .nc file (or argument to main)
   INTEGER nx, ny
 ! Names
-  CHARACTER(90) fname, drift_name, outname, tmp, tmp2
+  CHARACTER(90) fname, outname, tmp, tmp2
   LOGICAL closeout
 
 
@@ -51,8 +52,11 @@ PROGRAM newdrift
 
   READ (10,*) tmp2
   fname = trim(tmp2)
+  READ (10,*) tmp2
+  drift_name = trim(tmp2)
   READ (10,*) tmp
   outname = trim(tmp)
+  !debug: PRINT *,fname, drift_name, outname
 
 ! Read in run parameters:
   READ (10,*) dt
@@ -60,10 +64,13 @@ PROGRAM newdrift
   READ (10,*) outfreq
   PRINT *,'dt, nstep, outfreq = ',dt, nstep, outfreq
 
-! Forcing / velocities
+! Initialize input Forcing / velocities
   CALL initialize_in(nvar, fname, ncid, varid, nx, ny)
-!debug:
-  PRINT *,nvar, fname, ncid, varid, nx, ny
+!debug: PRINT *,nvar, fname, ncid, varid, nx, ny
+
+! Initialize Buoy points
+  CALL initialize_drifters(nvar_drift, drift_name, ncid_drift, varid_drift, nbuoys)
+  ALLOCATE(buoys(nbuoys))
 
 ! Initialize Output -- need definite sizes
   ALLOCATE(allvars(nx, ny, nvar))
@@ -72,15 +79,13 @@ PROGRAM newdrift
 
   !RG: really initialize_io
   !Get first set of data and construct the local metric for drifting
-  drift_name = 'null.nc'
-  CALL initial_read(fname, drift_name, outname, nx, ny, nvar, ncid, varid, &
+  CALL initial_read(fname, outname, nx, ny, nvar, ncid, varid, &
                     allvars, ulon, ulat, dx, dy, rot, &
                     dimids, ncid_out, varid_out, nvar_out, nbuoys)
   PRINT *,'initial read results'
   PRINT *,fname, drift_name, outname, nx, ny, nvar, ncid, varid
   PRINT *,MAXVAL(ulon), MAXVAL(ulat), MAXVAL(dx), MAXVAL(dy)
   PRINT *,dimids, ncid_out, varid_out, nvar_out, nbuoys
-
 
 !cice_inst:
 !  aice = allvars(:,:,8)
@@ -99,7 +104,9 @@ PROGRAM newdrift
   PRINT *,"u",MAXVAL(u), MINVAL(u)
   PRINT *,"v",MAXVAL(v), MINVAL(v)
 
+  CALL readin_drifters(nbuoys, nvar_drift, ncid_drift, varid_drift, buoys)
 
+  STOP
 !---------------------------------------------------------
 !  !RG: Should com from initial read, reading in buoy file
   ratio = 1

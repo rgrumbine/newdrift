@@ -155,13 +155,13 @@ ncfile.setncattr("creator_email","Robert.Grumbine@noaa.gov")
 dtype = np.dtype('float32')
 
 #For python 3.10 / netcdf 1.6.4
-ncfile.createVariable('initial_longitude', dtype, dimensions=( nbuoy ) )
-ncfile.createVariable('initial_latitude', dtype, dimensions=( nbuoy )  )
+ncfile.createVariable('Initial_Longitude', dtype, dimensions=( nbuoy ) )
+ncfile.createVariable('Initial_Latitude', dtype, dimensions=( nbuoy )  )
 
 # At last, give lat-lons of points  ----------------------------------
 
-ncfile.variables['initial_longitude'][:] = tlons
-ncfile.variables['initial_latitude'][:] = tlats
+ncfile.variables['Initial_Longitude'][:] = tlons
+ncfile.variables['Initial_Latitude'][:] = tlats
 
 # Save file --------------------------------------------
 ncfile.close()
