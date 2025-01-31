@@ -6,6 +6,9 @@ import netCDF4 as nc
 
 def harcdis(lat1, lon1, lat2, lon2):
 #  return 25000.
+  '''
+    Return haversine distance between lat1,lon1, lat2, lon2 -- in meters
+  '''
   # Radius of the Earth in meters
   earth_radius = 6371.e3
 
@@ -31,19 +34,18 @@ class buoy:
     self.latitude = lat
     self.longitude = lon
 
-  def distance(self, buoy2):
-    return harcdis(self.latitude, self.longitude, buoy2.latitude, buoy2.longitude)
-
   def mindist(self, buoylist, toler):
-    #Return True if mindist > toler
-    #RG: can do a thinning test in latitude -- if greater than (toler/111.1e3) not near
+    '''
+      Return True if no buoy in list is within toler of the trial buoy (self) 
+    '''
+    #RG: can do a thinning test in latitude -- if greater than (toler/111.2e3) not near
     #RG: only need compute distances up to point of finding one closer than toler
-    #RG: 
+  
     nb = len(buoylist)
-    delta_lat = toler/111.1e3
+    delta_lat = toler/111.2e3
 
     for i in range(-1,-nb,-1):
-      #if (abs(buoylist[i].latitude - self.latitude) < delta_lat):
+      if (abs(buoylist[i].latitude - self.latitude) < delta_lat):
         d = harcdis(self.latitude, self.longitude, buoylist[i].latitude, buoylist[i].longitude)
         if (d < toler):
           return False
@@ -54,13 +56,13 @@ class buoy:
     delta = 1./12.
     #debug: print(self.longitude, self.latitude, end="")
     tlon = self.longitude
-    if    tlon < 0:     tlon += 360.
-    #while tlon >= 360.: tlon -= 360.
-    if (tlon >= 360.):
-        if (tlon >= 720):
-            tlon -= 720.
-        else:
-            tlon -= 360.
+    #if    tlon < 0:     tlon += 360.
+    ##while tlon >= 360.: tlon -= 360.
+    #if (tlon >= 360.):
+    #    if (tlon >= 720):
+    #        tlon -= 720.
+    #    else:
+    #        tlon -= 360.
     i = int( (tlon - delta/2.)/delta + 0.5)
     j = int( (90. - delta/2. - self.latitude)/delta + 0.5)
     #debug: if (i < 0 or j < 0 or i >= 4320 or j >= 2160 ):
@@ -75,7 +77,7 @@ class buoy:
 #------------------------------------------------------------
 collection = []
 
-#read in skip grid (fixed fields.nc)
+#read in posteriori grid (seaice_fixed_fields.nc)
 skip = nc.Dataset(sys.argv[1], 'r')
 posteriori = skip.variables['posteriori'][:,:]
 print(type(posteriori))
@@ -99,6 +101,10 @@ fullgrid = nc.Dataset(sys.argv[3], 'r')
 nbuoy = fullgrid.dimensions['nbuoy'].size
 lat   = fullgrid.variables['Initial_Latitude'][:]
 lon   = fullgrid.variables['Initial_Longitude'][:]
+lon[lon < 0 ] += 360.
+lon[lon >= 720 ] -= 720.
+lon[lon >= 360 ] -= 360.
+
 toler = 20e3
 for i in range(0, nbuoy):
   #debug:
@@ -110,7 +116,7 @@ for i in range(0, nbuoy):
       collection.append(tmp)
       #debug: print(len(collection),'buoys')
   del tmp
-  if (i == 1840000): break
+  if (i == 920000): break
 
   
 #------------------------------------------------------------
