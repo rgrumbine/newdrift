@@ -47,7 +47,7 @@ npts = k
 #-------------------------------------------------
 # Open the file for output and establish its size:
 ncfile = netCDF4.Dataset(sys.argv[2], mode='w', format='NETCDF4')
-nbuoy  = ncfile.createDimension('nbouy', size=npts)
+nbuoy  = ncfile.createDimension('nbuoy', size=npts)
 #debug: 
 print(nbuoy)
 #debug: exit(0)

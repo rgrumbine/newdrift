@@ -5,7 +5,26 @@ import numpy as np
 import netCDF4 as nc
 
 def harcdis(lat1, lon1, lat2, lon2):
-  return 25000.
+#  return 25000.
+  # Radius of the Earth in meters
+  earth_radius = 6371.e3
+
+  # Convert latitude and longitude from degrees to radians
+  tlat1 = pi/180.*(lat1)
+  tlat2 = pi/180.*(lat2)
+  #tlon1 = pi/180.*(lon1)
+  #tlon2 = pi/180.*(lon2)
+
+  # Haversine formula
+  dlon = pi/180.*(lon2 - lon1)
+  dlat = tlat2 - tlat1
+  a = sin(dlat / 2) ** 2 + cos(tlat1) * cos(tlat2) * sin(dlon / 2) ** 2
+  c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+  # Calculate the distance
+  distance = earth_radius * c
+
+  return distance
 
 class buoy:
   def __init__(self, lat = 0., lon = 0.):
@@ -22,21 +41,13 @@ class buoy:
     #RG: 
     nb = len(buoylist)
     delta_lat = toler/111.1e3
-    retval = True
+
     for i in range(-1,-nb,-1):
-      if (abs(buoylist[i].latitude - self.latitude) < delta_lat):
+      #if (abs(buoylist[i].latitude - self.latitude) < delta_lat):
+        d = harcdis(self.latitude, self.longitude, buoylist[i].latitude, buoylist[i].longitude)
+        if (d < toler):
           return False
-    return retval 
-#    #dists = np.zeros((nb-max(0,nb-25000) ))
-#    dists = np.zeros((min(nb,25000) ))
-#    dists[0] = 1.e8
-#    #for i in range(max(0,nb-25000), nb):
-#    for i in range(1, min(nb,25000)):
-#      dists[i] = harcdis(self.latitude, self.longitude, 
-#                 buoylist[-i].latitude, buoylist[-i].longitude)
-#    dmin = dists.min()
-#    del dists
-#    return dmin
+    return True 
 
   def may_be_ice(self, posteriori):
     if (self.latitude > -40. and self.latitude < 30.): return False
@@ -99,14 +110,54 @@ for i in range(0, nbuoy):
       collection.append(tmp)
       #debug: print(len(collection),'buoys')
   del tmp
-  #if (i == 750000): break
+  if (i == 1840000): break
 
   
 #------------------------------------------------------------
+nb = len(collection)
+tlats = np.zeros((nb))
+tlons = np.zeros((nb))
+tid   = np.linspace(0,nb,1)
+
 # Write out rtofs full buoy list
 #write collection(lat,lon,k)
-print("found",len(collection),"buoy points")
-for i in range(0, len(collection)):
-    print(i,collection[i].longitude, collection[i].latitude)
+print("found",nb,"buoy points")
+for i in range(0, nb):
+    tlats[i] = collection[i].latitude
+    tlons[i] = collection[i].longitude
+    print(collection[i].longitude, collection[i].latitude, i)
+
+# Open the file for output and establish its size:
+ncfile = nc.Dataset(sys.argv[4], mode='w', format='NETCDF4')
+nbuoy  = ncfile.createDimension('nbuoy', size=nb)
+
+#Generic global header info:   
+ncfile.title = sys.argv[4]
+ncfile.setncattr("institution","NOAA/NWS/NCEP/EMC")
+
+import datetime
+tmp = datetime.datetime(2025,1,31)
+ncfile.setncattr("date_created",tmp.strftime("%Y-%m-%d") )
+
+#More specialized header:
+ncfile.setncattr("contributor_name","Robert Grumbine")
+ncfile.setncattr("contributor_email","Robert.Grumbine@noaa.gov")
+ncfile.setncattr("creator_name","Robert Grumbine")
+ncfile.setncattr("creator_email","Robert.Grumbine@noaa.gov")
+
+# Buoy information --------------------------------------------
+dtype = np.dtype('float32')
+
+#For python 3.10 / netcdf 1.6.4
+ncfile.createVariable('initial_longitude', dtype, dimensions=( nbuoy ) )
+ncfile.createVariable('initial_latitude', dtype, dimensions=( nbuoy )  )
+
+# At last, give lat-lons of points  ----------------------------------
+
+ncfile.variables['initial_longitude'][:] = tlons
+ncfile.variables['initial_latitude'][:] = tlats
+
+# Save file --------------------------------------------
+ncfile.close()
 
 #------------------------------------------------------------

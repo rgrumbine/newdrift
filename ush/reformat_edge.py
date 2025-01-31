@@ -37,7 +37,7 @@ npts = len(lats)
 #-------------------------------------------------
 # Open the file for output and establish its side:
 ncfile = nc.Dataset(sys.argv[2], mode='w', format='NETCDF4')
-nbuoy  = ncfile.createDimension('nbouy', size=npts)
+nbuoy  = ncfile.createDimension('nbuoy', size=npts)
 #debug: 
 print(nbuoy)
 #debug: exit(0)
