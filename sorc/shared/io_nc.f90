@@ -136,8 +136,8 @@ SUBROUTINE initialize_drifters(nvar_drift, drift_name, ncid_drift, varid_drift, 
   CHARACTER(50) varnames(nvar_drift), dimname
 
   PRINT *,'entered drifter initialize'
-  varnames(1) = 'initial_latitude'
-  varnames(2) = 'initial_longitude'
+  varnames(1) = 'Initial_Latitude'
+  varnames(2) = 'Initial_Longitude'
   dimname = 'nbuoy'
 
   retcode = nf90_open(drift_name, NF90_NOWRITE, ncid_drift)
