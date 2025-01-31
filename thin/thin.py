@@ -105,7 +105,7 @@ lon[lon < 0 ] += 360.
 lon[lon >= 720 ] -= 720.
 lon[lon >= 360 ] -= 360.
 
-toler = 20e3
+toler = 25e3
 for i in range(0, nbuoy):
   #debug:
   if ((i % 10000) == 0): print('in fullgrid',i,'nbuoy_tmp',len(collection),flush=True)
@@ -116,7 +116,7 @@ for i in range(0, nbuoy):
       collection.append(tmp)
       #debug: print(len(collection),'buoys')
   del tmp
-  if (i == 920000): break
+  #if (i == 920000): break
 
   
 #------------------------------------------------------------

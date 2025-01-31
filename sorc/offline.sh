@@ -24,6 +24,7 @@ do
   fname=rtofs_glo_2ds_f${hhh}_ice.nc
 
   echo \'${base}/$fname\' > runin 
+  echo \'drift_in.nc\' >> runin
   echo \'out_${hhh}.nc\' >> runin
   if [ $hhh -lt 72 ] ; then
     export dt=1
