@@ -19,7 +19,7 @@ basic:
   16 pt
   ...
 
-0: time evolution
+1: time evolution
   Euler forward
   RK4
 
