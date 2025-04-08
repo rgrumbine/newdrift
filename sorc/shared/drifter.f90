@@ -3,6 +3,7 @@
 !    grid type (B/C/...) and lat-longs of velocity points.
 !    also time step to extrapolate over
 MODULE drifter_mod
+  USE metric
 
   IMPLICIT none
   TYPE, public :: drifter
@@ -17,14 +18,19 @@ MODULE drifter_mod
 CONTAINS
   SUBROUTINE init(buoy, tlon, tlat)
     IMPLICIT none
-    REAL tlon, tlat
+    REAL, intent(in) :: tlon, tlat
+    REAL x, y
     CLASS(drifter), intent(inout) :: buoy
-    buoy%x = 0.
-    buoy%y = 0.
+
     buoy%ilat = tlat
     buoy%ilon = tlon
     buoy%clat = tlat
     buoy%clon = tlon
+
+    metric%ll_to_xy(tlat, tlon, x, y)
+    buoy%x = x
+    buoy%y = y
+
     RETURN
   END SUBROUTINE init
 

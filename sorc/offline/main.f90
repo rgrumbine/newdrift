@@ -94,7 +94,7 @@ PROGRAM newdrift
                     dlatdi, dlatdj, dlondi, dlondj,   &
                     dimids, ncid_out, varid_out, nvar_out, nbuoys)
   PRINT *,'initial read results'
-  PRINT *,trim(tmp2), drift_name, outname, nx, ny, nvar, ncid, varid
+  PRINT *,trim(fname), drift_name, outname, nx, ny, nvar, ncid, varid
   PRINT *,MAXVAL(ulon), MAXVAL(ulat), MAXVAL(dx), MAXVAL(dy)
   PRINT *,dimids, ncid_out, varid_out, nvar_out, nbuoys
 
