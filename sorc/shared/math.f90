@@ -92,14 +92,13 @@ END subroutine unbearing
 
 !lat, lon in degrees
 !dx, dy in meters
-SUBROUTINE local_metric(ulat, ulon, dx, dy, rot, nx, ny)
+SUBROUTINE local_metric(ulat, ulon, dx, dy, rot, dlatdi, dlondi, dlatdj, dlondj, nx, ny)
   IMPLICIT none
   INTEGER, intent(in) :: nx, ny
   REAL, intent(in)   :: ulat(nx, ny), ulon(nx, ny)
   REAL, intent(out)  :: dx(nx, ny), dy(nx, ny), rot(nx, ny)
-
-  REAL  :: dlatdi(nx, ny), dlatdj(nx, ny)
-  REAL  :: dlondi(nx, ny), dlondj(nx, ny)
+  REAL, intent(out)  :: dlatdi(nx, ny), dlatdj(nx, ny)
+  REAL, intent(out)  :: dlondi(nx, ny), dlondj(nx, ny)
   INTEGER i, j
 
   rot = 0.
@@ -159,7 +158,7 @@ SUBROUTINE ll_to_xy(lat, lon, ulat, ulon, x, y, nx, ny)
   dlat = ABS(ulat - lat)
   AR1 = MINLOC(dlon)
   AR2 = MINLOC(dlat)
-
+  PRINT *,'ar1 ar2 ',AR1, AR2
   x = FLOAT(AR1(1))
   y = FLOAT(AR1(2))
   RETURN

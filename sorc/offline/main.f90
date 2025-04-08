@@ -26,6 +26,7 @@ PROGRAM newdrift
 ! nx*ny large enough to require -frecursive in gfortran if nx,ny specified here
   REAL, allocatable  :: ulat(:,:), ulon(:,:)
   REAL, allocatable  :: dx(:,:), dy(:,:), rot(:,:)
+  REAL, allocatable  :: dlatdi(:,:), dlondi(:,:), dlatdj(:,:), dlondj(:,:)
   REAL, allocatable  :: u(:,:), v(:,:)
   REAL, allocatable  :: aice(:,:)
 
@@ -37,25 +38,32 @@ PROGRAM newdrift
 !For drifter 
   CLASS(drifter), allocatable :: buoys(:)
   INTEGER nbuoys, ngood, nactual
-  CHARACTER(90) drift_name
+  CHARACTER(900) drift_name
 
 ! Read from .nc file (or argument to main)
   INTEGER nx, ny
 ! Names
-  CHARACTER(90) fname, outname, tmp, tmp2
+  CHARACTER(900) fname, outname, tmp, tmp2
   LOGICAL closeout
 
 
 ! -- Begin main for offline ----
   READ (*,*) tmp
-  OPEN(10, FILE=tmp, FORM='FORMATTED', STATUS='OLD')
+  fname = trim(tmp)
+  PRINT *,"name of file to get inputs from",fname
+!debug:  STOP
+
+  OPEN(10, FILE=fname, FORM='FORMATTED', STATUS='OLD')
 
   READ (10,*) tmp2
   fname = trim(tmp2)
+  PRINT *,fname,len(fname), len(trim(tmp2))
   READ (10,*) tmp2
   drift_name = trim(tmp2)
+  PRINT *,drift_name,len(drift_name)
   READ (10,*) tmp
   outname = trim(tmp)
+  PRINT *,outname
   !debug: PRINT *,fname, drift_name, outname
 
 ! Read in run parameters:
@@ -65,8 +73,9 @@ PROGRAM newdrift
   PRINT *,'dt, nstep, outfreq = ',dt, nstep, outfreq
 
 ! Initialize input Forcing / velocities
-  CALL initialize_in(nvar, fname, ncid, varid, nx, ny)
-!debug: PRINT *,nvar, fname, ncid, varid, nx, ny
+  CALL initialize_in(nvar, trim(fname), ncid, varid, nx, ny)
+!debug: 
+  PRINT *,"main ",nvar, trim(fname), ncid, varid, nx, ny
 
 ! Initialize Buoy points
   CALL initialize_drifters(nvar_drift, drift_name, ncid_drift, varid_drift, nbuoys)
@@ -75,27 +84,27 @@ PROGRAM newdrift
 ! Initialize Output -- need definite sizes
   ALLOCATE(allvars(nx, ny, nvar))
   ALLOCATE(ulat(nx, ny), ulon(nx, ny), dx(nx, ny), dy(nx, ny), rot(nx, ny))
+  ALLOCATE(dlatdi(nx, ny), dlondi(nx, ny), dlatdj(nx, ny), dlondj(nx, ny))
   ALLOCATE(aice(nx, ny))
 
   !RG: really initialize_io
   !Get first set of data and construct the local metric for drifting
-  CALL initial_read(fname, outname, nx, ny, nvar, ncid, varid, &
+  CALL initial_read(trim(fname), outname, nx, ny, nvar, ncid, varid, &
                     allvars, ulon, ulat, dx, dy, rot, &
+                    dlatdi, dlatdj, dlondi, dlondj,   &
                     dimids, ncid_out, varid_out, nvar_out, nbuoys)
   PRINT *,'initial read results'
-  PRINT *,fname, drift_name, outname, nx, ny, nvar, ncid, varid
+  PRINT *,trim(tmp2), drift_name, outname, nx, ny, nvar, ncid, varid
   PRINT *,MAXVAL(ulon), MAXVAL(ulat), MAXVAL(dx), MAXVAL(dy)
   PRINT *,dimids, ncid_out, varid_out, nvar_out, nbuoys
 
 !cice_inst:
 !  aice = allvars(:,:,8)
-!2ds_ice:
-  aice = allvars(:,:,3)
-
-!cice_inst:
 !  u    = allvars(:,:,9)
 !  v    = allvars(:,:,10)
-!2ds_ice
+
+!2ds_ice (not _prog or _diag)
+  aice = allvars(:,:,3)
   u    = allvars(:,:,6)
   v    = allvars(:,:,7)
 
@@ -106,9 +115,11 @@ PROGRAM newdrift
 
   CALL readin_drifters(nbuoys, nvar_drift, ncid_drift, varid_drift, buoys)
 
+  !debug
   STOP
 !---------------------------------------------------------
-!  !RG: Should com from initial read, reading in buoy file
+!  !RG: Should come from initial read, reading in buoy file
+!  !RG: to delete this block
   ratio = 1
   nbuoys = (nx/ratio)*(ny/ratio)
   ALLOCATE(buoys(nbuoys))

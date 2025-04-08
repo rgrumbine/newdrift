@@ -58,13 +58,16 @@ SUBROUTINE initialize_in(nvar, fname, ncid, varid, nx, ny)
   varnames(6) = "ice_uvelocity"
   varnames(7) = "ice_vvelocity"
   
+  PRINT *,'trying to open ',fname, len(fname)
   retcode = nf90_open(fname, NF90_NOWRITE, ncid)
   CALL check(retcode)
 
   DO i = 1, nvar
+    PRINT *,i,' reading varname ',varnames(i)
     retcode = nf90_inq_varid(ncid, varnames(i), varid(i))
     CALL check(retcode)
   ENDDO
+  PRINT *,'done reading varnames'
 
   !RG: Read this in from netcdf file
   !debug: nx = 4500
@@ -84,6 +87,7 @@ END subroutine initialize_in
 !----------------------------------------------------------------
 SUBROUTINE initial_read(fname, outname, nx, ny, nvar, ncid, varid, &
                         allvars, ulon, ulat, dx, dy, rot, &
+                        dlatdi, dlatdj, dlondi, dlondj,   &
                         outdimids, ncid_out, varid_out, nvar_out, nbuoy)
 
   USE drifter_mod
@@ -101,6 +105,7 @@ SUBROUTINE initial_read(fname, outname, nx, ny, nvar, ncid, varid, &
   REAL, intent(inout) :: allvars(nx, ny, nvar)
   REAL, intent(inout) :: ulat(nx, ny), ulon(nx, ny)
   REAL, intent(out)   :: dx(nx, ny), dy(nx, ny), rot(nx, ny)
+  REAL, intent(out)   :: dlatdi(nx, ny), dlatdj(nx, ny), dlondi(nx, ny), dlondj(nx, ny)
 
 ! Locals:
 !  INTEGER i, j, k
@@ -117,7 +122,9 @@ SUBROUTINE initial_read(fname, outname, nx, ny, nvar, ncid, varid, &
 !2ds_ice:
   ulat = allvars(:,:,2)
   ulon = allvars(:,:,1)
-  CALL local_metric(ulat, ulon, dx, dy, rot, nx, ny)
+  !old CALL local_metric(ulat, ulon, dx, dy, rot, nx, ny)
+  CALL local_metric(ulat, ulon, dx, dy, rot, dlatdi, dlondi, dlatdj, dlondj, nx, ny)
+
 
 !  !----------- Initialize buoys, this should be a read in -- separate function
 

@@ -7,24 +7,27 @@ set -xe
 #  at readin/initialize, set i,j and clat/clon = ilat/ilon
 
 #cp ../fix/drift_ref.nc drift_in.nc
-cp ../fix/out.nc drift_in.nc
+cp ../fix/merged.nc drift_in.nc
 
 #Loop:
 #forecast hours 000 to 072 by 1
 #forecast hours 072 to 192 by 3
 
 #base=$HOME/rtofs/
-#macos base=/Volumes/Data/rtofs/
-base=$HOME/clim_data/rtofs/rtofs.20241101/
+#macos: base=/Volumes/Data/rtofs/
+#hera: base=$HOME/clim_data/rtofs/rtofs.20241101/
+#wcoss2:
+base=$HOME/noscrub/model_intercompare/rtofs_cice/rtofs.20250405/
 
 #for hhh in 000
-hhh=000
+hhh=078
 #while [ $hhh -le 192 ] 
-while [ $hhh -le 001 ] 
+while [ $hhh -le 078 ] 
 do
   fname=rtofs_glo_2ds_f${hhh}_ice.nc
 
-  echo \'${base}/$fname\' > runin 
+  #echo \'${base}/$fname\' > runin 
+  echo \'cice.nc\' > runin
   echo \'drift_in.nc\' >> runin
   echo \'out_${hhh}.nc\' >> runin
   if [ $hhh -lt 72 ] ; then
