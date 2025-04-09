@@ -14,8 +14,8 @@ CONTAINS
 
 SUBROUTINE set(this, nx, ny)
   IMPLICIT none
-  INTEGER nx, ny
-  CLASS(metric) :: this
+  INTEGER, intent(in) :: nx, ny
+  CLASS(metric), intent(inout) :: this
 
   this%nx = nx
   this%ny = ny
@@ -37,7 +37,7 @@ END SUBROUTINE set
 !dx, dy in meters
 SUBROUTINE local_metric(this)
   IMPLICIT none
-  CLASS(metric) :: this
+  CLASS(metric), intent(inout) :: this
   INTEGER i, j
 
   this%rot = 0.
@@ -60,7 +60,7 @@ END subroutine local_metric
 SUBROUTINE local_cartesian(this)
   USE constants
   IMPLICIT none
-  CLASS(metric) :: this
+  CLASS(metric), intent(inout) :: this
   INTEGER k
   INTEGER i, j
 
@@ -84,7 +84,7 @@ END subroutine local_cartesian
 SUBROUTINE ll_to_xy(this, lat, lon, x, y)
 
   IMPLICIT none
-  CLASS(metric) :: this
+  CLASS(metric), intent(in) :: this
   REAL, intent(in)    :: lat, lon
   REAL, intent(inout)   :: x, y
 
@@ -104,7 +104,7 @@ END SUBROUTINE ll_to_xy
 SUBROUTINE xy_to_ll(this, lat, lon, x, y)
 
   IMPLICIT none
-  CLASS(metric) :: this
+  CLASS(metric), intent(in) :: this
   REAL, intent(in)    :: lat, lon
   REAL, intent(inout)   :: x, y
 
@@ -122,11 +122,3 @@ SUBROUTINE xy_to_ll(this, lat, lon, x, y)
 END SUBROUTINE xy_to_ll 
 
 END MODULE metric_mod
-
-!zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
-SUBROUTINE elephant(lat, lon, x, y)
-    IMPLICIT none
-    REAL, intent(in) :: lat, lon
-    REAL, intent(inout) :: x, y
-    PRINT *,'elephant',lat,lon,x,y
-END SUBROUTINE elephant

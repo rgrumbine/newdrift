@@ -90,79 +90,14 @@ END subroutine unbearing
 
 !grid rotation
 
+! local_metric now in class metric
 !lat, lon in degrees
 !dx, dy in meters
-SUBROUTINE local_metric(ulat, ulon, dx, dy, rot, dlatdi, dlondi, dlatdj, dlondj, nx, ny)
-  IMPLICIT none
-  INTEGER, intent(in) :: nx, ny
-  REAL, intent(in)   :: ulat(nx, ny), ulon(nx, ny)
-  REAL, intent(out)  :: dx(nx, ny), dy(nx, ny), rot(nx, ny)
-  REAL, intent(out)  :: dlatdi(nx, ny), dlatdj(nx, ny)
-  REAL, intent(out)  :: dlondi(nx, ny), dlondj(nx, ny)
-  INTEGER i, j
 
-  rot = 0.
-  CALL local_cartesian(ulat, dx, dy, nx, ny)
-
-  DO j = 1, ny-1
-  DO i = 1, nx-1
-    dlatdi(i,j) = ulat(i+1,j) - ulat(i,j)
-    dlondi(i,j) = ulon(i+1,j) - ulon(i,j)
-    dlatdj(i,j) = ulat(i,j+1) - ulat(i,j)
-    dlondj(i,j) = ulon(i,j+1) - ulon(i,j)
-  ENDDO
-  ENDDO
-  !rot = atan2(?,?)
-
-  RETURN
-END subroutine local_metric
-
-
-SUBROUTINE local_cartesian(ulat, dx, dy, nx, ny)
-  USE constants
-  IMPLICIT none
-  INTEGER, intent(in) :: nx, ny
-  REAL, intent(in)    :: ulat(nx, ny)
-  REAL, intent(out)   :: dx(nx, ny), dy(nx, ny)
-
-  INTEGER i, j
-
-! From WGS84 via Amy Solomon, ESRL
-! Meters per degree
-  DO j = 1, ny
-  DO i = 1, nx
-    dy(i,j) = 111132.92 - 559.82*cos(2*ulat(i,j)*rpd) + &
-                           1.175*cos(4*ulat(i,j)*rpd) - &
-                          0.0023*cos(6*ulat(i,j)*rpd)
-    dx(i,j) = 111412.84*cos(  ulat(i,j)*rpd) - &
-                   93.5*cos(3*ulat(i,j)*rpd) + &
-                  0.118*cos(5*ulat(i,j)*rpd)
-  ENDDO
-  ENDDO
-
-  RETURN
-END subroutine local_cartesian
+! local_cartesian now in class metric
 
 ! Convert from buoy's lat-lon location to its ij coordinate (x,y in buoy member)
-SUBROUTINE ll_to_xy(lat, lon, ulat, ulon, x, y, nx, ny)
-
-  IMPLICIT none
-  INTEGER, intent(in) :: nx, ny
-  REAL, intent(in)    :: lat, lon, ulat(nx, ny), ulon(nx, ny)
-  REAL, intent(inout)   :: x, y
-
-  INTEGER :: AR2(2), AR1(2)
-  REAL dlon(nx, ny), dlat(nx, ny)
-
-  dlon = ABS(ulon - lon)
-  dlat = ABS(ulat - lat)
-  AR1 = MINLOC(dlon)
-  AR2 = MINLOC(dlat)
-  PRINT *,'ar1 ar2 ',AR1, AR2
-  x = FLOAT(AR1(1))
-  y = FLOAT(AR1(2))
-  RETURN
-END SUBROUTINE ll_to_xy 
+! --> in class metric
 
 
 !Bilinear interpolation to buoy.x,y

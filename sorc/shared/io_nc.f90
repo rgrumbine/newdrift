@@ -89,11 +89,11 @@ END subroutine initialize_in
 
 !----------------------------------------------------------------
 SUBROUTINE initial_read(fname, outname, nx, ny, nvar, ncid, varid, &
-                        allvars, ulon, ulat, dx, dy, rot, &
-                        dlatdi, dlatdj, dlondi, dlondj,   &
-                        outdimids, ncid_out, varid_out, nvar_out, nbuoy)
+                        allvars, xmetric, outdimids, ncid_out, &
+                        varid_out, nvar_out, nbuoy)
 
   USE drifter_mod
+  USE metric_mod
   IMPLICIT none
 
   INTEGER, intent(in) :: nx, ny
@@ -106,9 +106,10 @@ SUBROUTINE initial_read(fname, outname, nx, ny, nvar, ncid, varid, &
   INTEGER varid_driftic(nvar_out)
   
   REAL, intent(inout) :: allvars(nx, ny, nvar)
-  REAL, intent(inout) :: ulat(nx, ny), ulon(nx, ny)
-  REAL, intent(out)   :: dx(nx, ny), dy(nx, ny), rot(nx, ny)
-  REAL, intent(out)   :: dlatdi(nx, ny), dlatdj(nx, ny), dlondi(nx, ny), dlondj(nx, ny)
+  TYPE(metric) :: xmetric
+!  REAL, intent(inout) :: ulat(nx, ny), ulon(nx, ny)
+!  REAL, intent(out)   :: dx(nx, ny), dy(nx, ny), rot(nx, ny)
+!  REAL, intent(out)   :: dlatdi(nx, ny), dlatdj(nx, ny), dlondi(nx, ny), dlondj(nx, ny)
 
 ! Locals:
 !  INTEGER i, j, k
@@ -123,10 +124,11 @@ SUBROUTINE initial_read(fname, outname, nx, ny, nvar, ncid, varid, &
 !  ulat = allvars(:,:,4)
 !  ulon = allvars(:,:,3)
 !2ds_ice:
-  ulat = allvars(:,:,2)
-  ulon = allvars(:,:,1)
   !old CALL local_metric(ulat, ulon, dx, dy, rot, nx, ny)
-  CALL local_metric(ulat, ulon, dx, dy, rot, dlatdi, dlondi, dlatdj, dlondj, nx, ny)
+  CALL xmetric%set(nx, ny)
+  xmetric%ulat = allvars(:,:,2)
+  xmetric%ulon = allvars(:,:,1)
+  CALL xmetric%local_metric()
 
 
 !  !----------- Initialize buoys, this should be a read in -- separate function
@@ -165,11 +167,14 @@ SUBROUTINE initialize_drifters(nvar_drift, drift_name, ncid_drift, varid_drift, 
   RETURN
 END SUBROUTINE initialize_drifters
 
-SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist)
+SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist, xmetric)
+  USE metric_mod
   IMPLICIT none
   INTEGER nvar_drift, ncid_drift, varid_drift(nvar_drift)
   INTEGER nbuoy
   CLASS(drifter) :: buoylist(nbuoy)
+  TYPE(metric)  :: xmetric
+
   INTEGER i, retcode
   REAL tlon(nbuoy), tlat(nbuoy)
 
@@ -185,8 +190,8 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist)
 
   PRINT *,' about to create buoys '
   DO i = 1, nbuoy
-    CALL buoylist(i)%init(tlon(i), tlat(i))
-    PRINT *,i, buoylist(i)%ilat, buoylist(i)%ilon
+    CALL buoylist(i)%init(tlon(i), tlat(i), xmetric)
+    PRINT *,i, buoylist(i)%ilat, buoylist(i)%ilon, buoylist(i)%x, buoylist(i)%y
   ENDDO
   
   PRINT *,' leaving drifter read in'
@@ -283,6 +288,10 @@ SUBROUTINE outvars(ncid, varid, nvar, buoys, nbuoy)
   REAL distance, bear
 
 !Note that netcdf dimensions are in C order, not fortran
+  PRINT *,'entered outvars'
+  IF (ALLOCATED(var)) THEN
+    DEALLOCATE(var)
+  ENDIF
   ALLOCATE(var(nbuoy, nvar))
   distance = 0.
   bear = 0.
@@ -304,7 +313,7 @@ SUBROUTINE outvars(ncid, varid, nvar, buoys, nbuoy)
   ENDDO
 
   DEALLOCATE(var)
-
+  PRINT *,'leaving outvars'
   RETURN
 END subroutine outvars
 

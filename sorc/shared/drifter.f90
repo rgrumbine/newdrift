@@ -3,7 +3,7 @@
 !    grid type (B/C/...) and lat-longs of velocity points.
 !    also time step to extrapolate over
 MODULE drifter_mod
-  !RG: USE metric_mod
+  USE metric_mod
 
   IMPLICIT none
   TYPE, public :: drifter
@@ -16,10 +16,11 @@ MODULE drifter_mod
 
 
 CONTAINS
-  SUBROUTINE init(buoy, tlon, tlat)
+  SUBROUTINE init(buoy, tlon, tlat, xmetric)
     USE metric_mod
     IMPLICIT none
     REAL, intent(in) :: tlon, tlat
+    TYPE(metric) :: xmetric
     REAL x, y
     CLASS(drifter), intent(inout) :: buoy
 
@@ -28,7 +29,7 @@ CONTAINS
     buoy%clat = tlat
     buoy%clon = tlon
 
-    !RG: metric%ll_to_xy(tlat, tlon, x, y)
+    CALL xmetric%ll_to_xy(tlat, tlon, x, y)
     buoy%x = x
     buoy%y = y
 
@@ -77,11 +78,13 @@ CONTAINS
   END subroutine move
 
 !----------------------------------------------------------------
-SUBROUTINE run(buoys, nbuoy, u, v, dx, dy, nx, ny, dt, dtout)
+SUBROUTINE run(buoys, nbuoy, u, v, xmetric, dt, dtout)
+  USE metric_mod
   IMPLICIT none
 
-  INTEGER, intent(in) :: nbuoy, nx, ny
-  REAL, intent(in) :: u(nx, ny), v(nx, ny), dx(nx, ny), dy(nx, ny)
+  TYPE(metric), intent(in) :: xmetric
+  INTEGER, intent(in) :: nbuoy
+  REAL, intent(in) :: u(xmetric%nx, xmetric%ny), v(xmetric%nx, xmetric%ny)
   REAL, intent(in) :: dt, dtout
 
   TYPE(drifter), intent(inout) ::  buoys(nbuoy)
@@ -90,7 +93,7 @@ SUBROUTINE run(buoys, nbuoy, u, v, dx, dy, nx, ny, dt, dtout)
 
   DO k = 1, nbuoy
     !c-like (object-like) 
-    CALL buoys(k)%move(u, v, dx, dy, dt, nx, ny)
+    CALL buoys(k)%move(u, v, xmetric%dx, xmetric%dy, dt, xmetric%nx, xmetric%ny)
 
   ENDDO
 
