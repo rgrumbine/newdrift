@@ -2,6 +2,7 @@ PROGRAM newdrift
 
   USE drifter_mod
   USE io
+  USE metric_mod
 
   IMPLICIT none
 
@@ -27,6 +28,8 @@ PROGRAM newdrift
   REAL, allocatable  :: ulat(:,:), ulon(:,:)
   REAL, allocatable  :: dx(:,:), dy(:,:), rot(:,:)
   REAL, allocatable  :: dlatdi(:,:), dlondi(:,:), dlatdj(:,:), dlondj(:,:)
+  TYPE(metric) :: x
+
   REAL, allocatable  :: u(:,:), v(:,:)
   REAL, allocatable  :: aice(:,:)
 
@@ -73,7 +76,7 @@ PROGRAM newdrift
   PRINT *,'dt, nstep, outfreq = ',dt, nstep, outfreq
 
 ! Initialize input Forcing / velocities
-  CALL initialize_in(nvar, trim(fname), ncid, varid, nx, ny)
+  CALL initialize_in(nvar, trim(fname), ncid, varid, nx, ny, x)
 !debug: 
   PRINT *,"main ",nvar, trim(fname), ncid, varid, nx, ny
 

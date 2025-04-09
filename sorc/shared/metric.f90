@@ -8,9 +8,30 @@ MODULE metric_mod
       REAL, allocatable :: ulat(:,:), ulon(:,:)
       INTEGER nx, ny
     CONTAINS
-      PROCEDURE :: local_metric, local_cartesian, ll_to_xy, xy_to_ll
+      PROCEDURE :: set, local_metric, local_cartesian, ll_to_xy, xy_to_ll
     END TYPE metric
 CONTAINS
+
+SUBROUTINE set(this, nx, ny)
+  IMPLICIT none
+  INTEGER nx, ny
+  CLASS(metric) :: this
+
+  this%nx = nx
+  this%ny = ny
+
+  allocate(this%dx(nx, ny))
+  allocate(this%dy(nx, ny))
+  allocate(this%rot(nx, ny))
+  allocate(this%ulat(nx, ny))
+  allocate(this%ulon(nx, ny))
+  allocate(this%dlatdi(nx, ny))
+  allocate(this%dlatdj(nx, ny))
+  allocate(this%dlondi(nx, ny))
+  allocate(this%dlondj(nx, ny))
+
+  RETURN
+END SUBROUTINE set
 
 !lat, lon in degrees
 !dx, dy in meters

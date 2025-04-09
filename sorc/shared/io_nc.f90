@@ -1,17 +1,20 @@
 MODULE io
   USE netcdf
   USE drifter_mod
+  USE metric_mod
   PUBLIC
 
 CONTAINS
 
-SUBROUTINE initialize_in(nvar, fname, ncid, varid, nx, ny)
+SUBROUTINE initialize_in(nvar, fname, ncid, varid, nx, ny, xmetric)
+  USE metric_mod
   IMPLICIT none
 
   INTEGER ncid
   INTEGER, intent(in) :: nvar
   CHARACTER(*), intent(in) :: fname
   INTEGER, intent(out) :: nx, ny
+  TYPE(metric) :: xmetric
 
 ! Names from rtofs output
   CHARACTER(len=40) :: varnames(nvar)

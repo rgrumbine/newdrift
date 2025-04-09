@@ -1,5 +1,5 @@
 #Shared:
-SHARE = math.o drifter.o io_nc.o
+SHARE = math.o metric.o drifter.o io_nc.o
 
 #Offline:
 OBJ = $(SHARE) main.o initialize_drifter.o
