@@ -1,0 +1,15 @@
+
+Formatted to .nc by reformat_points.py
+-rw-r--r-- 1 robert.grumbine couple  37967 Nov  8 12:13 seaice_edge.nc
+-rw-r--r-- 1 robert.grumbine couple 118350 Oct  3  2023 seaice_edge.t00z.txt
+
+Formatted to .nc by reformat_points.py
+-rw-r--r-- 1 robert.grumbine couple   1087 Oct  3  2023 sidfex.txt
+-rw-r--r-- 1 robert.grumbine couple   6607 Nov  5 14:24 drift_ref.nc
+
+Skiles points plus 25 km-thinned RTOFS grid, built by thin.py
+-r--r--r-- 1 robert.grumbine couple 958335 Jan 31 19:49 out.nc
+
+Skiles points, text and .nc, format by reformat_points.py
+-rw-r--r-- 1 robert.grumbine couple   7038 Oct  3  2023 seaice_forecast.points
+-rw-r--r-- 1 robert.grumbine couple   8063 Oct  3  2023 skiles_pts.nc

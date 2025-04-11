@@ -1,8 +1,3 @@
-* Cases / Capabilities -----------------------------------------
-Deterministic run
-Ensemble blending
-Subroutine inside CICE
-
 ! classes -----------------------------------------
 base module for data
   module for rtofs_cice
@@ -11,31 +6,15 @@ base module for data
   module for cice_gx1
   module for gfs (also needs to compute ice velocity from wind)
 
-!Input ----------------------------------------------
-Read in old skiles points file
+! Input ----------------------------------------------
 read in initial locations (netcdf) and then 
   translate to native grid
   lat-lon --> ij
   ij --> lat-lon
-Thin to only those with aice != 0
 cook inlet point
-ice edge points
-thin by minimum separation (?)
-
-Read in ice/ocean/atm forcing info (e.g. cice_inst)
-
-
-!Output ----------------------------------------------
-output by day/hour of distance, direction, start/stop location
-Sidfex-compatible
-Offline, inline versions / capability
-Generating old-style output for GTS (.tran files)
-Making kml output
-
 
 !math ---------------------------------------------------
 Centroid.f90 -- for ensemble blending, augment w. uncertainty stats
-bearing/unbearing
 convert_bw, convert_wb
 wdir
 

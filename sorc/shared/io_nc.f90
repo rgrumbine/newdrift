@@ -1,17 +1,20 @@
 MODULE io
   USE netcdf
   USE drifter_mod
+  USE metric_mod
   PUBLIC
 
 CONTAINS
 
-SUBROUTINE initialize_in(nvar, fname, ncid, varid, nx, ny)
+SUBROUTINE initialize_in(nvar, fname, ncid, varid, nx, ny, xmetric)
+  USE metric_mod
   IMPLICIT none
 
   INTEGER ncid
   INTEGER, intent(in) :: nvar
   CHARACTER(*), intent(in) :: fname
   INTEGER, intent(out) :: nx, ny
+  TYPE(metric) :: xmetric
 
 ! Names from rtofs output
   CHARACTER(len=40) :: varnames(nvar)
@@ -20,7 +23,9 @@ SUBROUTINE initialize_in(nvar, fname, ncid, varid, nx, ny)
 ! For Netcdf processing
   INTEGER i
   INTEGER retcode
+  CHARACTER(len=50) :: xname, yname
 
+!debug:
   PRINT *,'entered initialize_in'
 !! This is the cice_inst variable set -- much more extensive
 !  varnames(1) = "TLON"
@@ -56,40 +61,55 @@ SUBROUTINE initialize_in(nvar, fname, ncid, varid, nx, ny)
   varnames(6) = "ice_uvelocity"
   varnames(7) = "ice_vvelocity"
   
-
+  PRINT *,'trying to open ',fname, len(fname)
   retcode = nf90_open(fname, NF90_NOWRITE, ncid)
   CALL check(retcode)
 
   DO i = 1, nvar
+    PRINT *,i,' reading varname ',varnames(i)
     retcode = nf90_inq_varid(ncid, varnames(i), varid(i))
     CALL check(retcode)
   ENDDO
+  PRINT *,'done reading varnames'
 
-  nx = 4500
-  ny = 3298
+  !RG: Read this in from netcdf file
+  !debug: nx = 4500
+  !debug: ny = 3298
+  xname = "X"
+  yname = "Y"
+  retcode = nf90_inquire_dimension(ncid, 3, xname, nx)
+  CALL check(retcode)
+  retcode = nf90_inquire_dimension(ncid, 2, yname, ny)
+  CALL check(retcode)
+
+  PRINT *,'leaving initialize_in', nx, ny
 
 RETURN
 END subroutine initialize_in
 
 !----------------------------------------------------------------
-SUBROUTINE initial_read(fname, drift_name, outname, nx, ny, nvar, ncid, varid, &
-                        allvars, ulon, ulat, dx, dy, rot, &
-                        outdimids, ncid_out, varid_out, nvar_out, nbuoy)
+SUBROUTINE initial_read(fname, outname, nx, ny, nvar, ncid, varid, &
+                        allvars, xmetric, outdimids, ncid_out, &
+                        varid_out, nvar_out, nbuoy)
 
   USE drifter_mod
+  USE metric_mod
   IMPLICIT none
 
   INTEGER, intent(in) :: nx, ny
-  CHARACTER(90), intent(in) :: fname, drift_name, outname
-  INTEGER :: nvar, ncid, varid(nvar)
+  CHARACTER(90), intent(in) :: fname, outname
+  INTEGER, intent(in)  :: nvar, nvar_out, ncid, varid(nvar)
   INTEGER, intent(out) :: outdimids(1)
-  INTEGER nvar_out, nbuoy
-  INTEGER ncid_out, ncid_drift
-  INTEGER varid_out(nvar_out), varid_driftic(nvar_out)
+  INTEGER, intent(out) :: ncid_out, varid_out(nvar_out)
+
+  INTEGER ncid_drift, nbuoy
+  INTEGER varid_driftic(nvar_out)
   
   REAL, intent(inout) :: allvars(nx, ny, nvar)
-  REAL, intent(inout) :: ulat(nx, ny), ulon(nx, ny)
-  REAL, intent(out)   :: dx(nx, ny), dy(nx, ny), rot(nx, ny)
+  TYPE(metric) :: xmetric
+!  REAL, intent(inout) :: ulat(nx, ny), ulon(nx, ny)
+!  REAL, intent(out)   :: dx(nx, ny), dy(nx, ny), rot(nx, ny)
+!  REAL, intent(out)   :: dlatdi(nx, ny), dlatdj(nx, ny), dlondi(nx, ny), dlondj(nx, ny)
 
 ! Locals:
 !  INTEGER i, j, k
@@ -98,28 +118,86 @@ SUBROUTINE initial_read(fname, drift_name, outname, nx, ny, nvar, ncid, varid, &
 
 ! Forcing / velocities
   !Get first set of data and construct the local metric for drifting
-  CALL read(nx, ny, nvar, ncid, varid, allvars)
+  CALL readin(nx, ny, nvar, ncid, varid, allvars)
 
 !cice_inst:
 !  ulat = allvars(:,:,4)
 !  ulon = allvars(:,:,3)
 !2ds_ice:
-  ulat = allvars(:,:,2)
-  ulon = allvars(:,:,1)
-  CALL local_metric(ulat, ulon, dx, dy, rot, nx, ny)
+  !old CALL local_metric(ulat, ulon, dx, dy, rot, nx, ny)
+  CALL xmetric%set(nx, ny)
+  xmetric%ulat = allvars(:,:,2)
+  xmetric%ulon = allvars(:,:,1)
+  CALL xmetric%local_metric()
 
-!  !----------- Initialize buoys, this should be a read in 
-!  CALL initialize_drifter(drift_name, ncid_drift, varid_driftin, nvar_out, buoys)
-  nbuoy = 89700
-!  CALL close_out(ncid_drift)
+
+!  !----------- Initialize buoys, this should be a read in -- separate function
 
 ! Initialize Output -- need definite sizes
   CALL initialize_out(outname, ncid_out, varid_out, nvar_out, nbuoy, outdimids)
 
 END SUBROUTINE initial_read
-
 !----------------------------------------------------------------
-SUBROUTINE read(nx, ny, nvars, ncid, varid, allvars)
+SUBROUTINE initialize_drifters(nvar_drift, drift_name, ncid_drift, varid_drift, nbuoy)
+  IMPLICIT none
+  INTEGER nvar_drift, ncid_drift, varid_drift(nvar_drift)
+  INTEGER nbuoy
+  CHARACTER(90) drift_name
+
+  INTEGER i, retcode
+  CHARACTER(50) varnames(nvar_drift), dimname
+
+  PRINT *,'entered drifter initialize'
+  varnames(1) = 'Initial_Latitude'
+  varnames(2) = 'Initial_Longitude'
+  dimname = 'nbuoy'
+
+  retcode = nf90_open(drift_name, NF90_NOWRITE, ncid_drift)
+  CALL check(retcode)
+
+  DO i = 1, nvar_drift
+    retcode = nf90_inq_varid(ncid_drift, varnames(i), varid_drift(i))
+    CALL check(retcode)
+  ENDDO
+
+  retcode = nf90_inquire_dimension(ncid_drift, 1, dimname, nbuoy)
+  CALL check(retcode)
+  PRINT *,'initialize -- nbuoy ', nbuoy
+
+  RETURN
+END SUBROUTINE initialize_drifters
+
+SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist, xmetric)
+  USE metric_mod
+  IMPLICIT none
+  INTEGER nvar_drift, ncid_drift, varid_drift(nvar_drift)
+  INTEGER nbuoy
+  CLASS(drifter) :: buoylist(nbuoy)
+  TYPE(metric)  :: xmetric
+
+  INTEGER i, retcode
+  REAL tlon(nbuoy), tlat(nbuoy)
+
+  PRINT *,' entered drifter read in'
+  PRINT *,ncid_drift, varid_drift
+  retcode = nf90_get_var(ncid_drift, varid_drift(1), tlat)
+  CALL check(retcode)
+  PRINT *,'lat ',MAXVAL(tlat), MINVAL(tlat)
+
+  retcode = nf90_get_var(ncid_drift, varid_drift(2), tlon)
+  CALL check(retcode)
+  PRINT *,'lon ',MAXVAL(tlon), MINVAL(tlon)
+
+  PRINT *,' about to create buoys '
+  DO i = 1, nbuoy
+    CALL buoylist(i)%init(tlon(i), tlat(i), xmetric)
+  ENDDO
+  
+  PRINT *,' leaving drifter read in'
+  RETURN
+END SUBROUTINE readin_drifters
+!----------------------------------------------------------------
+SUBROUTINE readin(nx, ny, nvars, ncid, varid, allvars)
   IMPLICIT none
   INTEGER, intent(in)    :: nvars
   INTEGER, intent(in)    :: nx, ny, ncid, varid(nvars)
@@ -198,10 +276,10 @@ END subroutine initialize_out
 SUBROUTINE outvars(ncid, varid, nvar, buoys, nbuoy)
   IMPLICIT none
 
-  INTEGER ncid, nvar
-  INTEGER varid(nvar)
-  INTEGER nbuoy
-  TYPE(drifter) :: buoys(nbuoy)
+  INTEGER, intent(in) :: ncid, nvar
+  INTEGER, intent(in) :: varid(nvar)
+  INTEGER, intent(in) :: nbuoy
+  TYPE(drifter), intent(in) :: buoys(nbuoy)
 
   INTEGER retcode
   REAL, allocatable :: var(:,:)
@@ -209,6 +287,11 @@ SUBROUTINE outvars(ncid, varid, nvar, buoys, nbuoy)
   REAL distance, bear
 
 !Note that netcdf dimensions are in C order, not fortran
+  PRINT *,'entered outvars'
+  IF (ALLOCATED(var)) THEN
+    PRINT *,'outvars deallocating var'
+    DEALLOCATE(var)
+  ENDIF
   ALLOCATE(var(nbuoy, nvar))
   distance = 0.
   bear = 0.
@@ -222,16 +305,22 @@ SUBROUTINE outvars(ncid, varid, nvar, buoys, nbuoy)
     var(k,5) = distance
     var(k,6) = bear
   ENDDO
+  PRINT *,'ilat ',MAXVAL(var(:,1))
+  PRINT *,'ilon ',MAXVAL(var(:,2))
+  PRINT *,'clat ',MAXVAL(var(:,3))
+  PRINT *,'clon ',MAXVAL(var(:,4))
+  PRINT *,'dist ',MAXVAL(var(:,5))
+  PRINT *,'bear ',MAXVAL(var(:,6))
+
 
   !RG: separate initial write -- just ilat, ilon, from later writes, clat, clon, distance, bear
   DO i = 1, nvar
-
     retcode = nf90_put_var(ncid, varid(i), var(:,i) )
     CALL check(retcode)
   ENDDO
 
   DEALLOCATE(var)
-
+  PRINT *,'leaving outvars'
   RETURN
 END subroutine outvars
 
@@ -249,7 +338,7 @@ END subroutine close_out
 
 !----------------------------------------------------------------
 ! Write out results -- drift distance and direction
-SUBROUTINE writeout(ncid_out, varid_out, nvar_out, buoys, nbuoy, close)
+SUBROUTINE writeout(ncid_out, varid_out, nvar_out, buoys, nbuoy, closeout)
   USE drifter_mod
 
   IMPLICIT none
@@ -258,12 +347,12 @@ SUBROUTINE writeout(ncid_out, varid_out, nvar_out, buoys, nbuoy, close)
   INTEGER, intent(in) ::  varid_out(nvar_out)
 
   TYPE(drifter) :: buoys(nbuoy)
-  LOGICAL, intent(in) :: close
+  LOGICAL, intent(in) :: closeout
 
-  CALL outvars(ncid_out, varid_out, nvar_out, buoys, nbuoy )
-
-  IF (close) THEN
+  IF (closeout) THEN
     CALL close_out(ncid_out)
+  ELSE
+    CALL outvars(ncid_out, varid_out, nvar_out, buoys, nbuoy )
   ENDIF
 
 END SUBROUTINE writeout

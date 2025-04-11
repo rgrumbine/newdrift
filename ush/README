@@ -1,0 +1,23 @@
+"""
+reformat_points.py: 
+
+Read in a text file of lat-lon points, optionally with names (for future)
+and write out a netcdf file with those as initial latitude-longitudes for
+lagrangean drift guidance
+
+Robert Grumbine
+26 July 2023
+
+"""
+
+"""
+format_grid.py:
+
+Read in the latitude and longitude from a 2ds_ice file from RTOFS
+and write out a netcdf file with a 25:1 thinned set of points
+
+Robert Grumbine
+5 Nov 2024
+
+"""
+

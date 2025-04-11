@@ -1,0 +1,41 @@
+ln -s mk.<platform> mk.this
+make
+-- update makeall.sh to do this, accept platform as argument
+
+
+n.b. the 'shared' files are referenced by mk.all
+
+-- update version numbers for modules
+
+
+-- platform-aware 'offline.sh', 'daily.sh' for tests
+-- able to run off 2ds files -- check which (ice, diag, prog)
+
+
+Offline, main:
+-- write out in netcdf dummy-buoys, read in for future runs
+-- avoid reserved words close, read
+
+Shared, IO:
+-- how to open so as to be able to write out multiple time steps
+-- check able to read in multiple steps
+n.b. the 2ds files are one per time step
+
+initialize_drifter:
+-- ll to ij computation
+
+drifter:
+-- sbr move
+
+math:
+-- local metric and finding u(lat,lon)
+-- grid rotation -- needed? -- CICE, RTOFS
+
+io:
+-- initialize_in -- read nx, ny from .nc file
+-- initialize_out -- set for multiple time levels
+
+
+zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
+1/28/2025: currently does not advance the positions
+
