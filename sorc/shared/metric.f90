@@ -8,7 +8,8 @@ MODULE metric_mod
       REAL, allocatable :: ulat(:,:), ulon(:,:)
       INTEGER nx, ny
     CONTAINS
-      PROCEDURE :: set, local_metric, local_cartesian, ll_to_xy, xy_to_ll
+      PROCEDURE :: set, local_metric, local_cartesian, ll_to_xy, ll_to_xy_brute
+      PROCEDURE :: xy_to_ll
     END TYPE metric
 CONTAINS
 
@@ -88,18 +89,166 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
   REAL, intent(in)    :: lat, lon
   REAL, intent(inout)   :: x, y
 
-  INTEGER :: AR2(2), AR1(2)
-  REAL dlon(this%nx, this%ny), dlat(this%nx, this%ny)
+  INTEGER :: iter, itmax, ii, ij
+  REAL toler, tlat, tlon, delta, dlat, dlon, fi, fj, dfi, dfj
+!  REAL wrap
 
-  dlon = ABS(this%ulon - lon)
-  dlat = ABS(this%ulat - lat)
-  AR1 = MINLOC(dlon)
-  AR2 = MINLOC(dlat)
-  PRINT *,'ar1 ar2 ',AR1, AR2
-  x = FLOAT(AR1(1))
-  y = FLOAT(AR1(2))
+  ! Use something like Newton method with starting point of middle of grid
+  itmax = 10
+  iter = 0
+  toler = 0.35
+
+  tlon = lon
+  fi = (tlon/360)*this%nx
+  if (fi <= 0.5) fi = 1
+  ii    = int(fi+0.5)
+  tlon = this%ulon(ii,ij)
+  if (tlon > 360. .or. tlon < 0) tlon = wrap(tlon)
+  dlon = lon - tlon
+
+  !fj = this%ny/2
+  tlat = lat
+  if (lat == 90) tlat = lat - 0.05
+  fj = (tlat+78.64)*this%ny/(90+78.64)
+  ij    = int(fj+0.5)
+  if (ij <= 0) THEN
+    fj = 1.
+    ij = 1
+  ENDIF
+  dlat = tlat - this%ulat(ii,ij)
+
+  WRITE (*,9002) fi, fj, dlat, dlon, tlat, lon, this%ulat(ii,ij), tlon
+ 9002 FORMAT('init ',8F10.3)
+
+  newton : do
+    iter = iter + 1
+    delta = (this%dlatdi(ii,ij)*this%dlondj(ii,ij) - this%dlatdj(ii,ij)*this%dlondi(ii,ij))
+    if (delta == 0) THEN
+      PRINT *,'delta == 0 ',delta
+      delta = 3.e-3
+!    else
+!      PRINT *,'delta != 0 ',delta
+    endif
+
+    dfi   = ((dlat*this%dlondj(ii,ij)) - (dlon*this%dlatdj(ii,ij)) ) / delta
+    dfj   = ((this%dlatdi(ii,ij)*dlon) - (dlat*this%dlondi(ii,ij)) ) / delta
+    fi    = fi + dfi
+    fj    = fj + dfj
+
+    ! keep fi, fj, inside (1,1),(nx,ny)
+    if (fi > this%nx) THEN
+      PRINT *,'fi > nx ',fi
+      fi = mod(fi, float(this%nx) )
+    endif
+    if (fi < 0) THEN
+      fi = fi + this%nx
+      PRINT *,'fi < 0',fi
+    endif
+    if (fi <= 0.5) THEN
+      fi = 1
+      PRINT *,'fi < 0.5'
+    endif
+
+    if (fj > this%ny) THEN
+      fj = 0.75*this%ny
+      PRINT *,'fj > ny'
+    endif
+    if (fj < 0) THEN
+      fj = 0.25*this%ny
+      PRINT *,'fj < 0'
+    endif
+    if (fj <= 0.5) THEN
+      fj = 1
+      PRINT *,'fj < 0.5'
+    endif
+    ii    = int(fi+0.5)
+    ij    = int(fj+0.5)
+
+    dlat = lat - this%ulat(ii,ij)
+    tlon = this%ulon(ii,ij)
+    if (tlon > 360. .or. tlon < 0) tlon = wrap(tlon)
+    dlon = lon - tlon
+
+    WRITE(*,9001) iter, dfi, dfj, fi, fj, dlat, dlon, lat, lon, this%ulat(ii,ij), tlon
+    IF (iter >= itmax .or. (abs(dlat) < toler .and. abs(dlon) < toler)) exit newton
+  end do newton
+ 9001 FORMAT(I3,6F10.3,4F10.3)
+
+  IF (iter .eq. itmax) THEN  ! need brute force or something to cross seam
+    WRITE(*,9004) iter, dfi, dfj, fi, fj, dlat, dlon, lat, lon, this%ulat(ii,ij), this%ulon(ii,ij)
+    CALL this%ll_to_xy_brute(lat, lon, fi, fj)
+    ii = int(fi+0.5)
+    ij = int(fj+0.5)
+    dfi = 0.
+    dfj = 0.
+    dlat = lat - this%ulat(ii,ij)
+    tlon = this%ulon(ii,ij)
+    if (tlon > 360. .or. tlon < 0) tlon = wrap(tlon)
+    dlon = lon - tlon
+    WRITE(*,9004) iter+1, dfi, dfj, fi, fj, dlat, dlon, lat, lon, this%ulat(ii,ij), this%ulon(ii,ij)
+  ENDIF
+ 9004 FORMAT('itmax ',I3,6F10.3,4F10.3)
+
+    WRITE(*,9003) iter, dfi, dfj, fi, fj, dlat, dlon, lat, lon, this%ulat(ii,ij), this%ulon(ii,ij)
+ 9003 FORMAT('final ',I3,6F10.3,4F10.3)
+
+  ! x,y = i,j (floating) of floe
+  x = fi
+  y = fj
   RETURN
 END SUBROUTINE ll_to_xy 
+SUBROUTINE ll_to_xy_brute(this, lat, lon, fi, fj)
+  CLASS(metric), intent(in) :: this
+  REAL, intent(in)    :: lat, lon
+  REAL, intent(inout) :: fi, fj
+  INTEGER i,j, bi, bj 
+  REAL dlat, dlon, tlon, dlonbest, dlatbest, dbest
+
+  PRINT *,'entered brute'
+  dlonbest = 999.
+  dlatbest = 999.
+  dbest = dlatbest**2 + dlonbest**2
+  bi = 1
+  bj = 1
+  DO j = 1, this%ny
+  DO i = 1, this%nx
+    dlat = lat - this%ulat(i,j)
+    tlon = this%ulon(i,j)
+    if (tlon > 360. .or. tlon < 0.) tlon = wrap(tlon)
+    dlon = lon - tlon
+    !if (abs(dlat) <= dlatbest .and. abs(dlon) <= dlonbest) then
+    if ((dlat*dlat + dlon*dlon) < dbest) THEN
+      bi = i
+      bj = j
+      !dlatbest = abs(dlat)
+      !dlonbest = abs(dlon)
+      dbest = (dlat*dlat + dlon*dlon)
+    endif
+  END DO 
+  END DO 
+  fi = bi
+  fj = bj
+  PRINT *,'dlatbest, dlonbest ',dlatbest, dlonbest
+
+  RETURN
+END SUBROUTINE ll_to_xy_brute
+
+
+REAL FUNCTION wrap(y)
+  IMPLICIT none
+!  CLASS(metric), intent(in) :: this
+  REAL, intent(in) :: y
+  REAL x
+  x = y
+  !PRINT *,'wrapping ',x
+  IF (x > 360.) x = x - 360.
+  IF (x > 360.) x = x - 360.
+  IF (x > 360.) x = x - 360.
+  IF (x < 0) x = x + 360.
+  !PRINT *,' -- to ',x
+  wrap = x
+  RETURN 
+END FUNCTION wrap
 
 SUBROUTINE xy_to_ll(this, lat, lon, x, y)
 
@@ -108,16 +257,6 @@ SUBROUTINE xy_to_ll(this, lat, lon, x, y)
   REAL, intent(in)    :: lat, lon
   REAL, intent(inout)   :: x, y
 
-  INTEGER :: AR2(2), AR1(2)
-  REAL dlon(this%nx, this%ny), dlat(this%nx, this%ny)
-
-  dlon = ABS(this%ulon - lon)
-  dlat = ABS(this%ulat - lat)
-  AR1 = MINLOC(dlon)
-  AR2 = MINLOC(dlat)
-  PRINT *,'ar1 ar2 ',AR1, AR2
-  x = FLOAT(AR1(1))
-  y = FLOAT(AR1(2))
   RETURN
 END SUBROUTINE xy_to_ll 
 
