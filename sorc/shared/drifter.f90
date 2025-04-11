@@ -20,9 +20,9 @@ CONTAINS
     USE metric_mod
     IMPLICIT none
     REAL, intent(in) :: tlon, tlat
-    TYPE(metric) :: xmetric
-    REAL x, y
+    TYPE(metric), intent(in) :: xmetric
     CLASS(drifter), intent(inout) :: buoy
+    REAL x, y
 
     buoy%ilat = tlat
     buoy%ilon = tlon
@@ -32,6 +32,8 @@ CONTAINS
     CALL xmetric%ll_to_xy(tlat, tlon, x, y)
     buoy%x = x
     buoy%y = y
+    !debug: WRITE(*,9001) tlat, tlon, x, y
+ 9001 FORMAT(4F10.3)
 
     RETURN
   END SUBROUTINE init
@@ -48,31 +50,41 @@ CONTAINS
     RETURN
   END SUBROUTINE zero 
 
-  SUBROUTINE move(buoy, u, v, dx, dy, dt, nx, ny)
+  SUBROUTINE move(buoy, u, v, xmetric, dt)
 !note dx, dy are the mesh variables
+    USE metric_mod
     IMPLICIT none
 
     CLASS(drifter), intent(inout) :: buoy
-    INTEGER, intent(in) :: nx, ny
-    REAL, intent(in) ::  u(nx, ny), v(nx, ny)
-    REAL, intent(in) :: dx(nx, ny), dy(nx, ny)
+    TYPE(metric), intent(in) :: xmetric
+    !INTEGER, intent(in) :: nx, ny
+    !REAL, intent(in) :: dx(nx, ny), dy(nx, ny)
+    REAL, intent(in) ::  u(xmetric%nx, xmetric%ny), v(xmetric%nx, xmetric%ny)
     REAL, intent(in) :: dt
 
-    REAL deltax, deltay
+    REAL tu, tv, deltax, deltay
     INTEGER ti, tj
 
     ti = NINT(buoy%x)
     tj = NINT(buoy%y)
+    tu = u(ti, tj)
+    tv = v(ti, tj)
+    !flag values
+    if (tu > 1.e30 .or. tv > 1.e30) RETURN
+
     !RG:  These could be interpolated (bilinear, ...)
-    deltax = u(ti, tj) * dt
-    deltay = v(ti, tj) * dt
+    deltax = tu * dt
+    deltay = tv * dt
 
-!where deltax < dx, deltax > -x-int(x):
-    !IF (deltax < dx) THEN               !note, deltas could be negative
-    buoy%x = buoy%x + deltax/dx(ti, tj)
-
-!where deltay < dy:
-    buoy%y = buoy%y + deltay/dy(ti, tj)
+    !RG: beware of seams
+    !RG: beware of running outside (1,1),(nx,ny)
+    buoy%x = buoy%x + deltax/xmetric%dx(ti, tj)
+    buoy%y = buoy%y + deltay/xmetric%dy(ti, tj)
+    ti = NINT(buoy%x)
+    tj = NINT(buoy%y)
+    buoy%clat = xmetric%ulat(ti, tj)
+    buoy%clon = xmetric%ulon(ti, tj) 
+    !debug: PRINT *,'move ',buoy%x, buoy%y
 
   RETURN
   END subroutine move
@@ -93,8 +105,7 @@ SUBROUTINE run(buoys, nbuoy, u, v, xmetric, dt, dtout)
 
   DO k = 1, nbuoy
     !c-like (object-like) 
-    CALL buoys(k)%move(u, v, xmetric%dx, xmetric%dy, dt, xmetric%nx, xmetric%ny)
-
+    CALL buoys(k)%move(u, v, xmetric, dt)
   ENDDO
 
 END SUBROUTINE run

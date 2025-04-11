@@ -191,7 +191,6 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
   PRINT *,' about to create buoys '
   DO i = 1, nbuoy
     CALL buoylist(i)%init(tlon(i), tlat(i), xmetric)
-    PRINT *,i, buoylist(i)%ilat, buoylist(i)%ilon, buoylist(i)%x, buoylist(i)%y
   ENDDO
   
   PRINT *,' leaving drifter read in'
@@ -277,10 +276,10 @@ END subroutine initialize_out
 SUBROUTINE outvars(ncid, varid, nvar, buoys, nbuoy)
   IMPLICIT none
 
-  INTEGER ncid, nvar
-  INTEGER varid(nvar)
-  INTEGER nbuoy
-  TYPE(drifter) :: buoys(nbuoy)
+  INTEGER, intent(in) :: ncid, nvar
+  INTEGER, intent(in) :: varid(nvar)
+  INTEGER, intent(in) :: nbuoy
+  TYPE(drifter), intent(in) :: buoys(nbuoy)
 
   INTEGER retcode
   REAL, allocatable :: var(:,:)
@@ -290,6 +289,7 @@ SUBROUTINE outvars(ncid, varid, nvar, buoys, nbuoy)
 !Note that netcdf dimensions are in C order, not fortran
   PRINT *,'entered outvars'
   IF (ALLOCATED(var)) THEN
+    PRINT *,'outvars deallocating var'
     DEALLOCATE(var)
   ENDIF
   ALLOCATE(var(nbuoy, nvar))
@@ -305,6 +305,13 @@ SUBROUTINE outvars(ncid, varid, nvar, buoys, nbuoy)
     var(k,5) = distance
     var(k,6) = bear
   ENDDO
+  PRINT *,'ilat ',MAXVAL(var(:,1))
+  PRINT *,'ilon ',MAXVAL(var(:,2))
+  PRINT *,'clat ',MAXVAL(var(:,3))
+  PRINT *,'clon ',MAXVAL(var(:,4))
+  PRINT *,'dist ',MAXVAL(var(:,5))
+  PRINT *,'bear ',MAXVAL(var(:,6))
+
 
   !RG: separate initial write -- just ilat, ilon, from later writes, clat, clon, distance, bear
   DO i = 1, nvar

@@ -22,10 +22,9 @@ PROGRAM newdrift
   REAL dt, dtout
   INTEGER outfreq
 
-  REAL, allocatable :: allvars(:,:,:)
-
   TYPE(metric) :: xmetric
 
+  REAL, allocatable  :: allvars(:,:,:)
   REAL, allocatable  :: u(:,:), v(:,:)
   REAL, allocatable  :: aice(:,:)
 
@@ -36,7 +35,8 @@ PROGRAM newdrift
 
 !For drifter 
   CLASS(drifter), allocatable :: buoys(:)
-  INTEGER nbuoys, ngood, nactual
+  REAL, allocatable :: buoytest(:,:)
+  INTEGER nbuoys
   CHARACTER(900) drift_name
 
 ! Read from .nc file (or argument to main)
@@ -49,20 +49,20 @@ PROGRAM newdrift
 ! -- Begin main for offline ----
   READ (*,*) tmp
   fname = trim(tmp)
-  PRINT *,"name of file to get inputs from",fname
+  !debug: PRINT *,"name of file to get inputs from",fname
 !debug:  STOP
 
   OPEN(10, FILE=fname, FORM='FORMATTED', STATUS='OLD')
 
   READ (10,*) tmp2
   fname = trim(tmp2)
-  PRINT *,fname,len(fname), len(trim(tmp2))
+  !debug: PRINT *,fname,len(fname), len(trim(tmp2))
   READ (10,*) tmp2
   drift_name = trim(tmp2)
-  PRINT *,drift_name,len(drift_name)
+  !debug: PRINT *,drift_name,len(drift_name)
   READ (10,*) tmp
   outname = trim(tmp)
-  PRINT *,outname
+  !debug: PRINT *,outname
   !debug: PRINT *,fname, drift_name, outname
 
 ! Read in run parameters:
@@ -80,7 +80,7 @@ PROGRAM newdrift
   PRINT *,'calling initialize_drifters'
   CALL initialize_drifters(nvar_drift, drift_name, ncid_drift, varid_drift, nbuoys)
   ALLOCATE(buoys(nbuoys))
-  PRINT *,'back from initialize_drifters'
+  PRINT *,'back from initialize_drifters, nbuoys = ',nbuoys
 
 ! Initialize Output -- need definite sizes
   PRINT *,'allocating input variables'
@@ -96,7 +96,8 @@ PROGRAM newdrift
   PRINT *,'initial read results'
   PRINT *,trim(fname), drift_name, outname, nx, ny, nvar, ncid, varid
   PRINT *,MAXVAL(xmetric%ulon), MAXVAL(xmetric%ulat), MAXVAL(xmetric%dx), MAXVAL(xmetric%dy)
-  PRINT *,dimids, ncid_out, varid_out, nvar_out, nbuoys
+  PRINT *,dimids, ncid_out, varid_out, nvar_out
+  PRINT *,'nbuoys = ', nbuoys
 
 !cice_inst:
 !  aice = allvars(:,:,8)
@@ -114,31 +115,38 @@ PROGRAM newdrift
   PRINT *,"v",MAXVAL(v), MINVAL(v)
 
   CALL readin_drifters(nbuoys, nvar_drift, ncid_drift, varid_drift, buoys, xmetric)
+  PRINT *,'nbuoys after readin_drifters',nbuoys
 
-  !debug
-  STOP
+  !debug STOP
 !---------------------------------------------------------
 ! RUN
-! run(buoys, u, v, dx, dy, dt, nx, ny, nstep, nvar, ncid, varid, allvars)
 
-  closeout = .FALSE.
+  !debug: !Try immediate write and close
+  !debug: closeout = .FALSE.
+  !debug: CALL writeout(ncid_out, varid_out, nvar_out, buoys, nbuoys, closeout)
+  !debug: closeout = .TRUE.
+  !debug: CALL writeout(ncid_out, varid_out, nvar_out, buoys, nbuoys, closeout)
+  !debug: STOP
 
 ! First time step (u,v, etc. in hand):
-  CALL run(buoys, nactual, u, v, xmetric, dt, dtout)
-  CALL writeout(ncid_out, varid_out, nvar_out, buoys, nactual, closeout)
+  CALL run(buoys, nbuoys, u, v, xmetric, dt, dtout)
+  CALL writeout(ncid_out, varid_out, nvar_out, buoys, nbuoys, closeout)
+  closeout = .TRUE.
+  CALL writeout(ncid_out, varid_out, nvar_out, buoys, nbuoys, closeout)
+  STOP
 
 ! Iterate as needed:
   DO n = 2, nstep
     CALL readin(nx, ny, nvar, ncid, varid, allvars)
     u = allvars(:,:,6)
     v = allvars(:,:,7)
-    CALL run(buoys, nactual, u, v, xmetric, dt, dtout)
-    CALL writeout(ncid_out, varid_out, nvar_out, buoys, nactual, closeout)
+    CALL run(buoys, nbuoys, u, v, xmetric, dt, dtout)
+    CALL writeout(ncid_out, varid_out, nvar_out, buoys, nbuoys, closeout)
   ENDDO
+  closeout = .TRUE.
+  CALL writeout(ncid_out, varid_out, nvar_out, buoys, nbuoys, closeout)
 
 !----------------------------------------------------------------
 ! WRITE Write out results -- drift distance and direction
-  closeout = .TRUE.
-  CALL writeout(ncid_out, varid_out, nvar_out, buoys, nactual, closeout)
 
 END program newdrift

@@ -91,12 +91,14 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
 
   INTEGER :: iter, itmax, ii, ij
   REAL toler, tlat, tlon, delta, dlat, dlon, fi, fj, dfi, dfj
+  REAL ratio
 !  REAL wrap
 
 ! Use something like Newton method with starting point as if grid were linear
   itmax = 200
   iter  = 0
   toler = 0.05 ! degrees
+  ratio = 1.
 
   tlon = lon
   fi = (tlon/360)*this%nx
@@ -130,8 +132,8 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
 !debug: !      PRINT *,'delta != 0 ',delta
     endif
 
-    dfi   = ((dlat*this%dlondj(ii,ij)) - (dlon*this%dlatdj(ii,ij)) ) / delta
-    dfj   = ((this%dlatdi(ii,ij)*dlon) - (dlat*this%dlondi(ii,ij)) ) / delta
+    dfi   = ratio * ((dlat*this%dlondj(ii,ij)) - (dlon*this%dlatdj(ii,ij)) ) / delta
+    dfj   = ratio * ((this%dlatdi(ii,ij)*dlon) - (dlat*this%dlondi(ii,ij)) ) / delta
     fi    = fi + dfi
     fj    = fj + dfj
 
@@ -170,6 +172,11 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
     dlon = lon - tlon
 
 !debug:     WRITE(*,9001) iter, dfi, dfj, fi, fj, dlat, dlon, lat, lon, this%ulat(ii,ij), tlon
+    IF (iter > 100 ) THEN
+      ratio = 0.25
+    ELSE IF (iter > 20) THEN
+      ratio = 0.5
+    ENDIF
     IF (iter >= itmax .or. (abs(dlat) < toler .and. abs(dlon) < toler)) exit newton
   end do newton
  9001 FORMAT(I3,6F10.3,4F10.3)
@@ -185,11 +192,11 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
     tlon = this%ulon(ii,ij)
     if (tlon > 360. .or. tlon < 0) tlon = wrap(tlon)
     dlon = lon - tlon
-    WRITE(*,9004) iter+1, dfi, dfj, fi, fj, dlat, dlon, lat, lon, this%ulat(ii,ij), this%ulon(ii,ij)
+    !debug: WRITE(*,9004) iter+1, dfi, dfj, fi, fj, dlat, dlon, lat, lon, this%ulat(ii,ij), this%ulon(ii,ij)
   ENDIF
  9004 FORMAT('itmax ',I3,6F10.3,4F10.3)
 
-    WRITE(*,9003) iter, dfi, dfj, fi, fj, dlat, dlon, lat, lon, this%ulat(ii,ij), this%ulon(ii,ij)
+    !debug: WRITE(*,9003) iter, dfi, dfj, fi, fj, dlat, dlon, lat, lon, this%ulat(ii,ij), this%ulon(ii,ij)
  9003 FORMAT('final ',I3,6F10.3,4F10.3)
 
   ! x,y = i,j (floating) of floe
