@@ -93,10 +93,10 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
   REAL toler, tlat, tlon, delta, dlat, dlon, fi, fj, dfi, dfj
 !  REAL wrap
 
-  ! Use something like Newton method with starting point of middle of grid
-  itmax = 10
-  iter = 0
-  toler = 0.35
+! Use something like Newton method with starting point as if grid were linear
+  itmax = 200
+  iter  = 0
+  toler = 0.05 ! degrees
 
   tlon = lon
   fi = (tlon/360)*this%nx
@@ -117,17 +117,17 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
   ENDIF
   dlat = tlat - this%ulat(ii,ij)
 
-  WRITE (*,9002) fi, fj, dlat, dlon, tlat, lon, this%ulat(ii,ij), tlon
- 9002 FORMAT('init ',8F10.3)
+!debug:   WRITE (*,9002) fi, fj, dlat, dlon, tlat, lon, this%ulat(ii,ij), tlon
+!debug:  9002 FORMAT('init ',8F10.3)
 
   newton : do
     iter = iter + 1
     delta = (this%dlatdi(ii,ij)*this%dlondj(ii,ij) - this%dlatdj(ii,ij)*this%dlondi(ii,ij))
     if (delta == 0) THEN
-      PRINT *,'delta == 0 ',delta
+      !debug: PRINT *,'delta == 0 ',delta
       delta = 3.e-3
-!    else
-!      PRINT *,'delta != 0 ',delta
+!debug: !    else
+!debug: !      PRINT *,'delta != 0 ',delta
     endif
 
     dfi   = ((dlat*this%dlondj(ii,ij)) - (dlon*this%dlatdj(ii,ij)) ) / delta
@@ -137,29 +137,29 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
 
     ! keep fi, fj, inside (1,1),(nx,ny)
     if (fi > this%nx) THEN
-      PRINT *,'fi > nx ',fi
+      !debug: PRINT *,'fi > nx ',fi
       fi = mod(fi, float(this%nx) )
     endif
     if (fi < 0) THEN
       fi = fi + this%nx
-      PRINT *,'fi < 0',fi
+      !debug: PRINT *,'fi < 0',fi
     endif
     if (fi <= 0.5) THEN
       fi = 1
-      PRINT *,'fi < 0.5'
+      !debug: PRINT *,'fi < 0.5'
     endif
 
     if (fj > this%ny) THEN
       fj = 0.75*this%ny
-      PRINT *,'fj > ny'
+      !debug: PRINT *,'fj > ny'
     endif
     if (fj < 0) THEN
       fj = 0.25*this%ny
-      PRINT *,'fj < 0'
+      !debug: PRINT *,'fj < 0'
     endif
     if (fj <= 0.5) THEN
       fj = 1
-      PRINT *,'fj < 0.5'
+      !debug: PRINT *,'fj < 0.5'
     endif
     ii    = int(fi+0.5)
     ij    = int(fj+0.5)
@@ -169,13 +169,13 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
     if (tlon > 360. .or. tlon < 0) tlon = wrap(tlon)
     dlon = lon - tlon
 
-    WRITE(*,9001) iter, dfi, dfj, fi, fj, dlat, dlon, lat, lon, this%ulat(ii,ij), tlon
+!debug:     WRITE(*,9001) iter, dfi, dfj, fi, fj, dlat, dlon, lat, lon, this%ulat(ii,ij), tlon
     IF (iter >= itmax .or. (abs(dlat) < toler .and. abs(dlon) < toler)) exit newton
   end do newton
  9001 FORMAT(I3,6F10.3,4F10.3)
 
   IF (iter .eq. itmax) THEN  ! need brute force or something to cross seam
-    WRITE(*,9004) iter, dfi, dfj, fi, fj, dlat, dlon, lat, lon, this%ulat(ii,ij), this%ulon(ii,ij)
+    !debug: WRITE(*,9004) iter, dfi, dfj, fi, fj, dlat, dlon, lat, lon, this%ulat(ii,ij), this%ulon(ii,ij)
     CALL this%ll_to_xy_brute(lat, lon, fi, fj)
     ii = int(fi+0.5)
     ij = int(fj+0.5)
@@ -202,12 +202,12 @@ SUBROUTINE ll_to_xy_brute(this, lat, lon, fi, fj)
   REAL, intent(in)    :: lat, lon
   REAL, intent(inout) :: fi, fj
   INTEGER i,j, bi, bj 
-  REAL dlat, dlon, tlon, dlonbest, dlatbest, dbest
-
-  PRINT *,'entered brute'
-  dlonbest = 999.
-  dlatbest = 999.
-  dbest = dlatbest**2 + dlonbest**2
+  REAL dlat, dlon, tlon, dbest
+!RG: This is very slow. The newton search fails (mostly) because of the tripolar seam.
+!       should be able to take advantage of that. Lats > 45.
+!    Sometimes also encounter difficulty along 0 E 
+  !debug: PRINT *,'entered brute'
+  dbest = 999.
   bi = 1
   bj = 1
   DO j = 1, this%ny
@@ -216,19 +216,16 @@ SUBROUTINE ll_to_xy_brute(this, lat, lon, fi, fj)
     tlon = this%ulon(i,j)
     if (tlon > 360. .or. tlon < 0.) tlon = wrap(tlon)
     dlon = lon - tlon
-    !if (abs(dlat) <= dlatbest .and. abs(dlon) <= dlonbest) then
     if ((dlat*dlat + dlon*dlon) < dbest) THEN
       bi = i
       bj = j
-      !dlatbest = abs(dlat)
-      !dlonbest = abs(dlon)
       dbest = (dlat*dlat + dlon*dlon)
     endif
   END DO 
   END DO 
   fi = bi
   fj = bj
-  PRINT *,'dlatbest, dlonbest ',dlatbest, dlonbest
+  !debug: PRINT *,'dbest ',dbest
 
   RETURN
 END SUBROUTINE ll_to_xy_brute
@@ -236,16 +233,15 @@ END SUBROUTINE ll_to_xy_brute
 
 REAL FUNCTION wrap(y)
   IMPLICIT none
-!  CLASS(metric), intent(in) :: this
   REAL, intent(in) :: y
   REAL x
+  
   x = y
-  !PRINT *,'wrapping ',x
   IF (x > 360.) x = x - 360.
   IF (x > 360.) x = x - 360.
   IF (x > 360.) x = x - 360.
   IF (x < 0) x = x + 360.
-  !PRINT *,' -- to ',x
+  
   wrap = x
   RETURN 
 END FUNCTION wrap
