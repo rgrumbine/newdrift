@@ -110,6 +110,7 @@ PROGRAM newdrift
   v    = allvars(:,:,7)
 
   CALL readin_drifters(nbuoys, nvar_drift, ncid_drift, varid_drift, buoys, xmetric, restart)
+  !debug: STOP
 !---------------------------------------------------------
 ! RUN
 

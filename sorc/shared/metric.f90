@@ -104,11 +104,7 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
   fi = (tlon/360)*this%nx
   if (fi <= 0.5) fi = 1
   ii    = int(fi+0.5)
-  tlon = this%ulon(ii,ij)
-  if (tlon > 360. .or. tlon < 0) tlon = wrap(tlon)
-  dlon = lon - tlon
 
-  !fj = this%ny/2
   tlat = lat
   if (lat == 90) tlat = lat - 0.05
   fj = (tlat+78.64)*this%ny/(90+78.64)
@@ -117,10 +113,16 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
     fj = 1.
     ij = 1
   ENDIF
+
   dlat = tlat - this%ulat(ii,ij)
+  tlon = this%ulon(ii,ij)
+  if (tlon > 360. .or. tlon < 0) tlon = wrap(tlon)
+  dlon = lon - tlon
+
 
 !debug:   WRITE (*,9002) fi, fj, dlat, dlon, tlat, lon, this%ulat(ii,ij), tlon
-!debug:  9002 FORMAT('init ',8F10.3)
+!debug:  
+  9002 FORMAT('init ',8F10.3)
 
   newton : do
     iter = iter + 1
@@ -173,6 +175,8 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
 
 !debug:     WRITE(*,9001) iter, dfi, dfj, fi, fj, dlat, dlon, lat, lon, this%ulat(ii,ij), tlon
     IF (iter > 100 ) THEN
+      ratio = 0.125
+    ELSE IF (iter > 50 ) THEN
       ratio = 0.25
     ELSE IF (iter > 20) THEN
       ratio = 0.5
@@ -214,6 +218,7 @@ SUBROUTINE ll_to_xy_brute(this, lat, lon, fi, fj)
 !       should be able to take advantage of that. Lats > 45.
 !    Sometimes also encounter difficulty along 0 E 
   !debug: PRINT *,'entered brute'
+  PRINT *,'brute ',lat,lon
   dbest = 999.
   bi = 1
   bj = 1

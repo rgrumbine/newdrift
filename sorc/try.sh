@@ -13,6 +13,8 @@
 #drift_in -- file with full 6 values drifters, set to -99 for i,j,clat, clon
 #  at readin/initialize, set i,j and clat/clon = ilat/ilon
 module load intel netcdf
+module load prod_envir wgrib2
+module list
 
 cd $HOME/rgdev/newdrift/sorc/
 
@@ -25,19 +27,19 @@ cp ../fix/merged.nc drift_in.nc
 #macos: base=/Volumes/Data/rtofs/
 #hera: base=$HOME/clim_data/rtofs/rtofs.20241101/
 #wcoss2:
-base=$HOME/noscrub/model_intercompare/rtofs_cice/rtofs.20250405/
+base=$HOME/noscrub/model_intercompare/rtofs_cice/rtofs.20250408/
 
 hhh=000
 #cp drift_f048.nc drift_in.nc
 #hhh=049
-#while [ $hhh -le 192 ] 
 #while [ $hhh -le 024 ] 
+#while [ $hhh -le 000 ] 
 while [ $hhh -le 192 ] 
 do
   fname=rtofs_glo_2ds_f${hhh}_ice.nc
 
   echo \'${base}/$fname\' > runin 
-  echo \'drift_in.nc\' >> runin
+  echo \'drift_in.nc\'   >> runin
   echo \'out_${hhh}.nc\' >> runin
   if [ $hhh -lt 72 ] ; then
     export dt=1
@@ -46,8 +48,8 @@ do
   fi
   dtsec=`expr $dt \* 3600 `
   echo $dtsec >> runin 
-  echo 1   >> runin
-  echo 1   >> runin
+  echo 1      >> runin
+  echo 1      >> runin
   if [ $hhh -eq 000 ] ; then
     echo .FALSE. >> runin
   else
