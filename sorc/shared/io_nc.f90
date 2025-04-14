@@ -155,15 +155,17 @@ SUBROUTINE initialize_drifters(nvar_drift, drift_name, ncid_drift, varid_drift, 
 
   IF (restart) THEN
     PRINT *,'running from warm start'
-    varnames(1) = 'Final_Latitude'
-    varnames(2) = 'Final_Longitude'
+    varnames(1) = 'Initial_Latitude'
+    varnames(2) = 'Initial_Longitude'
+    varnames(3) = 'Final_Latitude'
+    varnames(4) = 'Final_Longitude'
   ELSE
     PRINT *,'running from cold start'
     varnames(1) = 'Initial_Latitude'
     varnames(2) = 'Initial_Longitude'
   ENDIF
 
-  DO i = 1,2
+  DO i = 1, nvar_drift
     retcode = nf90_inq_varid(ncid_drift, varnames(i), varid_drift(i))
     CALL check(retcode)
   ENDDO
@@ -186,6 +188,7 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
 
   INTEGER i, retcode
   REAL tlon(nbuoy), tlat(nbuoy)
+  REAL clon(nbuoy), clat(nbuoy)
 
   !debug: PRINT *,' entered drifter read in'
   !debug: PRINT *,ncid_drift, varid_drift
@@ -197,9 +200,21 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
   CALL check(retcode)
   PRINT *,'lon ',MAXVAL(tlon), MINVAL(tlon)
 
+  IF (.not. restart) THEN
+    clat = tlat
+    clon = tlon
+  ELSE
+    retcode = nf90_get_var(ncid_drift, varid_drift(3), clat)
+    CALL check(retcode)
+    PRINT *,'lat ',MAXVAL(clat), MINVAL(clat)
+    retcode = nf90_get_var(ncid_drift, varid_drift(4), clon)
+    CALL check(retcode)
+    PRINT *,'lon ',MAXVAL(clon), MINVAL(clon)
+  ENDIF
+
   !debug: PRINT *,' about to create buoys '
   DO i = 1, nbuoy
-    CALL buoylist(i)%init(tlon(i), tlat(i), xmetric)
+    CALL buoylist(i)%init(tlon(i), tlat(i), clon(i), clat(i), xmetric)
   ENDDO
   
   !debug: PRINT *,' leaving drifter read in'

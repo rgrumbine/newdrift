@@ -16,23 +16,22 @@ MODULE drifter_mod
 
 
 CONTAINS
-  SUBROUTINE init(buoy, tlon, tlat, xmetric)
+  SUBROUTINE init(buoy, tlon, tlat, clon, clat, xmetric)
     USE metric_mod
     IMPLICIT none
-    REAL, intent(in) :: tlon, tlat
+    REAL, intent(in) :: tlon, tlat, clon, clat
     TYPE(metric), intent(in) :: xmetric
     CLASS(drifter), intent(inout) :: buoy
     REAL x, y
 
     buoy%ilat = tlat
     buoy%ilon = tlon
-    buoy%clat = tlat
-    buoy%clon = tlon
+    buoy%clat = clat
+    buoy%clon = clon
 
-    CALL xmetric%ll_to_xy(tlat, tlon, x, y)
+    CALL xmetric%ll_to_xy(clat, clon, x, y)
     buoy%x = x
     buoy%y = y
-    !debug: WRITE(*,9001) tlat, tlon, x, y
  9001 FORMAT(4F10.3)
 
     RETURN

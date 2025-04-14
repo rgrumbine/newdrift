@@ -19,9 +19,11 @@ cp ../fix/merged.nc drift_in.nc
 base=$HOME/noscrub/model_intercompare/rtofs_cice/rtofs.20250405/
 
 hhh=000
+cp drift_f023.nc drift_in.nc
+hhh=024
 #while [ $hhh -le 192 ] 
 #while [ $hhh -le 024 ] 
-while [ $hhh -le 001 ] 
+while [ $hhh -le 024 ] 
 do
   fname=rtofs_glo_2ds_f${hhh}_ice.nc
 
@@ -37,7 +39,11 @@ do
   echo $dtsec >> runin 
   echo 1   >> runin
   echo 1   >> runin
-  echo .FALSE. >> runin
+  if [ $hhh -eq 000 ] ; then
+    echo .FALSE. >> runin
+  else
+    echo .TRUE. >> runin
+  fi
   echo runin | time ./drifter 
 
   cp out_${hhh}.nc drift_f${hhh}.nc

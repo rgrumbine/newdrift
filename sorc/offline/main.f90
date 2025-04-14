@@ -11,11 +11,12 @@ PROGRAM newdrift
   !cice_inst: PARAMETER (nvar = 24)
   PARAMETER (nvar = 7)
   PARAMETER (nvar_out = 6)
-  PARAMETER (nvar_drift = 2)
   INTEGER ncid, varid(nvar)
   INTEGER ncid_out, ncid_drift
 
-  INTEGER varid_out(nvar_out), varid_drift(nvar_drift)
+  INTEGER varid_out(nvar_out)
+  
+  INTEGER, allocatable :: varid_drift(:)
   INTEGER dimids(1)
   
 ! Read from input (or argument to main)
@@ -49,21 +50,14 @@ PROGRAM newdrift
 ! -- Begin main for offline ----
   READ (*,*) tmp
   fname = trim(tmp)
-  !debug: PRINT *,"name of file to get inputs from",fname
-!debug:  STOP
-
   OPEN(10, FILE=fname, FORM='FORMATTED', STATUS='OLD')
 
   READ (10,*) tmp2
   fname = trim(tmp2)
-  !debug: PRINT *,fname,len(fname), len(trim(tmp2))
   READ (10,*) tmp2
   drift_name = trim(tmp2)
-  !debug: PRINT *,drift_name,len(drift_name)
   READ (10,*) tmp
   outname = trim(tmp)
-  !debug: PRINT *,outname
-  !debug: PRINT *,fname, drift_name, outname
 
 ! Read in run parameters:
   READ (10,*) dt
@@ -74,10 +68,16 @@ PROGRAM newdrift
 
 ! Initialize input Forcing / velocities
   CALL initialize_in(nvar, trim(fname), ncid, varid, nx, ny, xmetric)
-!debug: PRINT *,"main ",nvar, trim(fname), ncid, varid, nx, ny
 
 ! Initialize Buoy points
-  !debug: PRINT *,'calling initialize_drifters'
+! Allocate varid_drift, initialize nvar_drift based on whether this is restart
+  IF (restart) THEN
+    nvar_drift = 4
+    ELSE
+    nvar_drift = 2
+  ENDIF
+  ALLOCATE(varid_drift(nvar_drift))
+
   CALL initialize_drifters(nvar_drift, drift_name, ncid_drift, varid_drift, nbuoys, restart)
   ALLOCATE(buoys(nbuoys))
   !debug: PRINT *,'back from initialize_drifters, nbuoys = ',nbuoys
@@ -93,10 +93,10 @@ PROGRAM newdrift
   CALL initial_read(trim(fname), outname, nx, ny, nvar, ncid, varid, &
                     allvars, xmetric, &
                     dimids, ncid_out, varid_out, nvar_out, nbuoys)
-  PRINT *,'initial read results'
-!debug: PRINT *,trim(fname), drift_name, outname, nx, ny, nvar, ncid, varid
-  PRINT *,MAXVAL(xmetric%ulon), MAXVAL(xmetric%ulat), MAXVAL(xmetric%dx), MAXVAL(xmetric%dy)
-  PRINT *,dimids, ncid_out, varid_out, nvar_out
+  !debug: PRINT *,'initial read results'
+  !debug: PRINT *,trim(fname), drift_name, outname, nx, ny, nvar, ncid, varid
+  !debug: PRINT *,MAXVAL(xmetric%ulon), MAXVAL(xmetric%ulat), MAXVAL(xmetric%dx), MAXVAL(xmetric%dy)
+  !debug: PRINT *,dimids, ncid_out, varid_out, nvar_out
   PRINT *,'nbuoys = ', nbuoys
 
 !cice_inst:
@@ -109,15 +109,7 @@ PROGRAM newdrift
   u    = allvars(:,:,6)
   v    = allvars(:,:,7)
 
-  !debug: PRINT *,'in main, parcelling out aice, u, v'
-  !debug: PRINT *,"aice",MAXVAL(aice), MINVAL(aice)
-  !debug: PRINT *,"u",MAXVAL(u), MINVAL(u)
-  !debug: PRINT *,"v",MAXVAL(v), MINVAL(v)
-
   CALL readin_drifters(nbuoys, nvar_drift, ncid_drift, varid_drift, buoys, xmetric, restart)
-  !debug: PRINT *,'nbuoys after readin_drifters',nbuoys
-
-  !debug STOP
 !---------------------------------------------------------
 ! RUN
 
