@@ -92,7 +92,7 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
   INTEGER :: iter, itmax, ii, ij
   REAL toler, tlat, tlon, delta, dlat, dlon, fi, fj, dfi, dfj
   REAL ratio
-!  REAL wrap
+  REAL wrap
 
 ! Use something like Newton method with starting point as if grid were linear
   itmax = 200
@@ -243,20 +243,20 @@ SUBROUTINE ll_to_xy_brute(this, lat, lon, fi, fj)
 END SUBROUTINE ll_to_xy_brute
 
 
-REAL FUNCTION wrap(y)
-  IMPLICIT none
-  REAL, intent(in) :: y
-  REAL x
-  
-  x = y
-  IF (x > 360.) x = x - 360.
-  IF (x > 360.) x = x - 360.
-  IF (x > 360.) x = x - 360.
-  IF (x < 0) x = x + 360.
-  
-  wrap = x
-  RETURN 
-END FUNCTION wrap
+!REAL FUNCTION wrap(y)
+!  IMPLICIT none
+!  REAL, intent(in) :: y
+!  REAL x
+!  
+!  x = y
+!  IF (x > 360.) x = x - 360.
+!  IF (x > 360.) x = x - 360.
+!  IF (x > 360.) x = x - 360.
+!  IF (x < 0) x = x + 360.
+!  
+!  wrap = x
+!  RETURN 
+!END FUNCTION wrap
 
 SUBROUTINE xy_to_ll(this, lat, lon, x, y)
 

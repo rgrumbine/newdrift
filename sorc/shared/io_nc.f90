@@ -309,7 +309,7 @@ SUBROUTINE outvars(ncid, varid, nvar, buoys, nbuoy)
   INTEGER retcode
   REAL, allocatable :: var(:,:)
   INTEGER i, k
-  REAL distance, bear
+  REAL wrap, distance, bear
 
 !Note that netcdf dimensions are in C order, not fortran
   !debug: PRINT *,'entered outvars'

@@ -1,11 +1,20 @@
-#!/bin/sh
-#batch -- ~ 1hr 
+#!/bin/bash 
+#PBS -N newdrift
+#PBS -o driftout
+#PBS -j oe
+#PBS -A ICE-DEV
+#PBS -q dev_transfer
+#PBS -l walltime=6:00:00
+#PBS -l select=1:ncpus=1
 
 #set -xe
 
 #initialize
 #drift_in -- file with full 6 values drifters, set to -99 for i,j,clat, clon
 #  at readin/initialize, set i,j and clat/clon = ilat/ilon
+module load intel netcdf
+
+cd $HOME/rgdev/newdrift/sorc/
 
 cp ../fix/merged.nc drift_in.nc
 
@@ -19,11 +28,11 @@ cp ../fix/merged.nc drift_in.nc
 base=$HOME/noscrub/model_intercompare/rtofs_cice/rtofs.20250405/
 
 hhh=000
-cp drift_f023.nc drift_in.nc
-hhh=024
+#cp drift_f048.nc drift_in.nc
+#hhh=049
 #while [ $hhh -le 192 ] 
 #while [ $hhh -le 024 ] 
-while [ $hhh -le 024 ] 
+while [ $hhh -le 192 ] 
 do
   fname=rtofs_glo_2ds_f${hhh}_ice.nc
 

@@ -108,3 +108,20 @@ END subroutine unbearing
 
 
 !Bilinear interpolation to buoy.x,y
+
+!Wrap longitude to be in range [0,360]
+REAL FUNCTION wrap(y)
+  IMPLICIT none
+  REAL, intent(in) :: y
+  REAL x
+
+  x = y
+  IF (x > 360.) x = x - 360.
+  IF (x > 360.) x = x - 360.
+  IF (x > 360.) x = x - 360.
+  IF (x < 0) x = x + 360.
+
+  wrap = x
+  RETURN
+END FUNCTION wrap
+
