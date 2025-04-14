@@ -20,7 +20,8 @@ base=$HOME/noscrub/model_intercompare/rtofs_cice/rtofs.20250405/
 
 hhh=000
 #while [ $hhh -le 192 ] 
-while [ $hhh -le 024 ] 
+#while [ $hhh -le 024 ] 
+while [ $hhh -le 001 ] 
 do
   fname=rtofs_glo_2ds_f${hhh}_ice.nc
 

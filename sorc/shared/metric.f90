@@ -220,7 +220,7 @@ SUBROUTINE ll_to_xy_brute(this, lat, lon, fi, fj)
   IF (lat < 45.) THEN
     jmin = 1
   ELSE
-    jmin = int(0.5 + 0.75*this%ny)
+    jmin = int(0.5 + 0.65*this%ny)
   ENDIF
   DO j = jmin, this%ny
   DO i = 1, this%nx
