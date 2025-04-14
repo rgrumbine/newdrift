@@ -71,6 +71,7 @@ CONTAINS
     tv = v(ti, tj)
     !flag values
     if (tu > 1.e30 .or. tv > 1.e30) RETURN
+    if (buoy%clat >= 1.e30 .or. buoy%clon >= 1.e30) RETURN
 
     !RG:  These could be interpolated (bilinear, ...)
     deltax = tu * dt
@@ -85,10 +86,14 @@ CONTAINS
     buoy%y = buoy%y + deltay/xmetric%dy(ti, tj)
     ti = NINT(buoy%x)
     tj = NINT(buoy%y)
-    !RG: refine by adding for dlat/di, dlon/dj for residual ti-x, tj-y
-    buoy%clat = xmetric%ulat(ti, tj) + (tj-buoy%y)*xmetric%dlatdj(ti,tj)
-    buoy%clon = xmetric%ulon(ti, tj) + (ti-buoy%x)*xmetric%dlondi(ti,tj) 
+    IF (ti < 1 .or. ti > xmetric%nx .or. tj < 1 .or. tj > xmetric%ny) THEN
+      buoy%clat = 1.e30
+      buoy%clon = 1.e30
+    ELSE 
+      buoy%clat = xmetric%ulat(ti, tj) + (tj-buoy%y)*xmetric%dlatdj(ti,tj)
+      buoy%clon = xmetric%ulon(ti, tj) + (ti-buoy%x)*xmetric%dlondi(ti,tj) 
     !debug: PRINT *,'move ',buoy%x, buoy%y
+    ENDIF
 
   RETURN
   END subroutine move

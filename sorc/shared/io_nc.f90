@@ -66,14 +66,14 @@ SUBROUTINE initialize_in(nvar, fname, ncid, varid, nx, ny, xmetric)
   CALL check(retcode)
 
   DO i = 1, nvar
-    PRINT *,i,' reading varname ',varnames(i)
+    !debug: PRINT *,i,' reading varname ',varnames(i)
     retcode = nf90_inq_varid(ncid, varnames(i), varid(i))
     CALL check(retcode)
   ENDDO
   !debug: PRINT *,'done reading varnames'
 
   !RG: Read this in from netcdf file
-  !debug: nx = 4500
+  !debug: nx = 4500 ! rtofs
   !debug: ny = 3298
   xname = "X"
   yname = "Y"
@@ -138,28 +138,36 @@ SUBROUTINE initial_read(fname, outname, nx, ny, nvar, ncid, varid, &
 
 END SUBROUTINE initial_read
 !----------------------------------------------------------------
-SUBROUTINE initialize_drifters(nvar_drift, drift_name, ncid_drift, varid_drift, nbuoy)
+SUBROUTINE initialize_drifters(nvar_drift, drift_name, ncid_drift, varid_drift, nbuoy, restart)
   IMPLICIT none
   INTEGER nvar_drift, ncid_drift, varid_drift(nvar_drift)
   INTEGER nbuoy
   CHARACTER(90) drift_name
+  LOGICAL restart
 
   INTEGER i, retcode
   CHARACTER(50) varnames(nvar_drift), dimname
 
   !debug: PRINT *,'entered drifter initialize'
-  varnames(1) = 'Initial_Latitude'
-  varnames(2) = 'Initial_Longitude'
   dimname = 'nbuoy'
-
   retcode = nf90_open(drift_name, NF90_NOWRITE, ncid_drift)
   CALL check(retcode)
 
-  DO i = 1, nvar_drift
+  IF (restart) THEN
+    PRINT *,'running from warm start'
+    varnames(1) = 'Final_Latitude'
+    varnames(2) = 'Final_Longitude'
+  ELSE
+    PRINT *,'running from cold start'
+    varnames(1) = 'Initial_Latitude'
+    varnames(2) = 'Initial_Longitude'
+  ENDIF
+
+  DO i = 1,2
     retcode = nf90_inq_varid(ncid_drift, varnames(i), varid_drift(i))
     CALL check(retcode)
   ENDDO
-
+    
   retcode = nf90_inquire_dimension(ncid_drift, 1, dimname, nbuoy)
   CALL check(retcode)
   !debug: PRINT *,'initialize -- nbuoy ', nbuoy
@@ -167,13 +175,14 @@ SUBROUTINE initialize_drifters(nvar_drift, drift_name, ncid_drift, varid_drift, 
   RETURN
 END SUBROUTINE initialize_drifters
 
-SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist, xmetric)
+SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist, xmetric, restart)
   USE metric_mod
   IMPLICIT none
   INTEGER nvar_drift, ncid_drift, varid_drift(nvar_drift)
   INTEGER nbuoy
   CLASS(drifter) :: buoylist(nbuoy)
   TYPE(metric)  :: xmetric
+  LOGICAL, intent(in) :: restart
 
   INTEGER i, retcode
   REAL tlon(nbuoy), tlat(nbuoy)
@@ -223,7 +232,8 @@ SUBROUTINE check(status)
   INTEGER, intent(in) :: status
   IF (status /= nf90_noerr) THEN
     PRINT *,nf90_strerror(status)
-    STOP "erredout"
+    !STOP "erredout"
+    PRINT *, "erredout"
   ENDIF
   RETURN
 END subroutine check
@@ -300,7 +310,11 @@ SUBROUTINE outvars(ncid, varid, nvar, buoys, nbuoy)
     var(k,1) = buoys(k)%ilat
     var(k,2) = buoys(k)%ilon
     var(k,3) = buoys(k)%clat
-    var(k,4) = buoys(k)%clon
+    if (buoys(k)%clon >= 360. .or. buoys(k)%clon < 0) THEN
+      var(k,4) = wrap(buoys(k)%clon)
+    else
+      var(k,4) = buoys(k)%clon
+    endif
     CALL bearing(var(k,1), var(k,2), var(k,3), var(k,4), distance, bear)
     var(k,5) = distance
     var(k,6) = bear

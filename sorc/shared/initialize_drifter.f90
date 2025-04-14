@@ -28,7 +28,7 @@ SUBROUTINE dummy_buoys(aice, dx, dy, u, v, ulat, ulon, nx, ny, ratio, buoys, nbu
 
   INTEGER i, j, k, imax, jmax
 
-  PRINT *,'entered dummy_buoys'
+  !debug: PRINT *,'entered dummy_buoys'
  
 ! Dummy for testing
   imax = INT(nx/ratio)

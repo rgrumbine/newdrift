@@ -37,6 +37,7 @@ do
   echo $dtsec >> runin 
   echo 1   >> runin
   echo 1   >> runin
+  echo .FALSE. >> runin
   echo runin | ./drifter 
 
   cp out_${hhh}.nc drift_f${hhh}.nc

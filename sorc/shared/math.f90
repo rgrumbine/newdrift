@@ -58,6 +58,12 @@ SUBROUTINE bearing(lat1, lon1, lat2, lon2, dist, dir)
   REAL, intent(out) :: dist, dir
   REAL harcdis
 
+  IF (lat1 >= 1.e30 .or. lon1 >= 1.e30 .or. lat2 >= 1.e30 .or. lon2 >= 1.e30) THEN
+    dist = 1.e30
+    dir  = 1.e30
+    RETURN
+  ENDIF
+
   dist = harcdis(lat1, lon1, lat2, lon2)
   dir  = atan2(sin((lon1-lon2)*rpd)*cos(lat2*rpd) , &
                cos(lat1*rpd)*sin(lat2*rpd) -        &
