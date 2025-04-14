@@ -208,7 +208,7 @@ SUBROUTINE ll_to_xy_brute(this, lat, lon, fi, fj)
   CLASS(metric), intent(in) :: this
   REAL, intent(in)    :: lat, lon
   REAL, intent(inout) :: fi, fj
-  INTEGER i,j, bi, bj 
+  INTEGER i,j, jmin, bi, bj 
   REAL dlat, dlon, tlon, dbest
 !RG: This is very slow. The newton search fails (mostly) because of the tripolar seam.
 !       should be able to take advantage of that. Lats > 45.
@@ -217,7 +217,12 @@ SUBROUTINE ll_to_xy_brute(this, lat, lon, fi, fj)
   dbest = 999.
   bi = 1
   bj = 1
-  DO j = 1, this%ny
+  IF (lat < 45.) THEN
+    jmin = 1
+  ELSE
+    jmin = int(0.5 + 0.75*this%ny)
+  ENDIF
+  DO j = jmin, this%ny
   DO i = 1, this%nx
     dlat = lat - this%ulat(i,j)
     tlon = this%ulon(i,j)

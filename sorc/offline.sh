@@ -1,13 +1,12 @@
 #!/bin/sh
 #batch -- ~ 1hr 
 
-set -xe
+#set -xe
 
 #initialize
 #drift_in -- file with full 6 values drifters, set to -99 for i,j,clat, clon
 #  at readin/initialize, set i,j and clat/clon = ilat/ilon
 
-#cp ../fix/drift_ref.nc drift_in.nc
 cp ../fix/merged.nc drift_in.nc
 
 #Loop:
@@ -21,7 +20,7 @@ base=$HOME/noscrub/model_intercompare/rtofs_cice/rtofs.20250405/
 
 hhh=000
 #while [ $hhh -le 192 ] 
-while [ $hhh -le 020 ] 
+while [ $hhh -le 024 ] 
 do
   fname=rtofs_glo_2ds_f${hhh}_ice.nc
 
@@ -38,7 +37,7 @@ do
   echo 1   >> runin
   echo 1   >> runin
   echo .FALSE. >> runin
-  echo runin | ./drifter 
+  echo runin | time ./drifter 
 
   cp out_${hhh}.nc drift_f${hhh}.nc
   mv out_${hhh}.nc drift_in.nc

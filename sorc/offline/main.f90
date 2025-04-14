@@ -121,24 +121,23 @@ PROGRAM newdrift
 !---------------------------------------------------------
 ! RUN
 
-! First time step (u,v, etc. in hand):
+! First/only time step (u,v, etc. in hand):
   CALL run(buoys, nbuoys, u, v, xmetric, dt, dtout)
   CALL writeout(ncid_out, varid_out, nvar_out, buoys, nbuoys, closeout)
   closeout = .TRUE.
   CALL writeout(ncid_out, varid_out, nvar_out, buoys, nbuoys, closeout)
-  STOP
 
 ! Iterate as needed:
-  !RG: need to set up multi-level time outputs in io first
-  DO n = 2, nstep
-    CALL readin(nx, ny, nvar, ncid, varid, allvars)
-    u = allvars(:,:,6)
-    v = allvars(:,:,7)
-    CALL run(buoys, nbuoys, u, v, xmetric, dt, dtout)
-    CALL writeout(ncid_out, varid_out, nvar_out, buoys, nbuoys, closeout)
-  ENDDO
-  closeout = .TRUE.
-  CALL writeout(ncid_out, varid_out, nvar_out, buoys, nbuoys, closeout)
+!  !RG: need to set up multi-level time outputs in io first
+!  DO n = 2, nstep
+!    CALL readin(nx, ny, nvar, ncid, varid, allvars)
+!    u = allvars(:,:,6)
+!    v = allvars(:,:,7)
+!    CALL run(buoys, nbuoys, u, v, xmetric, dt, dtout)
+!    CALL writeout(ncid_out, varid_out, nvar_out, buoys, nbuoys, closeout)
+!  ENDDO
+!  closeout = .TRUE.
+!  CALL writeout(ncid_out, varid_out, nvar_out, buoys, nbuoys, closeout)
 
 !----------------------------------------------------------------
 ! WRITE Write out results -- drift distance and direction
