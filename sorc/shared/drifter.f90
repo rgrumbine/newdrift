@@ -75,6 +75,9 @@ CONTAINS
     !RG:  These could be interpolated (bilinear, ...)
     deltax = tu * dt
     deltay = tv * dt
+    IF ((abs(deltax) > 3.*3600) .or. (abs(deltay) > 3.*3600) ) THEN
+      PRINT *,'fast ',deltax, deltay, deltax/xmetric%dx(ti, tj), deltay/xmetric%dy(ti, tj)
+    ENDIF
 
     !RG: beware of seams
     !RG: beware of running outside (1,1),(nx,ny)
@@ -82,8 +85,9 @@ CONTAINS
     buoy%y = buoy%y + deltay/xmetric%dy(ti, tj)
     ti = NINT(buoy%x)
     tj = NINT(buoy%y)
-    buoy%clat = xmetric%ulat(ti, tj)
-    buoy%clon = xmetric%ulon(ti, tj) 
+    !RG: refine by adding for dlat/di, dlon/dj for residual ti-x, tj-y
+    buoy%clat = xmetric%ulat(ti, tj) + (tj-buoy%y)*xmetric%dlatdj(ti,tj)
+    buoy%clon = xmetric%ulon(ti, tj) + (ti-buoy%x)*xmetric%dlondi(ti,tj) 
     !debug: PRINT *,'move ',buoy%x, buoy%y
 
   RETURN

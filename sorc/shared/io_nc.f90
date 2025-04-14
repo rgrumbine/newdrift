@@ -26,7 +26,7 @@ SUBROUTINE initialize_in(nvar, fname, ncid, varid, nx, ny, xmetric)
   CHARACTER(len=50) :: xname, yname
 
 !debug:
-  PRINT *,'entered initialize_in'
+  !debug: PRINT *,'entered initialize_in'
 !! This is the cice_inst variable set -- much more extensive
 !  varnames(1) = "TLON"
 !  varnames(2) = "TLAT"
@@ -61,7 +61,7 @@ SUBROUTINE initialize_in(nvar, fname, ncid, varid, nx, ny, xmetric)
   varnames(6) = "ice_uvelocity"
   varnames(7) = "ice_vvelocity"
   
-  PRINT *,'trying to open ',fname, len(fname)
+  !debug: PRINT *,'trying to open ',fname, len(fname)
   retcode = nf90_open(fname, NF90_NOWRITE, ncid)
   CALL check(retcode)
 
@@ -70,7 +70,7 @@ SUBROUTINE initialize_in(nvar, fname, ncid, varid, nx, ny, xmetric)
     retcode = nf90_inq_varid(ncid, varnames(i), varid(i))
     CALL check(retcode)
   ENDDO
-  PRINT *,'done reading varnames'
+  !debug: PRINT *,'done reading varnames'
 
   !RG: Read this in from netcdf file
   !debug: nx = 4500
@@ -82,7 +82,7 @@ SUBROUTINE initialize_in(nvar, fname, ncid, varid, nx, ny, xmetric)
   retcode = nf90_inquire_dimension(ncid, 2, yname, ny)
   CALL check(retcode)
 
-  PRINT *,'leaving initialize_in', nx, ny
+  !debug: PRINT *,'leaving initialize_in', nx, ny
 
 RETURN
 END subroutine initialize_in
@@ -147,7 +147,7 @@ SUBROUTINE initialize_drifters(nvar_drift, drift_name, ncid_drift, varid_drift, 
   INTEGER i, retcode
   CHARACTER(50) varnames(nvar_drift), dimname
 
-  PRINT *,'entered drifter initialize'
+  !debug: PRINT *,'entered drifter initialize'
   varnames(1) = 'Initial_Latitude'
   varnames(2) = 'Initial_Longitude'
   dimname = 'nbuoy'
@@ -162,7 +162,7 @@ SUBROUTINE initialize_drifters(nvar_drift, drift_name, ncid_drift, varid_drift, 
 
   retcode = nf90_inquire_dimension(ncid_drift, 1, dimname, nbuoy)
   CALL check(retcode)
-  PRINT *,'initialize -- nbuoy ', nbuoy
+  !debug: PRINT *,'initialize -- nbuoy ', nbuoy
 
   RETURN
 END SUBROUTINE initialize_drifters
@@ -178,8 +178,8 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
   INTEGER i, retcode
   REAL tlon(nbuoy), tlat(nbuoy)
 
-  PRINT *,' entered drifter read in'
-  PRINT *,ncid_drift, varid_drift
+  !debug: PRINT *,' entered drifter read in'
+  !debug: PRINT *,ncid_drift, varid_drift
   retcode = nf90_get_var(ncid_drift, varid_drift(1), tlat)
   CALL check(retcode)
   PRINT *,'lat ',MAXVAL(tlat), MINVAL(tlat)
@@ -188,12 +188,12 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
   CALL check(retcode)
   PRINT *,'lon ',MAXVAL(tlon), MINVAL(tlon)
 
-  PRINT *,' about to create buoys '
+  !debug: PRINT *,' about to create buoys '
   DO i = 1, nbuoy
     CALL buoylist(i)%init(tlon(i), tlat(i), xmetric)
   ENDDO
   
-  PRINT *,' leaving drifter read in'
+  !debug: PRINT *,' leaving drifter read in'
   RETURN
 END SUBROUTINE readin_drifters
 !----------------------------------------------------------------
@@ -287,7 +287,7 @@ SUBROUTINE outvars(ncid, varid, nvar, buoys, nbuoy)
   REAL distance, bear
 
 !Note that netcdf dimensions are in C order, not fortran
-  PRINT *,'entered outvars'
+  !debug: PRINT *,'entered outvars'
   IF (ALLOCATED(var)) THEN
     PRINT *,'outvars deallocating var'
     DEALLOCATE(var)
@@ -320,7 +320,7 @@ SUBROUTINE outvars(ncid, varid, nvar, buoys, nbuoy)
   ENDDO
 
   DEALLOCATE(var)
-  PRINT *,'leaving outvars'
+  !debug: PRINT *,'leaving outvars'
   RETURN
 END subroutine outvars
 

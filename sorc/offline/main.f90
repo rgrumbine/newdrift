@@ -77,19 +77,19 @@ PROGRAM newdrift
   PRINT *,"main ",nvar, trim(fname), ncid, varid, nx, ny
 
 ! Initialize Buoy points
-  PRINT *,'calling initialize_drifters'
+  !debug: PRINT *,'calling initialize_drifters'
   CALL initialize_drifters(nvar_drift, drift_name, ncid_drift, varid_drift, nbuoys)
   ALLOCATE(buoys(nbuoys))
-  PRINT *,'back from initialize_drifters, nbuoys = ',nbuoys
+  !debug: PRINT *,'back from initialize_drifters, nbuoys = ',nbuoys
 
 ! Initialize Output -- need definite sizes
-  PRINT *,'allocating input variables'
+  !debug: PRINT *,'allocating input variables'
   ALLOCATE(allvars(nx, ny, nvar))
   ALLOCATE(aice(nx, ny))
 
   !RG: really initialize_io
   !Get first set of data and construct the local metric for drifting
-  PRINT *,'calling initial read '
+  !debug: PRINT *,'calling initial read '
   CALL initial_read(trim(fname), outname, nx, ny, nvar, ncid, varid, &
                     allvars, xmetric, &
                     dimids, ncid_out, varid_out, nvar_out, nbuoys)
@@ -109,10 +109,10 @@ PROGRAM newdrift
   u    = allvars(:,:,6)
   v    = allvars(:,:,7)
 
-  PRINT *,'in main, parcelling out aice, u, v'
-  PRINT *,"aice",MAXVAL(aice), MINVAL(aice)
-  PRINT *,"u",MAXVAL(u), MINVAL(u)
-  PRINT *,"v",MAXVAL(v), MINVAL(v)
+  !debug: PRINT *,'in main, parcelling out aice, u, v'
+  !debug: PRINT *,"aice",MAXVAL(aice), MINVAL(aice)
+  !debug: PRINT *,"u",MAXVAL(u), MINVAL(u)
+  !debug: PRINT *,"v",MAXVAL(v), MINVAL(v)
 
   CALL readin_drifters(nbuoys, nvar_drift, ncid_drift, varid_drift, buoys, xmetric)
   PRINT *,'nbuoys after readin_drifters',nbuoys

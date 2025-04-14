@@ -50,6 +50,7 @@ END function harcdis
 ! Bearing/unbearing from movable type:
 !  bearing    (convert lat-lon pair to distance/bearing)
 !  unbearing  (convert distance,bearing and starting point to final point)
+!dist in km, rearth in km
 SUBROUTINE bearing(lat1, lon1, lat2, lon2, dist, dir)
   USE constants
   IMPLICIT none
