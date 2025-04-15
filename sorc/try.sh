@@ -30,8 +30,9 @@ cp ../fix/merged.nc drift_in.nc
 base=$HOME/noscrub/model_intercompare/rtofs_cice/rtofs.20250408/
 
 hhh=000
-#cp drift_f048.nc drift_in.nc
-#hhh=049
+# Pick up from partial run:
+#cp drift_f010.nc drift_in.nc
+#hhh=011
 #while [ $hhh -le 024 ] 
 #while [ $hhh -le 000 ] 
 while [ $hhh -le 192 ] 

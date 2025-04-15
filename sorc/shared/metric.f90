@@ -94,6 +94,13 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
   REAL ratio
   REAL wrap
 
+! if flag values (lat or lon >= 1.e30) skip, assign xy to 1,1
+  IF (lat >= 1.e30 .or. lon >= 1.e30) THEN
+    x = 1.
+    y = 1.
+    RETURN
+  ENDIF
+
 ! Use something like Newton method with starting point as if grid were linear
   itmax = 200
   iter  = 0
@@ -108,11 +115,14 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
   tlat = lat
   if (lat == 90) tlat = lat - 0.05
   fj = (tlat+78.64)*this%ny/(90+78.64)
-  ij    = int(fj+0.5)
-  if (ij <= 0) THEN
+  if (fj <= 0) THEN
     fj = 1.
-    ij = 1
   ENDIF
+  IF (fj >= this%ny) THEN
+    PRINT *,'fj overrunning grid',fj, lat, tlat, this%ny
+    STOP
+  ENDIF
+  ij    = int(fj+0.5)
 
   dlat = tlat - this%ulat(ii,ij)
   tlon = this%ulon(ii,ij)
@@ -120,7 +130,7 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
   dlon = lon - tlon
 
 
-!debug:   WRITE (*,9002) fi, fj, dlat, dlon, tlat, lon, this%ulat(ii,ij), tlon
+!debug: WRITE (*,9002) fi, fj, dlat, dlon, tlat, lon, this%ulat(ii,ij), tlon
 !debug:  
   9002 FORMAT('init ',8F10.3)
 
@@ -130,8 +140,6 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
     if (delta == 0) THEN
       !debug: PRINT *,'delta == 0 ',delta
       delta = 3.e-3
-!debug: !    else
-!debug: !      PRINT *,'delta != 0 ',delta
     endif
 
     dfi   = ratio * ((dlat*this%dlondj(ii,ij)) - (dlon*this%dlatdj(ii,ij)) ) / delta
@@ -168,12 +176,12 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
     ii    = int(fi+0.5)
     ij    = int(fj+0.5)
 
-    dlat = lat - this%ulat(ii,ij)
+    dlat = tlat - this%ulat(ii,ij)
     tlon = this%ulon(ii,ij)
     if (tlon > 360. .or. tlon < 0) tlon = wrap(tlon)
     dlon = lon - tlon
 
-!debug:     WRITE(*,9001) iter, dfi, dfj, fi, fj, dlat, dlon, lat, lon, this%ulat(ii,ij), tlon
+!debug:     WRITE(*,9001) iter, dfi, dfj, fi, fj, dlat, dlon, tlat, lon, this%ulat(ii,ij), tlon
     IF (iter > 100 ) THEN
       ratio = 0.125
     ELSE IF (iter > 50 ) THEN
@@ -213,12 +221,11 @@ SUBROUTINE ll_to_xy_brute(this, lat, lon, fi, fj)
   REAL, intent(in)    :: lat, lon
   REAL, intent(inout) :: fi, fj
   INTEGER i,j, jmin, bi, bj 
-  REAL dlat, dlon, tlon, dbest
+  REAL dlat, dlon, tlon, dbest, wrap
 !RG: This is very slow. The newton search fails (mostly) because of the tripolar seam.
 !       should be able to take advantage of that. Lats > 45.
 !    Sometimes also encounter difficulty along 0 E 
-  !debug: PRINT *,'entered brute'
-  PRINT *,'brute ',lat,lon
+  !debug: PRINT *,'brute ',lat,lon
   dbest = 999.
   bi = 1
   bj = 1
@@ -247,21 +254,6 @@ SUBROUTINE ll_to_xy_brute(this, lat, lon, fi, fj)
   RETURN
 END SUBROUTINE ll_to_xy_brute
 
-
-!REAL FUNCTION wrap(y)
-!  IMPLICIT none
-!  REAL, intent(in) :: y
-!  REAL x
-!  
-!  x = y
-!  IF (x > 360.) x = x - 360.
-!  IF (x > 360.) x = x - 360.
-!  IF (x > 360.) x = x - 360.
-!  IF (x < 0) x = x + 360.
-!  
-!  wrap = x
-!  RETURN 
-!END FUNCTION wrap
 
 SUBROUTINE xy_to_ll(this, lat, lon, x, y)
 

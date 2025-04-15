@@ -215,7 +215,9 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
   !debug: PRINT *,' about to create buoys '
   DO i = 1, nbuoy
     CALL buoylist(i)%init(tlon(i), tlat(i), clon(i), clat(i), xmetric)
+    !debug: WRITE(*,9001) i, tlon(i), tlat(i), clon(i), clat(i)
   ENDDO
+ 9001 FORMAT(I6,4F10.3)
   
   !debug: PRINT *,' leaving drifter read in'
   RETURN
