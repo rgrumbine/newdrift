@@ -75,7 +75,7 @@ CONTAINS
     deltax = tu * dt
     deltay = tv * dt
 !    IF ((abs(deltax) > 3.*3600) .or. (abs(deltay) > 3.*3600) ) THEN
-!      PRINT *,'fast ',deltax, deltay, deltax/xmetric%dx(ti, tj), deltay/xmetric%dy(ti, tj)
+!debug: PRINT *,'fast ',deltax, deltay, deltax/xmetric%dx(ti, tj), deltay/xmetric%dy(ti, tj)
 !    ENDIF
 
     !RG: beware of seams

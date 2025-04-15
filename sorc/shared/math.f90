@@ -92,22 +92,6 @@ SUBROUTINE unbearing(lat1, lon1, dist, dir, lat2, lon2)
                       cos(dist/R)-sin(lat1*rpd)*sin(lat2*rpd) ) / rpd
 RETURN
 END subroutine unbearing
-!wdir
-
-
-!grid rotation
-
-! local_metric now in class metric
-!lat, lon in degrees
-!dx, dy in meters
-
-! local_cartesian now in class metric
-
-! Convert from buoy's lat-lon location to its ij coordinate (x,y in buoy member)
-! --> in class metric
-
-
-!Bilinear interpolation to buoy.x,y
 
 !Wrap longitude to be in range [0,360]
 REAL FUNCTION wrap(y)
@@ -124,4 +108,19 @@ REAL FUNCTION wrap(y)
   wrap = x
   RETURN
 END FUNCTION wrap
+
+
+! local_metric now in class metric
+!lat, lon in degrees
+!dx, dy in meters
+
+! local_cartesian now in class metric
+
+! Convert from buoy's lat-lon location to its ij coordinate (x,y in buoy member)
+! --> in class metric
+
+! ---------- To add ----------
+!wdir
+!grid rotation
+!Bilinear interpolation of a field to buoy.x,y
 

@@ -72,9 +72,7 @@ SUBROUTINE initialize_in(nvar, fname, ncid, varid, nx, ny, xmetric)
   ENDDO
   !debug: PRINT *,'done reading varnames'
 
-  !RG: Read this in from netcdf file
-  !debug: nx = 4500 ! rtofs
-  !debug: ny = 3298
+  !RG: Read this in from netcdf file -- rtofs
   xname = "X"
   yname = "Y"
   retcode = nf90_inquire_dimension(ncid, 3, xname, nx)
@@ -107,14 +105,6 @@ SUBROUTINE initial_read(fname, outname, nx, ny, nvar, ncid, varid, &
   
   REAL, intent(inout) :: allvars(nx, ny, nvar)
   TYPE(metric) :: xmetric
-!  REAL, intent(inout) :: ulat(nx, ny), ulon(nx, ny)
-!  REAL, intent(out)   :: dx(nx, ny), dy(nx, ny), rot(nx, ny)
-!  REAL, intent(out)   :: dlatdi(nx, ny), dlatdj(nx, ny), dlondi(nx, ny), dlondj(nx, ny)
-
-! Locals:
-!  INTEGER i, j, k
-
-! Allocate space for variables and initialize the netcdf reading
 
 ! Forcing / velocities
   !Get first set of data and construct the local metric for drifting
@@ -124,12 +114,10 @@ SUBROUTINE initial_read(fname, outname, nx, ny, nvar, ncid, varid, &
 !  ulat = allvars(:,:,4)
 !  ulon = allvars(:,:,3)
 !2ds_ice:
-  !old CALL local_metric(ulat, ulon, dx, dy, rot, nx, ny)
   CALL xmetric%set(nx, ny)
   xmetric%ulat = allvars(:,:,2)
   xmetric%ulon = allvars(:,:,1)
   CALL xmetric%local_metric()
-
 
 !  !----------- Initialize buoys, this should be a read in -- separate function
 
@@ -154,13 +142,13 @@ SUBROUTINE initialize_drifters(nvar_drift, drift_name, ncid_drift, varid_drift, 
   CALL check(retcode)
 
   IF (restart) THEN
-    PRINT *,'running from warm start'
+    !debug: PRINT *,'running from warm start'
     varnames(1) = 'Initial_Latitude'
     varnames(2) = 'Initial_Longitude'
     varnames(3) = 'Final_Latitude'
     varnames(4) = 'Final_Longitude'
   ELSE
-    PRINT *,'running from cold start'
+    !debug: PRINT *,'running from cold start'
     varnames(1) = 'Initial_Latitude'
     varnames(2) = 'Initial_Longitude'
   ENDIF
@@ -194,11 +182,11 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
   !debug: PRINT *,ncid_drift, varid_drift
   retcode = nf90_get_var(ncid_drift, varid_drift(1), tlat)
   CALL check(retcode)
-  PRINT *,'lat ',MAXVAL(tlat), MINVAL(tlat)
+  !debug: PRINT *,'lat ',MAXVAL(tlat), MINVAL(tlat)
 
   retcode = nf90_get_var(ncid_drift, varid_drift(2), tlon)
   CALL check(retcode)
-  PRINT *,'lon ',MAXVAL(tlon), MINVAL(tlon)
+  !debug: PRINT *,'lon ',MAXVAL(tlon), MINVAL(tlon)
 
   IF (.not. restart) THEN
     clat = tlat
@@ -206,10 +194,10 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
   ELSE
     retcode = nf90_get_var(ncid_drift, varid_drift(3), clat)
     CALL check(retcode)
-    PRINT *,'lat ',MAXVAL(clat), MINVAL(clat)
+    !debug: PRINT *,'clat ',MAXVAL(clat), MINVAL(clat)
     retcode = nf90_get_var(ncid_drift, varid_drift(4), clon)
     CALL check(retcode)
-    PRINT *,'lon ',MAXVAL(clon), MINVAL(clon)
+    !debug: PRINT *,'clon ',MAXVAL(clon), MINVAL(clon)
   ENDIF
 
   !debug: PRINT *,' about to create buoys '
@@ -232,11 +220,10 @@ SUBROUTINE readin(nx, ny, nvars, ncid, varid, allvars)
   INTEGER i, retcode
   
   !got nx, ny from the .nc file, in initialize_in
-
   DO i = 1, nvars
     retcode = nf90_get_var(ncid, varid(i), allvars(:,:,i) )
     CALL check(retcode)
-    PRINT *,i, MAXVAL(allvars(:,:,i)), MINVAL(allvars(:,:,i))
+    !debug: PRINT *,i, MAXVAL(allvars(:,:,i)), MINVAL(allvars(:,:,i))
   ENDDO
 
   RETURN
@@ -254,7 +241,6 @@ SUBROUTINE check(status)
   ENDIF
   RETURN
 END subroutine check
-
 
 !----------------------------------------------------------------
 SUBROUTINE initialize_out(fname, ncid, varid, nvar, nbuoy, dimids)
@@ -294,7 +280,6 @@ SUBROUTINE initialize_out(fname, ncid, varid, nvar, nbuoy, dimids)
 
   retcode = nf90_enddef(ncid)
   CALL check(retcode)
-
 
   RETURN
 END subroutine initialize_out
@@ -336,13 +321,12 @@ SUBROUTINE outvars(ncid, varid, nvar, buoys, nbuoy)
     var(k,5) = distance
     var(k,6) = bear
   ENDDO
-  PRINT *,'ilat ',MAXVAL(var(:,1))
-  PRINT *,'ilon ',MAXVAL(var(:,2))
-  PRINT *,'clat ',MAXVAL(var(:,3))
-  PRINT *,'clon ',MAXVAL(var(:,4))
-  PRINT *,'dist ',MAXVAL(var(:,5))
-  PRINT *,'bear ',MAXVAL(var(:,6))
-
+  !debug: PRINT *,'ilat ',MAXVAL(var(:,1))
+  !debug: PRINT *,'ilon ',MAXVAL(var(:,2))
+  !debug: PRINT *,'clat ',MAXVAL(var(:,3))
+  !debug: PRINT *,'clon ',MAXVAL(var(:,4))
+  !debug: PRINT *,'dist ',MAXVAL(var(:,5))
+  !debug: PRINT *,'bear ',MAXVAL(var(:,6))
 
   !RG: separate initial write -- just ilat, ilon, from later writes, clat, clon, distance, bear
   DO i = 1, nvar

@@ -44,6 +44,7 @@ SUBROUTINE local_metric(this)
   this%rot = 0.
   CALL this%local_cartesian()
 
+  !RG: Add loops for j = ny or i = nx, and then the corner nx, ny
   DO j = 1, this%ny-1
   DO i = 1, this%nx-1
     this%dlatdi(i,j) = this%ulat(i+1,j) - this%ulat(i,j)
@@ -53,6 +54,8 @@ SUBROUTINE local_metric(this)
   ENDDO
   ENDDO
   !rot = atan2(?,?)
+  PRINT *,'lat metrics',MAXVAL(this%dlatdi), MINVAL(this%dlatdi), MAXVAL(this%dlatdj), MINVAL(this%dlatdj)
+  PRINT *,'lon metrics',MAXVAL(this%dlondi), MINVAL(this%dlondi), MAXVAL(this%dlondj), MINVAL(this%dlondj)
 
   RETURN
 END subroutine local_metric
