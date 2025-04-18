@@ -6,19 +6,18 @@ MODULE io
 
 CONTAINS
 
-SUBROUTINE initialize_in(nvar, fname, ncid, varid, nx, ny, xmetric)
-  USE metric_mod
+SUBROUTINE initialize_in(nvar, fname, ncid, varid, nx, ny)
+!  USE metric_mod
   IMPLICIT none
 
-  INTEGER ncid
   INTEGER, intent(in) :: nvar
   CHARACTER(*), intent(in) :: fname
   INTEGER, intent(out) :: nx, ny
-  TYPE(metric) :: xmetric
+  INTEGER, intent(out) :: ncid
+  INTEGER, intent(out) :: varid(nvar)
 
 ! Names from rtofs output
   CHARACTER(len=40) :: varnames(nvar)
-  INTEGER varid(nvar)
   
 ! For Netcdf processing
   INTEGER i
@@ -86,52 +85,43 @@ RETURN
 END subroutine initialize_in
 
 !----------------------------------------------------------------
-SUBROUTINE initial_read(fname, outname, nx, ny, nvar, ncid, varid, &
-                        allvars, xmetric, outdimids, ncid_out, &
-                        varid_out, nvar_out, nbuoy)
-
-  USE drifter_mod
+SUBROUTINE initial_read(fname, nx, ny, nvar, ncid, varid, &
+                        allvars, xmetric )
   USE metric_mod
   IMPLICIT none
 
   INTEGER, intent(in) :: nx, ny
-  CHARACTER(90), intent(in) :: fname, outname
-  INTEGER, intent(in)  :: nvar, nvar_out, ncid, varid(nvar)
-  INTEGER, intent(out) :: outdimids(1)
-  INTEGER, intent(out) :: ncid_out, varid_out(nvar_out)
+  CHARACTER(90), intent(in) :: fname
+  INTEGER, intent(in)  :: nvar, ncid, varid(nvar)
 
-  INTEGER ncid_drift, nbuoy
-  INTEGER varid_driftic(nvar_out)
-  
   REAL, intent(inout) :: allvars(nx, ny, nvar)
-  TYPE(metric) :: xmetric
+  TYPE(metric),intent(inout) :: xmetric
 
+  PRINT *,'entered initial_read'
 ! Forcing / velocities
   !Get first set of data and construct the local metric for drifting
   CALL readin(nx, ny, nvar, ncid, varid, allvars)
+  PRINT *,'initial read returned from readin'
 
-!cice_inst:
-!  ulat = allvars(:,:,4)
-!  ulon = allvars(:,:,3)
 !2ds_ice:
   CALL xmetric%set(nx, ny)
   xmetric%ulat = allvars(:,:,2)
   xmetric%ulon = allvars(:,:,1)
   CALL xmetric%local_metric()
 
+  PRINT *,'leaving initial_read'
 !  !----------- Initialize buoys, this should be a read in -- separate function
 
-! Initialize Output -- need definite sizes
-  CALL initialize_out(outname, ncid_out, varid_out, nvar_out, nbuoy, outdimids)
 
 END SUBROUTINE initial_read
 !----------------------------------------------------------------
-SUBROUTINE initialize_drifters(nvar_drift, drift_name, ncid_drift, varid_drift, nbuoy, restart)
+SUBROUTINE initialize_drifters(nvar_drift, drift_name, ncid_drift, &
+                              varid_drift, nbuoy, restart)
   IMPLICIT none
   INTEGER nvar_drift, ncid_drift, varid_drift(nvar_drift)
   INTEGER nbuoy
-  CHARACTER(90) drift_name
-  LOGICAL restart
+  CHARACTER(90), intent(in) :: drift_name
+  LOGICAL, intent(in) :: restart
 
   INTEGER i, retcode
   CHARACTER(50) varnames(nvar_drift), dimname
@@ -360,14 +350,14 @@ SUBROUTINE writeout(ncid_out, varid_out, nvar_out, buoys, nbuoy, closeout)
 
   INTEGER, intent(in) ::  ncid_out, nvar_out, nbuoy
   INTEGER, intent(in) ::  varid_out(nvar_out)
-
-  TYPE(drifter) :: buoys(nbuoy)
   LOGICAL, intent(in) :: closeout
+  TYPE(drifter), intent(in) :: buoys(nbuoy)
 
   CALL outvars(ncid_out, varid_out, nvar_out, buoys, nbuoy )
   IF (closeout) THEN
+    PRINT *,'calling close_out'
     CALL close_out(ncid_out)
-  ELSE
+  ENDIF
 
 END SUBROUTINE writeout
 

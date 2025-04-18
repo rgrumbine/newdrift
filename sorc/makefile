@@ -5,13 +5,17 @@ SHARE = math.o metric.o drifter.o io_nc.o
 OBJ = $(SHARE) main.o 
 
 #Inline
-INLINE = $(SHARE) read.o write.o run.o 
+INLINE = $(SHARE) driver.o mainsub.o
 
 include mk.this
 
+all : drifter in_drifter
+
 drifter : $(OBJ)
-	echo zzz netcdf_lib = $(NETCDF_LIBRARIES)
 	$(FC) $(OBJ)  -L $(NETCDF_LIBRARIES)  -l netcdff -o $(@)
+
+in_drifter : $(INLINE)
+	$(FC) $(INLINE)  -L $(NETCDF_LIBRARIES)  -l netcdff -o $(@)
 
 driftlib : $(INLINE)
 	ar rv driftlib.a $(INLINE)

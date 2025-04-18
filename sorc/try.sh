@@ -33,11 +33,16 @@ hhh=000
 # Pick up from partial run:
 #cp drift_f010.nc drift_in.nc
 #hhh=011
-while [ $hhh -le 192 ] 
+#while [ $hhh -le 192 ] 
 #while [ $hhh -le 024 ] 
-#while [ $hhh -le 000 ] 
+while [ $hhh -le 000 ] 
 do
   fname=rtofs_glo_2ds_f${hhh}_ice.nc
+  if [ ! -f ${base}/$fname ] ; then
+    echo could not find ${base}/$fname
+  else
+    ls -l ${base}/$fname 
+  fi
 
   echo \'${base}/$fname\' > runin 
   echo \'drift_in.nc\'   >> runin

@@ -66,48 +66,51 @@ PROGRAM newdrift
   READ (10,*) restart
   PRINT *,'dt, nstep, outfreq, restart = ',dt, nstep, outfreq, restart
 
+! RTOFS et al. files, not inlineable --------------------------------
 ! Initialize input Forcing / velocities
-  CALL initialize_in(nvar, trim(fname), ncid, varid, nx, ny, xmetric)
+  PRINT *,'calling initialize_in'
+  CALL initialize_in(nvar, trim(fname), ncid, varid, nx, ny)
+!RG: really initialize_io
+  !Get first set of data and construct the local metric for drifting
+  ! also constructs xmetric
+  !debug: 
+  !debug: PRINT *,'allocating input variables'
+  ALLOCATE(allvars(nx, ny, nvar))
+  ALLOCATE(aice(nx, ny), u(nx, ny), v(nx, ny))
 
-! Initialize Buoy points
+  PRINT *,'calling initial read '
+  CALL initial_read(trim(fname), nx, ny, nvar, ncid, varid, &
+                    allvars, xmetric )
+!2ds_ice (not _prog or _diag)
+  aice = allvars(:,:,3)
+  u    = allvars(:,:,6)
+  v    = allvars(:,:,7)
+
+
+!-------------------------- Buoys, inlineable ---------------------
+! Initialize Buoy -- points, input file, output file
 ! Allocate varid_drift, initialize nvar_drift based on whether this is restart
   IF (restart) THEN
     nvar_drift = 4
     ELSE
     nvar_drift = 2
   ENDIF
-  ALLOCATE(varid_drift(nvar_drift))
 
+  ALLOCATE(varid_drift(nvar_drift))
+  !debug: 
+  PRINT *,'calling initialize_drifters, nbuoys = ',nbuoys
   CALL initialize_drifters(nvar_drift, drift_name, ncid_drift, varid_drift, nbuoys, restart)
   ALLOCATE(buoys(nbuoys))
-  !debug: PRINT *,'back from initialize_drifters, nbuoys = ',nbuoys
+  !debug: 
+  PRINT *,'back from initialize_drifters, nbuoys = ',nbuoys
 
-! Initialize Output -- need definite sizes
-  !debug: PRINT *,'allocating input variables'
-  ALLOCATE(allvars(nx, ny, nvar))
-  ALLOCATE(aice(nx, ny))
-
-  !RG: really initialize_io
-  !Get first set of data and construct the local metric for drifting
-  !debug: PRINT *,'calling initial read '
-  CALL initial_read(trim(fname), outname, nx, ny, nvar, ncid, varid, &
-                    allvars, xmetric, &
-                    dimids, ncid_out, varid_out, nvar_out, nbuoys)
+  ! For buoy output -- inlineable
+  CALL initialize_out(outname, ncid_out, varid_out, nvar_out, nbuoys, dimids)
   !debug: PRINT *,'initial read results'
   !debug: PRINT *,trim(fname), drift_name, outname, nx, ny, nvar, ncid, varid
   !debug: PRINT *,MAXVAL(xmetric%ulon), MAXVAL(xmetric%ulat), MAXVAL(xmetric%dx), MAXVAL(xmetric%dy)
   !debug: PRINT *,dimids, ncid_out, varid_out, nvar_out
   PRINT *,'nbuoys = ', nbuoys
-
-!cice_inst:
-!  aice = allvars(:,:,8)
-!  u    = allvars(:,:,9)
-!  v    = allvars(:,:,10)
-
-!2ds_ice (not _prog or _diag)
-  aice = allvars(:,:,3)
-  u    = allvars(:,:,6)
-  v    = allvars(:,:,7)
 
   CALL readin_drifters(nbuoys, nvar_drift, ncid_drift, varid_drift, buoys, xmetric, restart)
   !debug: STOP
@@ -119,21 +122,8 @@ PROGRAM newdrift
   !DO i = 1, 192
   CALL run(buoys, nbuoys, u, v, xmetric, dt, dtout)
   !ENDDO
-  CALL writeout(ncid_out, varid_out, nvar_out, buoys, nbuoys, closeout)
   closeout = .TRUE.
   CALL writeout(ncid_out, varid_out, nvar_out, buoys, nbuoys, closeout)
-
-! Iterate as needed:
-!  !RG: need to set up multi-level time outputs in io first
-!  DO n = 2, nstep
-!    CALL readin(nx, ny, nvar, ncid, varid, allvars)
-!    u = allvars(:,:,6)
-!    v = allvars(:,:,7)
-!    CALL run(buoys, nbuoys, u, v, xmetric, dt, dtout)
-!    CALL writeout(ncid_out, varid_out, nvar_out, buoys, nbuoys, closeout)
-!  ENDDO
-!  closeout = .TRUE.
-!  CALL writeout(ncid_out, varid_out, nvar_out, buoys, nbuoys, closeout)
 
 !----------------------------------------------------------------
 ! WRITE Write out results -- drift distance and direction
