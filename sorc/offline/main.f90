@@ -77,14 +77,16 @@ PROGRAM newdrift
   !debug: PRINT *,'allocating input variables'
   ALLOCATE(allvars(nx, ny, nvar))
   ALLOCATE(aice(nx, ny), u(nx, ny), v(nx, ny))
+  CALL xmetric%set(nx, ny)
 
   PRINT *,'calling initial read '
-  CALL initial_read(trim(fname), nx, ny, nvar, ncid, varid, &
+  CALL initial_read(trim(fname), nvar, ncid, varid, &
                     allvars, xmetric )
 !2ds_ice (not _prog or _diag)
   aice = allvars(:,:,3)
   u    = allvars(:,:,6)
   v    = allvars(:,:,7)
+  PRINT *,'returned from initial read '
 
 
 !-------------------------- Buoys, inlineable ---------------------
@@ -106,10 +108,7 @@ PROGRAM newdrift
 
   ! For buoy output -- inlineable
   CALL initialize_out(outname, ncid_out, varid_out, nvar_out, nbuoys, dimids)
-  !debug: PRINT *,'initial read results'
-  !debug: PRINT *,trim(fname), drift_name, outname, nx, ny, nvar, ncid, varid
-  !debug: PRINT *,MAXVAL(xmetric%ulon), MAXVAL(xmetric%ulat), MAXVAL(xmetric%dx), MAXVAL(xmetric%dy)
-  !debug: PRINT *,dimids, ncid_out, varid_out, nvar_out
+  !debug: PRINT *,'initialize out '
   PRINT *,'nbuoys = ', nbuoys
 
   CALL readin_drifters(nbuoys, nvar_drift, ncid_drift, varid_drift, buoys, xmetric, restart)
@@ -120,7 +119,7 @@ PROGRAM newdrift
 ! First/only time step (u,v, etc. in hand):
 !debug: 
   !DO i = 1, 192
-  CALL run(buoys, nbuoys, u, v, xmetric, dt, dtout)
+  CALL run(buoys, nbuoys, u, v, xmetric, dt)
   !ENDDO
   closeout = .TRUE.
   CALL writeout(ncid_out, varid_out, nvar_out, buoys, nbuoys, closeout)

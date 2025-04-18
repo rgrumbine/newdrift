@@ -85,33 +85,25 @@ RETURN
 END subroutine initialize_in
 
 !----------------------------------------------------------------
-SUBROUTINE initial_read(fname, nx, ny, nvar, ncid, varid, &
-                        allvars, xmetric )
+SUBROUTINE initial_read(fname, nvar, ncid, varid, &
+                        allvars, xmetric)
   USE metric_mod
   IMPLICIT none
 
-  INTEGER, intent(in) :: nx, ny
   CHARACTER(90), intent(in) :: fname
   INTEGER, intent(in)  :: nvar, ncid, varid(nvar)
 
-  REAL, intent(inout) :: allvars(nx, ny, nvar)
   TYPE(metric),intent(inout) :: xmetric
+  REAL, intent(inout) :: allvars(xmetric%nx, xmetric%ny, nvar)
 
-  PRINT *,'entered initial_read'
 ! Forcing / velocities
   !Get first set of data and construct the local metric for drifting
-  CALL readin(nx, ny, nvar, ncid, varid, allvars)
-  PRINT *,'initial read returned from readin'
+  CALL readin(xmetric%nx, xmetric%ny, nvar, ncid, varid, allvars)
 
 !2ds_ice:
-  CALL xmetric%set(nx, ny)
   xmetric%ulat = allvars(:,:,2)
   xmetric%ulon = allvars(:,:,1)
   CALL xmetric%local_metric()
-
-  PRINT *,'leaving initial_read'
-!  !----------- Initialize buoys, this should be a read in -- separate function
-
 
 END SUBROUTINE initial_read
 !----------------------------------------------------------------

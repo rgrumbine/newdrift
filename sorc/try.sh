@@ -24,24 +24,26 @@ cp ../fix/merged.nc drift_in.nc
 #forecast hours 000 to 072 by 1
 #forecast hours 072 to 192 by 3
 
+tag=20250410
 #macos: base=/Volumes/Data/rtofs/
-#hera: base=$HOME/clim_data/rtofs/rtofs.20241101/
+#hera: base=$HOME/clim_data/rtofs/rtofs.$tag/
 #wcoss2:
-base=$HOME/noscrub/model_intercompare/rtofs_cice/rtofs.20250408/
+base=$HOME/noscrub/model_intercompare/rtofs_cice/rtofs.$tag/
 
 hhh=000
 # Pick up from partial run:
 #cp drift_f010.nc drift_in.nc
 #hhh=011
-#while [ $hhh -le 192 ] 
+while [ $hhh -le 192 ] 
 #while [ $hhh -le 024 ] 
-while [ $hhh -le 000 ] 
+#while [ $hhh -le 000 ] 
 do
   fname=rtofs_glo_2ds_f${hhh}_ice.nc
   if [ ! -f ${base}/$fname ] ; then
     echo could not find ${base}/$fname
-  else
-    ls -l ${base}/$fname 
+    exit 1
+  #else
+  #  ls -l ${base}/$fname 
   fi
 
   echo \'${base}/$fname\' > runin 

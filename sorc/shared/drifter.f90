@@ -129,14 +129,14 @@ CONTAINS
   END subroutine move
 
 !----------------------------------------------------------------
-SUBROUTINE run(buoys, nbuoy, u, v, xmetric, dt, dtout)
+SUBROUTINE run(buoys, nbuoy, u, v, xmetric, dt)
   USE metric_mod
   IMPLICIT none
 
   TYPE(metric), intent(in) :: xmetric
   INTEGER, intent(in) :: nbuoy
   REAL, intent(in) :: u(xmetric%nx, xmetric%ny), v(xmetric%nx, xmetric%ny)
-  REAL, intent(in) :: dt, dtout
+  REAL, intent(in) :: dt
 
   TYPE(drifter), intent(inout) ::  buoys(nbuoy)
 

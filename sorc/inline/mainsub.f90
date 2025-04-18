@@ -1,6 +1,6 @@
-SUBROUTINE driftmain(dt, dtout, outfreq, restart, closeout, &
+SUBROUTINE driftmain(dt, restart, closeout, &
         drift_in, drift_out, &
-        xmetric, u, v, aice, nx, ny,  &
+        xmetric, u, v, aice, &
         phase )
   USE drifter_mod
   USE io
@@ -8,16 +8,13 @@ SUBROUTINE driftmain(dt, dtout, outfreq, restart, closeout, &
 
   IMPLICIT none
 !arguments:
-  REAL, intent(in)    :: dt, dtout
-  INTEGER, intent(in) :: outfreq
-  LOGICAL, intent(in) :: restart
-  LOGICAL, intent(in) :: closeout
-  INTEGER, intent(in) :: nx, ny
-  REAL, intent(in)    :: u(nx, ny), v(nx, ny)
-  REAL, intent(in)    :: aice(nx, ny)
-  INTEGER,intent(in)  :: phase
-  CHARACTER(*), intent(in) :: drift_in, drift_out
   TYPE(metric), intent(in) :: xmetric
+  REAL, intent(in)    :: dt
+  LOGICAL, intent(in) :: restart, closeout
+  CHARACTER(*), intent(in) :: drift_in, drift_out
+  REAL, intent(in)    :: u(xmetric%nx, xmetric%ny), v(xmetric%nx, xmetric%ny)
+  REAL, intent(in)    :: aice(xmetric%nx, xmetric%ny)
+  INTEGER,intent(in)  :: phase
 
 ! Netcdf-related
   INTEGER nvar_out, nvar_drift
@@ -29,14 +26,10 @@ SUBROUTINE driftmain(dt, dtout, outfreq, restart, closeout, &
   
 ! Read from input (or argument to main)
 
-!For drifter 
+!For drifter -- save between phases
   CLASS(drifter), allocatable, save :: buoys(:)
   INTEGER, save        :: nbuoys
   CHARACTER(300), save :: drift_name, outname
-
-! Utilities for main
-  INTEGER i, j
-  INTEGER n
 
 ! -- Begin main for inline usage ----
 
@@ -69,7 +62,7 @@ select case(phase)
 ! RUN
   case(2)
 ! First/only time step (u,v, etc. in hand):
-  CALL run(buoys, nbuoys, u, v, xmetric, dt, dtout)
+  CALL run(buoys, nbuoys, u, v, xmetric, dt)
 
 !---------------------------------------------------------
 ! Write
