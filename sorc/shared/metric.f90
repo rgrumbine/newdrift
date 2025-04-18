@@ -40,6 +40,7 @@ SUBROUTINE local_metric(this)
   IMPLICIT none
   CLASS(metric), intent(inout) :: this
   INTEGER i, j
+  REAL toler
 
   this%rot = 0.
   CALL this%local_cartesian()
@@ -72,12 +73,13 @@ SUBROUTINE local_metric(this)
 
   !debug: PRINT *,'lat metrics',MAXVAL(this%dlatdi), MINVAL(this%dlatdi), MAXVAL(this%dlatdj), MINVAL(this%dlatdj)
   PRINT *,'lon metrics',MAXVAL(this%dlondi), MINVAL(this%dlondi), MAXVAL(this%dlondj), MINVAL(this%dlondj)
+!  toler = 1.0
 !  DO j = 1, this%ny
 !  DO i = 1, this%nx
-!    IF (abs(this%dlondj(i,j) ) > 10. ) THEN
+!    IF (abs(this%dlondj(i,j) ) > toler ) THEN
 !      PRINT *,'dj ',i,j,this%dlondj(i,j), this%ulon(i,j)
 !    ENDIF
-!    IF (abs(this%dlondi(i,j) ) > 10. ) THEN
+!    IF (abs(this%dlondi(i,j) ) > toler ) THEN
 !      PRINT *,'di ',i,j,this%dlondi(i,j), this%ulon(i,j)
 !    ENDIF
 !  ENDDO
