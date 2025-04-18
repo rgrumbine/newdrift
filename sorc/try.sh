@@ -24,7 +24,7 @@ cp ../fix/merged.nc drift_in.nc
 #forecast hours 000 to 072 by 1
 #forecast hours 072 to 192 by 3
 
-tag=20250410
+tag=20250416
 #macos: base=/Volumes/Data/rtofs/
 #hera: base=$HOME/clim_data/rtofs/rtofs.$tag/
 #wcoss2:
