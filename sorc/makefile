@@ -2,7 +2,7 @@
 SHARE = math.o metric.o drifter.o io_nc.o
 
 #Offline:
-OBJ = $(SHARE) main.o initialize_drifter.o
+OBJ = $(SHARE) main.o 
 
 #Inline
 INLINE = $(SHARE) read.o write.o run.o 

@@ -14,7 +14,7 @@
 #  at readin/initialize, set i,j and clat/clon = ilat/ilon
 module load intel netcdf
 module load prod_envir wgrib2
-module list
+#module list
 
 cd $HOME/rgdev/newdrift/sorc/
 
@@ -33,9 +33,9 @@ hhh=000
 # Pick up from partial run:
 #cp drift_f010.nc drift_in.nc
 #hhh=011
-#while [ $hhh -le 024 ] 
-#while [ $hhh -le 000 ] 
 while [ $hhh -le 192 ] 
+#while [ $hhh -le 024 ] 
+#while [ $hhh -le 001 ] 
 do
   fname=rtofs_glo_2ds_f${hhh}_ice.nc
 

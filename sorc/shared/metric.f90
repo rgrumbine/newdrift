@@ -53,9 +53,36 @@ SUBROUTINE local_metric(this)
     this%dlondj(i,j) = this%ulon(i,j+1) - this%ulon(i,j)
   ENDDO
   ENDDO
+  j = this%ny
+  DO i = 2, this%nx
+    this%dlatdi(i,j) = this%ulat(i,j) - this%ulat(i-1,j)
+    this%dlondi(i,j) = this%ulon(i,j) - this%ulon(i-1,j)
+  ENDDO
+  i = this%nx
+  DO j = 2, this%ny
+    this%dlatdj(i,j) = this%ulat(i,j) - this%ulat(i,j-1)
+    this%dlondj(i,j) = this%ulon(i,j) - this%ulon(i,j-1)
+  ENDDO
+  this%dlatdi(this%nx, this%ny) = this%dlatdi(this%nx - 1, this%ny-1)
+  this%dlatdj(this%nx, this%ny) = this%dlatdj(this%nx - 1, this%ny-1)
+  this%dlondi(this%nx, this%ny) = this%dlondi(this%nx - 1, this%ny-1)
+  this%dlondj(this%nx, this%ny) = this%dlondj(this%nx - 1, this%ny-1)
+
   !rot = atan2(?,?)
-  PRINT *,'lat metrics',MAXVAL(this%dlatdi), MINVAL(this%dlatdi), MAXVAL(this%dlatdj), MINVAL(this%dlatdj)
+
+  !debug: PRINT *,'lat metrics',MAXVAL(this%dlatdi), MINVAL(this%dlatdi), MAXVAL(this%dlatdj), MINVAL(this%dlatdj)
   PRINT *,'lon metrics',MAXVAL(this%dlondi), MINVAL(this%dlondi), MAXVAL(this%dlondj), MINVAL(this%dlondj)
+!  DO j = 1, this%ny
+!  DO i = 1, this%nx
+!    IF (abs(this%dlondj(i,j) ) > 10. ) THEN
+!      PRINT *,'dj ',i,j,this%dlondj(i,j), this%ulon(i,j)
+!    ENDIF
+!    IF (abs(this%dlondi(i,j) ) > 10. ) THEN
+!      PRINT *,'di ',i,j,this%dlondi(i,j), this%ulon(i,j)
+!    ENDIF
+!  ENDDO
+!  ENDDO
+
 
   RETURN
 END subroutine local_metric
@@ -111,6 +138,7 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
   ratio = 1.
 
   tlon = lon
+  !RG: i = 1 at ~74 longitude
   fi = (tlon/360)*this%nx
   if (fi <= 0.5) fi = 1
   ii    = int(fi+0.5)
@@ -155,7 +183,7 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
       !debug: PRINT *,'fi > nx ',fi
       fi = mod(fi, float(this%nx) )
     endif
-    if (fi < 0) THEN
+    if (fi < 0) THEN !Assuming that grid wraps around in i
       fi = fi + this%nx
       !debug: PRINT *,'fi < 0',fi
     endif
@@ -199,15 +227,17 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
   IF (iter .eq. itmax) THEN  ! need brute force or something to cross seam
     !debug: WRITE(*,9004) iter, dfi, dfj, fi, fj, dlat, dlon, lat, lon, this%ulat(ii,ij), this%ulon(ii,ij)
     CALL this%ll_to_xy_brute(lat, lon, fi, fj)
-    ii = int(fi+0.5)
-    ij = int(fj+0.5)
-    dfi = 0.
-    dfj = 0.
-    dlat = lat - this%ulat(ii,ij)
-    tlon = this%ulon(ii,ij)
-    if (tlon > 360. .or. tlon < 0) tlon = wrap(tlon)
-    dlon = lon - tlon
-    !debug: WRITE(*,9004) iter+1, dfi, dfj, fi, fj, dlat, dlon, lat, lon, this%ulat(ii,ij), this%ulon(ii,ij)
+    IF (fi < 1.e30 .and. fj < 1.e30) THEN
+      ii = int(fi+0.5)
+      ij = int(fj+0.5)
+      dfi = 0.
+      dfj = 0.
+      dlat = lat - this%ulat(ii,ij)
+      tlon = this%ulon(ii,ij)
+      if (tlon > 360. .or. tlon < 0) tlon = wrap(tlon)
+      dlon = lon - tlon
+      !debug: WRITE(*,9004) iter+1, dfi, dfj, fi, fj, dlat, dlon, lat, lon, this%ulat(ii,ij), this%ulon(ii,ij)
+    ENDIF
   ENDIF
  9004 FORMAT('itmax ',I3,6F10.3,4F10.3)
 
@@ -229,6 +259,10 @@ SUBROUTINE ll_to_xy_brute(this, lat, lon, fi, fj)
 !       should be able to take advantage of that. Lats > 45.
 !    Sometimes also encounter difficulty along 0 E 
   !debug: PRINT *,'brute ',lat,lon
+  fi = 1.e30
+  fj = 1.e30
+  RETURN
+
   dbest = 999.
   bi = 1
   bj = 1
