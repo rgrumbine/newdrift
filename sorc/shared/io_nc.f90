@@ -189,8 +189,7 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
     !debug: PRINT *,'clon ',MAXVAL(clon), MINVAL(clon)
   ENDIF
 
-  !debug: 
-  PRINT *,' about to create buoys '
+  !debug: PRINT *,' about to create buoys '
   bad_count = 0
   !CALL cpu_time(start_time)
   DO i = 1, nbuoy

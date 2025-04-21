@@ -72,7 +72,7 @@ SUBROUTINE local_metric(this)
   !rot = atan2(?,?)
 
   !debug: PRINT *,'lat metrics',MAXVAL(this%dlatdi), MINVAL(this%dlatdi), MAXVAL(this%dlatdj), MINVAL(this%dlatdj)
-  PRINT *,'lon metrics',MAXVAL(this%dlondi), MINVAL(this%dlondi), MAXVAL(this%dlondj), MINVAL(this%dlondj)
+  !PRINT *,'lon metrics',MAXVAL(this%dlondi), MINVAL(this%dlondi), MAXVAL(this%dlondj), MINVAL(this%dlondj)
 !  toler = 1.0
 !  DO j = 1, this%ny
 !  DO i = 1, this%nx
