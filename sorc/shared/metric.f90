@@ -134,7 +134,7 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
   ENDIF
 
 ! Use something like Newton method with starting point as if grid were linear
-  itmax = 200
+  itmax = 60
   iter  = 0
   toler = 0.05 ! degrees
   ratio = 1.
@@ -215,31 +215,41 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
     dlon = lon - tlon
 
 !debug:     WRITE(*,9001) iter, dfi, dfj, fi, fj, dlat, dlon, tlat, lon, this%ulat(ii,ij), tlon
-    IF (iter > 100 ) THEN
-      ratio = 0.125
-    ELSE IF (iter > 50 ) THEN
+    IF (iter > 35 ) THEN
       ratio = 0.25
     ELSE IF (iter > 20) THEN
       ratio = 0.5
     ENDIF
     IF (iter >= itmax .or. (abs(dlat) < toler .and. abs(dlon) < toler)) exit newton
   end do newton
+  !debug: PRINT *,'iterations ',iter
  9001 FORMAT(I3,6F10.3,4F10.3)
 
   IF (iter .eq. itmax) THEN  ! need brute force or something to cross seam
+    fi = 1.e30
+    fj = 1.e30
     !debug: WRITE(*,9004) iter, dfi, dfj, fi, fj, dlat, dlon, lat, lon, this%ulat(ii,ij), this%ulon(ii,ij)
-    CALL this%ll_to_xy_brute(lat, lon, fi, fj)
-    IF (fi < 1.e30 .and. fj < 1.e30) THEN
-      ii = int(fi+0.5)
-      ij = int(fj+0.5)
-      dfi = 0.
-      dfj = 0.
-      dlat = lat - this%ulat(ii,ij)
-      tlon = this%ulon(ii,ij)
-      if (tlon > 360. .or. tlon < 0) tlon = wrap(tlon)
-      dlon = lon - tlon
-      !debug: WRITE(*,9004) iter+1, dfi, dfj, fi, fj, dlat, dlon, lat, lon, this%ulat(ii,ij), this%ulon(ii,ij)
-    ENDIF
+    !CALL this%ll_to_xy_brute(lat, lon, fi, fj)
+    !RG: heavy overhead for calling this, so do it back in buoy intitialization for
+    !    all bad locations at once
+    !CALL irreg_ll2ij_cice(this%nx, this%ny, this%ulat, this%ulon, 1, lat, lon, fi, fj)
+
+    !PRINT *,'irreg ',lat,lon,fi,fj
+    !IF (fi == -1. .or. fj == -1.) THEN
+    !  fi = 1.e30
+    !  fj = 1.e30
+    !ENDIF
+    !IF (fi < 1.e30 .and. fj < 1.e30) THEN
+    !  ii = int(fi+0.5)
+    !  ij = int(fj+0.5)
+    !  dfi = 0.
+    !  dfj = 0.
+    !  dlat = lat - this%ulat(ii,ij)
+    !  tlon = this%ulon(ii,ij)
+    !  if (tlon > 360. .or. tlon < 0) tlon = wrap(tlon)
+    !  dlon = lon - tlon
+    !  !debug: WRITE(*,9004) iter+1, dfi, dfj, fi, fj, dlat, dlon, lat, lon, this%ulat(ii,ij), this%ulon(ii,ij)
+    !ENDIF
   ENDIF
  9004 FORMAT('itmax ',I3,6F10.3,4F10.3)
 

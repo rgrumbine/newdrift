@@ -149,16 +149,23 @@ END SUBROUTINE initialize_drifters
 
 SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist, xmetric, restart)
   USE metric_mod
+  USE, intrinsic :: ieee_arithmetic
   IMPLICIT none
+
   INTEGER nvar_drift, ncid_drift, varid_drift(nvar_drift)
   INTEGER nbuoy
   CLASS(drifter) :: buoylist(nbuoy)
   TYPE(metric)  :: xmetric
   LOGICAL, intent(in) :: restart
 
-  INTEGER i, retcode
+  INTEGER i, retcode, bad_count, very_bad
   REAL tlon(nbuoy), tlat(nbuoy)
   REAL clon(nbuoy), clat(nbuoy)
+  REAL, allocatable :: bad_lat(:), bad_lon(:)
+  REAL, allocatable :: bad_fi(:), bad_fj(:)
+  INTEGER, allocatable :: bad_index(:)
+
+  REAL start_time, end_time
 
   !debug: PRINT *,' entered drifter read in'
   !debug: PRINT *,ncid_drift, varid_drift
@@ -182,12 +189,68 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
     !debug: PRINT *,'clon ',MAXVAL(clon), MINVAL(clon)
   ENDIF
 
-  !debug: PRINT *,' about to create buoys '
+  !debug: 
+  PRINT *,' about to create buoys '
+  bad_count = 0
+  !CALL cpu_time(start_time)
   DO i = 1, nbuoy
     CALL buoylist(i)%init(tlon(i), tlat(i), clon(i), clat(i), xmetric)
+    if (clat(i) >= 1.e30 .or. clon(i) >= 1.e30 .or. &
+        buoylist(i)%x >= 1.e30 .or. buoylist(i)%y >= 1.e30 ) THEN
+      bad_count = bad_count + 1
+    endif
     !debug: WRITE(*,9001) i, tlon(i), tlat(i), clon(i), clat(i)
   ENDDO
  9001 FORMAT(I6,4F10.3)
+  !CALL cpu_time(end_time)
+  !PRINT *,'buoy list timing ',start_time, end_time, end_time - start_time
+
+! Processing en masse all buoys which have bad locations 
+! RG: make this its own routine for general use
+  PRINT *,'count of bad locations: ',bad_count
+  ALLOCATE(bad_index(bad_count), bad_lat(bad_count), bad_lon(bad_count))
+  ALLOCATE(bad_fi(bad_count), bad_fj(bad_count))
+  bad_count = 1
+  DO i = 1, nbuoy
+    if (clat(i) >= 1.e30 .or. clon(i) >= 1.e30 .or. &
+        buoylist(i)%x >= 1.e30 .or. buoylist(i)%y >= 1.e30 ) THEN
+      bad_index(bad_count) = i
+      IF (tlat(i) >= 1.e30 .or. tlon(i) >= 1.e30) THEN
+        tlat(i) = 0.
+        tlon(i) = 0.
+      ENDIF
+      bad_lat(bad_count)   = tlat(i)
+      bad_lon(bad_count)   = tlon(i)
+      bad_count = bad_count + 1
+    endif
+  ENDDO
+  bad_count = bad_count - 1 
+  !Rg: now call mass searcher irreg_
+  !CALL cpu_time(start_time)
+  CALL irreg_ll2ij_cice(xmetric%nx, xmetric%ny, xmetric%ulat, xmetric%ulon, &
+          bad_count, bad_lat, bad_lon, bad_fi, bad_fj)
+  !CALL cpu_time(end_time)
+  !PRINT *,'irreg timing ',start_time, end_time, end_time - start_time
+
+  very_bad = 0
+  DO i = 1, bad_count
+    !debug: PRINT *,'retry ',i,bad_fi(i), bad_fj(i), bad_lat(i), bad_lon(i)
+    IF (bad_fi(i) < 1 .or. bad_fi(i) > 1.e10 .or. ieee_is_nan(bad_fi(i)) .or. &
+        bad_fj(i) < 1 .or. bad_fj(i) > 1.e10 .or. ieee_is_nan(bad_fj(i)) ) THEN
+      buoylist(bad_index(i))%x = 1.e30
+      buoylist(bad_index(i))%y = 1.e30
+      buoylist(bad_index(i))%clat = 1.e30
+      buoylist(bad_index(i))%clon = 1.e30
+      PRINT *,'very bad ',buoylist(bad_index(i))%ilat, buoylist(bad_index(i))%ilon
+      very_bad = very_bad + 1
+    ELSE
+      buoylist(bad_index(i))%x = bad_fi(i)
+      buoylist(bad_index(i))%y = bad_fj(i)
+      buoylist(bad_index(i))%clat = bad_lat(i)
+      buoylist(bad_index(i))%clon = bad_lon(i)
+    ENDIF
+  ENDDO
+  PRINT *,'very bad points: ',very_bad
   
   !debug: PRINT *,' leaving drifter read in'
   RETURN
@@ -347,7 +410,7 @@ SUBROUTINE writeout(ncid_out, varid_out, nvar_out, buoys, nbuoy, closeout)
 
   CALL outvars(ncid_out, varid_out, nvar_out, buoys, nbuoy )
   IF (closeout) THEN
-    PRINT *,'calling close_out'
+    !debug: PRINT *,'calling close_out'
     CALL close_out(ncid_out)
   ENDIF
 
