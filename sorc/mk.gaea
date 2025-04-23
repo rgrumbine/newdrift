@@ -1,14 +1,11 @@
 
 include mk.all
 
-#	echo ifort = `which ifort`
-#	echo ftn = `which ftn`
-
-NETCDF_INCLUDES = $(NETCDF)/include
-NETCDF_LIBRARIES = $(NETCDF)/lib
+NETCDF_INCLUDES = $(NETCDF_DIR)/include
+NETCDF_LIBRARIES = $(NETCDF_DIR)/lib
 
 FOPTS = -c -std08 -I $(NETCDF_INCLUDES)
 LIBDIRS = -L $(NETCDF_LIBRARIES)
 
-FC = ifort
+FC = ftn
 
