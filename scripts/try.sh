@@ -16,7 +16,7 @@ module load intel netcdf
 module load prod_envir wgrib2
 #module list
 
-cd $HOME/rgdev/newdrift/sorc/
+#cd $HOME/rgdev/newdrift/sorc/
 
 cp ../fix/merged.nc drift_in.nc
 
@@ -24,7 +24,8 @@ cp ../fix/merged.nc drift_in.nc
 #forecast hours 000 to 072 by 1
 #forecast hours 072 to 192 by 3
 
-tag=20250416
+EXDIR=${EXDIR:-$HOME/rgdev/newdrift/exec}
+tag=${tag:-20250518}
 #macos: base=/Volumes/Data/rtofs/
 #hera: base=$HOME/clim_data/rtofs/rtofs.$tag/
 #wcoss2:
@@ -34,9 +35,9 @@ hhh=000
 # Pick up from partial run:
 #cp drift_f010.nc drift_in.nc
 #hhh=011
-#while [ $hhh -le 192 ] 
+while [ $hhh -le 192 ] 
 #while [ $hhh -le 024 ] 
-while [ $hhh -le 000 ] 
+#while [ $hhh -le 000 ] 
 do
   fname=rtofs_glo_2ds_f${hhh}_ice.nc
   if [ ! -f ${base}/$fname ] ; then
@@ -63,7 +64,7 @@ do
   else
     echo .TRUE. >> runin
   fi
-  echo runin | time ./drifter 
+  echo runin | time $EXDIR/drifter 
 
   cp out_${hhh}.nc drift_f${hhh}.nc
   mv out_${hhh}.nc drift_in.nc
@@ -78,11 +79,8 @@ do
 done
 #endloop
 
+
 #mv outputs to $com
-
-
-#For inline:
-#  subroutine that accepts initial (full) drifters, forcing, and dt
-#    returns updated locations
-#  accepts info on whether/where to write out
+mkdir $COMOUT/$tag
+mv *.nc ${tag}.out $COMOUT/$tag
 
