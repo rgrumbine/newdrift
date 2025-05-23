@@ -10,13 +10,16 @@
 
 cd $HOME/rgdev/newdrift/scripts
 
-export tag=20250501
+export tag=20250510
 export COMOUT=$HOME/noscrub/newdrift
+export end=`date +"%Y%m%d"`
 
-while [ $tag -le 20250518 ]
+while [ $tag -le $end ]
 do
   if [ ! -d $COMOUT/$tag ] ; then
     time ./try.sh > ${tag}.out
+  else
+    echo zzz have $tag already
   fi
   tag=`expr $tag + 1`
   tag=`$HOME/bin/dtgfix3 $tag`

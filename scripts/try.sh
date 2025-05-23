@@ -81,6 +81,8 @@ done
 
 
 #mv outputs to $com
-mkdir $COMOUT/$tag
-mv *.nc ${tag}.out $COMOUT/$tag
+if [ -f drift_f192.nc ] ; then
+  mkdir -p $COMOUT/$tag
+  mv *.nc ${tag}.out $COMOUT/$tag
+fi
 
