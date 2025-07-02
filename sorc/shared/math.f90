@@ -50,12 +50,19 @@ END function harcdis
 ! Bearing/unbearing from movable type:
 !  bearing    (convert lat-lon pair to distance/bearing)
 !  unbearing  (convert distance,bearing and starting point to final point)
+!dist in km, rearth in km
 SUBROUTINE bearing(lat1, lon1, lat2, lon2, dist, dir)
   USE constants
   IMPLICIT none
   REAL, intent(in) :: lat1, lon1, lat2, lon2
   REAL, intent(out) :: dist, dir
   REAL harcdis
+
+  IF (lat1 >= 1.e30 .or. lon1 >= 1.e30 .or. lat2 >= 1.e30 .or. lon2 >= 1.e30) THEN
+    dist = 1.e30
+    dir  = 1.e30
+    RETURN
+  ENDIF
 
   dist = harcdis(lat1, lon1, lat2, lon2)
   dir  = atan2(sin((lon1-lon2)*rpd)*cos(lat2*rpd) , &
@@ -85,10 +92,23 @@ SUBROUTINE unbearing(lat1, lon1, dist, dir, lat2, lon2)
                       cos(dist/R)-sin(lat1*rpd)*sin(lat2*rpd) ) / rpd
 RETURN
 END subroutine unbearing
-!wdir
 
+!Wrap longitude to be in range [0,360]
+REAL FUNCTION wrap(y)
+  IMPLICIT none
+  REAL, intent(in) :: y
+  REAL x
 
-!grid rotation
+  x = y
+  IF (x > 360.) x = x - 360.
+  IF (x > 360.) x = x - 360.
+  IF (x > 360.) x = x - 360.
+  IF (x < 0) x = x + 360.
+
+  wrap = x
+  RETURN
+END FUNCTION wrap
+
 
 ! local_metric now in class metric
 !lat, lon in degrees
@@ -99,5 +119,8 @@ END subroutine unbearing
 ! Convert from buoy's lat-lon location to its ij coordinate (x,y in buoy member)
 ! --> in class metric
 
+! ---------- To add ----------
+!wdir
+!grid rotation
+!Bilinear interpolation of a field to buoy.x,y
 
-!Bilinear interpolation to buoy.x,y

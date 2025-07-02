@@ -1,5 +1,7 @@
 %.o: shared/%.f90
 	$(FC) $(FOPTS) $< -o $(@)
+%.o: shared/%.f
+	$(FC) $(FOPTS) $< -o $(@) -I $(W3EMC_INCd)
 %.o: inline/%.f90
 	$(FC) $(FOPTS) $< -o $(@)
 %.o: offline/%.f90

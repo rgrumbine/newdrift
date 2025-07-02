@@ -40,10 +40,12 @@ SUBROUTINE local_metric(this)
   IMPLICIT none
   CLASS(metric), intent(inout) :: this
   INTEGER i, j
+  REAL toler
 
   this%rot = 0.
   CALL this%local_cartesian()
 
+  !RG: Add loops for j = ny or i = nx, and then the corner nx, ny
   DO j = 1, this%ny-1
   DO i = 1, this%nx-1
     this%dlatdi(i,j) = this%ulat(i+1,j) - this%ulat(i,j)
@@ -52,7 +54,37 @@ SUBROUTINE local_metric(this)
     this%dlondj(i,j) = this%ulon(i,j+1) - this%ulon(i,j)
   ENDDO
   ENDDO
+  j = this%ny
+  DO i = 2, this%nx
+    this%dlatdi(i,j) = this%ulat(i,j) - this%ulat(i-1,j)
+    this%dlondi(i,j) = this%ulon(i,j) - this%ulon(i-1,j)
+  ENDDO
+  i = this%nx
+  DO j = 2, this%ny
+    this%dlatdj(i,j) = this%ulat(i,j) - this%ulat(i,j-1)
+    this%dlondj(i,j) = this%ulon(i,j) - this%ulon(i,j-1)
+  ENDDO
+  this%dlatdi(this%nx, this%ny) = this%dlatdi(this%nx - 1, this%ny-1)
+  this%dlatdj(this%nx, this%ny) = this%dlatdj(this%nx - 1, this%ny-1)
+  this%dlondi(this%nx, this%ny) = this%dlondi(this%nx - 1, this%ny-1)
+  this%dlondj(this%nx, this%ny) = this%dlondj(this%nx - 1, this%ny-1)
+
   !rot = atan2(?,?)
+
+  !debug: PRINT *,'lat metrics',MAXVAL(this%dlatdi), MINVAL(this%dlatdi), MAXVAL(this%dlatdj), MINVAL(this%dlatdj)
+  !PRINT *,'lon metrics',MAXVAL(this%dlondi), MINVAL(this%dlondi), MAXVAL(this%dlondj), MINVAL(this%dlondj)
+!  toler = 1.0
+!  DO j = 1, this%ny
+!  DO i = 1, this%nx
+!    IF (abs(this%dlondj(i,j) ) > toler ) THEN
+!      PRINT *,'dj ',i,j,this%dlondj(i,j), this%ulon(i,j)
+!    ENDIF
+!    IF (abs(this%dlondi(i,j) ) > toler ) THEN
+!      PRINT *,'di ',i,j,this%dlondi(i,j), this%ulon(i,j)
+!    ENDIF
+!  ENDDO
+!  ENDDO
+
 
   RETURN
 END subroutine local_metric
@@ -92,35 +124,48 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
   INTEGER :: iter, itmax, ii, ij
   REAL toler, tlat, tlon, delta, dlat, dlon, fi, fj, dfi, dfj
   REAL ratio
-!  REAL wrap
+  REAL wrap
+
+! if flag values (lat or lon >= 1.e30) skip, assign xy to 1,1
+  IF (lat >= 1.e30 .or. lon >= 1.e30) THEN
+    x = 1.
+    y = 1.
+    RETURN
+  ENDIF
 
 ! Use something like Newton method with starting point as if grid were linear
-  itmax = 200
+  itmax = 60
   iter  = 0
   toler = 0.05 ! degrees
   ratio = 1.
 
   tlon = lon
+  !RG: i = 1 at ~74 longitude
   fi = (tlon/360)*this%nx
   if (fi <= 0.5) fi = 1
   ii    = int(fi+0.5)
+
+  tlat = lat
+  if (lat == 90) tlat = lat - 0.05
+  fj = (tlat+78.64)*this%ny/(90+78.64)
+  if (fj <= 0) THEN
+    fj = 1.
+  ENDIF
+  IF (fj >= this%ny) THEN
+    PRINT *,'fj overrunning grid',fj, lat, tlat, this%ny
+    STOP
+  ENDIF
+  ij    = int(fj+0.5)
+
+  dlat = tlat - this%ulat(ii,ij)
   tlon = this%ulon(ii,ij)
   if (tlon > 360. .or. tlon < 0) tlon = wrap(tlon)
   dlon = lon - tlon
 
-  !fj = this%ny/2
-  tlat = lat
-  if (lat == 90) tlat = lat - 0.05
-  fj = (tlat+78.64)*this%ny/(90+78.64)
-  ij    = int(fj+0.5)
-  if (ij <= 0) THEN
-    fj = 1.
-    ij = 1
-  ENDIF
-  dlat = tlat - this%ulat(ii,ij)
 
-!debug:   WRITE (*,9002) fi, fj, dlat, dlon, tlat, lon, this%ulat(ii,ij), tlon
-!debug:  9002 FORMAT('init ',8F10.3)
+!debug: WRITE (*,9002) fi, fj, dlat, dlon, tlat, lon, this%ulat(ii,ij), tlon
+!debug:  
+  9002 FORMAT('init ',8F10.3)
 
   newton : do
     iter = iter + 1
@@ -128,8 +173,6 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
     if (delta == 0) THEN
       !debug: PRINT *,'delta == 0 ',delta
       delta = 3.e-3
-!debug: !    else
-!debug: !      PRINT *,'delta != 0 ',delta
     endif
 
     dfi   = ratio * ((dlat*this%dlondj(ii,ij)) - (dlon*this%dlatdj(ii,ij)) ) / delta
@@ -142,7 +185,7 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
       !debug: PRINT *,'fi > nx ',fi
       fi = mod(fi, float(this%nx) )
     endif
-    if (fi < 0) THEN
+    if (fi < 0) THEN !Assuming that grid wraps around in i
       fi = fi + this%nx
       !debug: PRINT *,'fi < 0',fi
     endif
@@ -166,33 +209,47 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
     ii    = int(fi+0.5)
     ij    = int(fj+0.5)
 
-    dlat = lat - this%ulat(ii,ij)
+    dlat = tlat - this%ulat(ii,ij)
     tlon = this%ulon(ii,ij)
     if (tlon > 360. .or. tlon < 0) tlon = wrap(tlon)
     dlon = lon - tlon
 
-!debug:     WRITE(*,9001) iter, dfi, dfj, fi, fj, dlat, dlon, lat, lon, this%ulat(ii,ij), tlon
-    IF (iter > 100 ) THEN
+!debug:     WRITE(*,9001) iter, dfi, dfj, fi, fj, dlat, dlon, tlat, lon, this%ulat(ii,ij), tlon
+    IF (iter > 35 ) THEN
       ratio = 0.25
     ELSE IF (iter > 20) THEN
       ratio = 0.5
     ENDIF
     IF (iter >= itmax .or. (abs(dlat) < toler .and. abs(dlon) < toler)) exit newton
   end do newton
+  !debug: PRINT *,'iterations ',iter
  9001 FORMAT(I3,6F10.3,4F10.3)
 
   IF (iter .eq. itmax) THEN  ! need brute force or something to cross seam
+    fi = 1.e30
+    fj = 1.e30
     !debug: WRITE(*,9004) iter, dfi, dfj, fi, fj, dlat, dlon, lat, lon, this%ulat(ii,ij), this%ulon(ii,ij)
-    CALL this%ll_to_xy_brute(lat, lon, fi, fj)
-    ii = int(fi+0.5)
-    ij = int(fj+0.5)
-    dfi = 0.
-    dfj = 0.
-    dlat = lat - this%ulat(ii,ij)
-    tlon = this%ulon(ii,ij)
-    if (tlon > 360. .or. tlon < 0) tlon = wrap(tlon)
-    dlon = lon - tlon
-    !debug: WRITE(*,9004) iter+1, dfi, dfj, fi, fj, dlat, dlon, lat, lon, this%ulat(ii,ij), this%ulon(ii,ij)
+    !CALL this%ll_to_xy_brute(lat, lon, fi, fj)
+    !RG: heavy overhead for calling this, so do it back in buoy intitialization for
+    !    all bad locations at once
+    !CALL irreg_ll2ij_cice(this%nx, this%ny, this%ulat, this%ulon, 1, lat, lon, fi, fj)
+
+    !PRINT *,'irreg ',lat,lon,fi,fj
+    !IF (fi == -1. .or. fj == -1.) THEN
+    !  fi = 1.e30
+    !  fj = 1.e30
+    !ENDIF
+    !IF (fi < 1.e30 .and. fj < 1.e30) THEN
+    !  ii = int(fi+0.5)
+    !  ij = int(fj+0.5)
+    !  dfi = 0.
+    !  dfj = 0.
+    !  dlat = lat - this%ulat(ii,ij)
+    !  tlon = this%ulon(ii,ij)
+    !  if (tlon > 360. .or. tlon < 0) tlon = wrap(tlon)
+    !  dlon = lon - tlon
+    !  !debug: WRITE(*,9004) iter+1, dfi, dfj, fi, fj, dlat, dlon, lat, lon, this%ulat(ii,ij), this%ulon(ii,ij)
+    !ENDIF
   ENDIF
  9004 FORMAT('itmax ',I3,6F10.3,4F10.3)
 
@@ -208,16 +265,25 @@ SUBROUTINE ll_to_xy_brute(this, lat, lon, fi, fj)
   CLASS(metric), intent(in) :: this
   REAL, intent(in)    :: lat, lon
   REAL, intent(inout) :: fi, fj
-  INTEGER i,j, bi, bj 
-  REAL dlat, dlon, tlon, dbest
+  INTEGER i,j, jmin, bi, bj 
+  REAL dlat, dlon, tlon, dbest, wrap
 !RG: This is very slow. The newton search fails (mostly) because of the tripolar seam.
 !       should be able to take advantage of that. Lats > 45.
 !    Sometimes also encounter difficulty along 0 E 
-  !debug: PRINT *,'entered brute'
+  !debug: PRINT *,'brute ',lat,lon
+  fi = 1.e30
+  fj = 1.e30
+  RETURN
+
   dbest = 999.
   bi = 1
   bj = 1
-  DO j = 1, this%ny
+  IF (lat < 45.) THEN
+    jmin = 1
+  ELSE
+    jmin = int(0.5 + 0.65*this%ny)
+  ENDIF
+  DO j = jmin, this%ny
   DO i = 1, this%nx
     dlat = lat - this%ulat(i,j)
     tlon = this%ulon(i,j)
@@ -237,21 +303,6 @@ SUBROUTINE ll_to_xy_brute(this, lat, lon, fi, fj)
   RETURN
 END SUBROUTINE ll_to_xy_brute
 
-
-REAL FUNCTION wrap(y)
-  IMPLICIT none
-  REAL, intent(in) :: y
-  REAL x
-  
-  x = y
-  IF (x > 360.) x = x - 360.
-  IF (x > 360.) x = x - 360.
-  IF (x > 360.) x = x - 360.
-  IF (x < 0) x = x + 360.
-  
-  wrap = x
-  RETURN 
-END FUNCTION wrap
 
 SUBROUTINE xy_to_ll(this, lat, lon, x, y)
 
