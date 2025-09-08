@@ -68,27 +68,30 @@ PROGRAM newdrift
 
 ! RTOFS et al. files, not inlineable --------------------------------
 ! Initialize input Forcing / velocities
-  !PRINT *,'calling initialize_in'
+  !debug:
+  PRINT *,'calling initialize_in'
   CALL initialize_in(nvar, trim(fname), ncid, varid, nx, ny)
 !RG: really initialize_io
   !Get first set of data and construct the local metric for drifting
   ! also constructs xmetric
   !debug: 
-  !debug: PRINT *,'allocating input variables'
+  PRINT *,'allocating input variables'
   ALLOCATE(allvars(nx, ny, nvar))
   ALLOCATE(aice(nx, ny), u(nx, ny), v(nx, ny))
   CALL xmetric%set(nx, ny)
 
-  !PRINT *,'calling initial read '
+  !debug:
+  PRINT *,'calling initial read '
   CALL initial_read(trim(fname), nvar, ncid, varid, &
                     allvars, xmetric )
 !2ds_ice (not _prog or _diag)
   aice = allvars(:,:,3)
   u    = allvars(:,:,6)
   v    = allvars(:,:,7)
-  !PRINT *,'returned from initial read '
+  !debug:
+  PRINT *,'returned from initial read '
 
-
+  !debug: STOP
 !-------------------------- Buoys, inlineable ---------------------
 ! Initialize Buoy -- points, input file, output file
 ! Allocate varid_drift, initialize nvar_drift based on whether this is restart
@@ -99,17 +102,23 @@ PROGRAM newdrift
   ENDIF
 
   ALLOCATE(varid_drift(nvar_drift))
-  !debug: PRINT *,'calling initialize_drifters, nbuoys = ',nbuoys
+  !debug: 
+  PRINT *,'calling initialize_drifters, nbuoys = ',nbuoys
   CALL initialize_drifters(nvar_drift, drift_name, ncid_drift, varid_drift, nbuoys, restart)
   ALLOCATE(buoys(nbuoys))
-  !debug: PRINT *,'back from initialize_drifters, nbuoys = ',nbuoys
+  !debug: 
+  PRINT *,'back from initialize_drifters, nbuoys = ',nbuoys
 
   ! For buoy output -- inlineable
   CALL initialize_out(outname, ncid_out, varid_out, nvar_out, nbuoys, dimids)
-  !debug: PRINT *,'initialize out '
-  !debug: PRINT *,'nbuoys = ', nbuoys
+  !debug: 
+  PRINT *,'initialize out '
+  !debug: 
+  PRINT *,'nbuoys = ', nbuoys
 
   CALL readin_drifters(nbuoys, nvar_drift, ncid_drift, varid_drift, buoys, xmetric, restart)
+  !debug:
+  PRINT *,'back from readin_drifters'
   !debug: STOP
 !---------------------------------------------------------
 ! RUN

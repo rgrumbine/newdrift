@@ -52,34 +52,54 @@ SUBROUTINE initialize_in(nvar, fname, ncid, varid, nx, ny)
 !  varnames(23) = "divu"
 !  varnames(24) = "Tair"
 !RG: make file type an input parameter 2ds_ice:
-  varnames(1) = "Longitude"
-  varnames(2) = "Latitude"
-  varnames(3) = "ice_coverage"
-  varnames(4) = "ice_temperature"
-  varnames(5) = "ice_thickness"
-  varnames(6) = "ice_uvelocity"
-  varnames(7) = "ice_vvelocity"
+  !RTOFS
+  !varnames(1) = "Longitude"
+  !varnames(2) = "Latitude"
+  !varnames(3) = "ice_coverage"
+  !varnames(4) = "ice_temperature"
+  !varnames(5) = "ice_thickness"
+  !varnames(6) = "ice_uvelocity"
+  !varnames(7) = "ice_vvelocity"
+  !UFS
+  varnames(1) = "TLON"
+  varnames(2) = "TLAT"
+  varnames(3) = "aice_h"
+  varnames(4) = "Tsfc_h"
+  varnames(5) = "hi_h"
+  varnames(6) = "uvel_h"
+  varnames(7) = "vvel_h"
   
   !debug: PRINT *,'trying to open ',fname, len(fname)
   retcode = nf90_open(fname, NF90_NOWRITE, ncid)
   CALL check(retcode)
 
   DO i = 1, nvar
-    !debug: PRINT *,i,' reading varname ',varnames(i)
+    !debug: 
+    PRINT *,i,' reading varname ',varnames(i)
     retcode = nf90_inq_varid(ncid, varnames(i), varid(i))
     CALL check(retcode)
   ENDDO
-  !debug: PRINT *,'done reading varnames'
+  !debug: 
+  PRINT *,'done reading varnames'
 
-  !RG: Read this in from netcdf file -- rtofs
-  xname = "X"
-  yname = "Y"
-  retcode = nf90_inquire_dimension(ncid, 3, xname, nx)
+  !RG: Read this in from netcdf file -- 
+  !rtofs
+  !xname = "X"
+  !yname = "Y"
+  !retcode = nf90_inquire_dimension(ncid, 3, xname, nx)
+  !CALL check(retcode)
+  !retcode = nf90_inquire_dimension(ncid, 2, yname, ny)
+  !CALL check(retcode)
+  !ufs
+  xname = 'ni'
+  yname = 'nj'
+  retcode = nf90_inquire_dimension(ncid, 2, xname, nx)
   CALL check(retcode)
-  retcode = nf90_inquire_dimension(ncid, 2, yname, ny)
+  retcode = nf90_inquire_dimension(ncid, 3, yname, ny)
   CALL check(retcode)
 
-  !debug: PRINT *,'leaving initialize_in', nx, ny
+  !debug: 
+  PRINT *,'leaving initialize_in', nx, ny
 
 RETURN
 END subroutine initialize_in
@@ -118,19 +138,22 @@ SUBROUTINE initialize_drifters(nvar_drift, drift_name, ncid_drift, &
   INTEGER i, retcode
   CHARACTER(50) varnames(nvar_drift), dimname
 
-  !debug: PRINT *,'entered drifter initialize'
+  !debug: 
+  PRINT *,'entered drifter initialize'
   dimname = 'nbuoy'
   retcode = nf90_open(drift_name, NF90_NOWRITE, ncid_drift)
   CALL check(retcode)
 
   IF (restart) THEN
-    !debug: PRINT *,'running from warm start'
+    !debug: 
+    PRINT *,'running from warm start'
     varnames(1) = 'Initial_Latitude'
     varnames(2) = 'Initial_Longitude'
     varnames(3) = 'Final_Latitude'
     varnames(4) = 'Final_Longitude'
   ELSE
-    !debug: PRINT *,'running from cold start'
+    !debug: 
+    PRINT *,'running from cold start'
     varnames(1) = 'Initial_Latitude'
     varnames(2) = 'Initial_Longitude'
   ENDIF
@@ -138,11 +161,14 @@ SUBROUTINE initialize_drifters(nvar_drift, drift_name, ncid_drift, &
   DO i = 1, nvar_drift
     retcode = nf90_inq_varid(ncid_drift, varnames(i), varid_drift(i))
     CALL check(retcode)
+    !debug:
+    PRINT *,'initialize_drifters',retcode, i, varnames(i), varid_drift(i)
   ENDDO
     
   retcode = nf90_inquire_dimension(ncid_drift, 1, dimname, nbuoy)
   CALL check(retcode)
-  !debug: PRINT *,'initialize -- nbuoy ', nbuoy
+  !debug: 
+  PRINT *,'initialize -- nbuoy ', nbuoy
 
   RETURN
 END SUBROUTINE initialize_drifters
@@ -167,15 +193,19 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
 
   REAL start_time, end_time
 
-  !debug: PRINT *,' entered drifter read in'
-  !debug: PRINT *,ncid_drift, varid_drift
+  !debug: 
+  PRINT *,' entered drifter read in'
+  !debug: 
+  PRINT *,ncid_drift, varid_drift
   retcode = nf90_get_var(ncid_drift, varid_drift(1), tlat)
   CALL check(retcode)
-  !debug: PRINT *,'lat ',MAXVAL(tlat), MINVAL(tlat)
+  !debug: 
+  PRINT *,'lat ',MAXVAL(tlat), MINVAL(tlat)
 
   retcode = nf90_get_var(ncid_drift, varid_drift(2), tlon)
   CALL check(retcode)
-  !debug: PRINT *,'lon ',MAXVAL(tlon), MINVAL(tlon)
+  !debug: 
+  PRINT *,'lon ',MAXVAL(tlon), MINVAL(tlon)
 
   IF (.not. restart) THEN
     clat = tlat
@@ -183,13 +213,16 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
   ELSE
     retcode = nf90_get_var(ncid_drift, varid_drift(3), clat)
     CALL check(retcode)
-    !debug: PRINT *,'clat ',MAXVAL(clat), MINVAL(clat)
+    !debug: 
+    PRINT *,'clat ',MAXVAL(clat), MINVAL(clat)
     retcode = nf90_get_var(ncid_drift, varid_drift(4), clon)
     CALL check(retcode)
-    !debug: PRINT *,'clon ',MAXVAL(clon), MINVAL(clon)
+    !debug: 
+    PRINT *,'clon ',MAXVAL(clon), MINVAL(clon)
   ENDIF
 
-  !debug: PRINT *,' about to create buoys '
+  !debug: 
+  PRINT *,' about to create buoys '
   bad_count = 0
   !CALL cpu_time(start_time)
   DO i = 1, nbuoy
@@ -198,7 +231,8 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
         buoylist(i)%x >= 1.e30 .or. buoylist(i)%y >= 1.e30 ) THEN
       bad_count = bad_count + 1
     endif
-    !debug: WRITE(*,9001) i, tlon(i), tlat(i), clon(i), clat(i)
+    !debug: 
+    WRITE(*,9001) i, tlon(i), tlat(i), clon(i), clat(i)
   ENDDO
  9001 FORMAT(I6,4F10.3)
   !CALL cpu_time(end_time)
@@ -233,7 +267,8 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
 
   very_bad = 0
   DO i = 1, bad_count
-    !debug: PRINT *,'retry ',i,bad_fi(i), bad_fj(i), bad_lat(i), bad_lon(i)
+    !debug: 
+    PRINT *,'retry ',i,bad_fi(i), bad_fj(i), bad_lat(i), bad_lon(i)
     IF (bad_fi(i) < 1 .or. bad_fi(i) > 1.e10 .or. ieee_is_nan(bad_fi(i)) .or. &
         bad_fj(i) < 1 .or. bad_fj(i) > 1.e10 .or. ieee_is_nan(bad_fj(i)) ) THEN
       buoylist(bad_index(i))%x = 1.e30
@@ -251,7 +286,8 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
   ENDDO
   PRINT *,'very bad points: ',very_bad
   
-  !debug: PRINT *,' leaving drifter read in'
+  !debug: 
+  PRINT *,' leaving drifter read in'
   RETURN
 END SUBROUTINE readin_drifters
 !----------------------------------------------------------------
@@ -267,7 +303,12 @@ SUBROUTINE readin(nx, ny, nvars, ncid, varid, allvars)
   DO i = 1, nvars
     retcode = nf90_get_var(ncid, varid(i), allvars(:,:,i) )
     CALL check(retcode)
-    !debug: PRINT *,i, MAXVAL(allvars(:,:,i)), MINVAL(allvars(:,:,i))
+    !debug: 
+    PRINT *,'readin',retcode, i, MAXVAL(allvars(:,:,i)), MINVAL(allvars(:,:,i))
+    if (retcode < 0) then
+      PRINT *,'error on ',ncid, varid(i)
+      STOP
+    endif
   ENDDO
 
   RETURN
