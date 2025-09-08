@@ -213,12 +213,10 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
   ELSE
     retcode = nf90_get_var(ncid_drift, varid_drift(3), clat)
     CALL check(retcode)
-    !debug: 
-    PRINT *,'clat ',MAXVAL(clat), MINVAL(clat)
+    !debug: PRINT *,'clat ',MAXVAL(clat), MINVAL(clat)
     retcode = nf90_get_var(ncid_drift, varid_drift(4), clon)
     CALL check(retcode)
-    !debug: 
-    PRINT *,'clon ',MAXVAL(clon), MINVAL(clon)
+    !debug: PRINT *,'clon ',MAXVAL(clon), MINVAL(clon)
   ENDIF
 
   !debug: 
@@ -231,8 +229,7 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
         buoylist(i)%x >= 1.e30 .or. buoylist(i)%y >= 1.e30 ) THEN
       bad_count = bad_count + 1
     endif
-    !debug: 
-    WRITE(*,9001) i, tlon(i), tlat(i), clon(i), clat(i)
+    !debug2: WRITE(*,9001) i, tlon(i), tlat(i), clon(i), clat(i)
   ENDDO
  9001 FORMAT(I6,4F10.3)
   !CALL cpu_time(end_time)

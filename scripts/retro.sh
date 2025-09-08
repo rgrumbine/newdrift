@@ -19,6 +19,8 @@ module load prod_envir wgrib2
 #cd $HOME/rgdev/newdrift/sorc/
 
 cp $HOME/rgdev/newdrift/fix/merged.nc drift_in.nc
+#cp $HOME/rgdev/newdrift/fix/skiles_pts.nc drift_in.nc
+#cp $HOME/rgdev/newdrift/fix/seaice_edge.nc drift_in.nc
 
 #Loop:
 #forecast hours 000 to 072 by 1

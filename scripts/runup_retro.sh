@@ -18,6 +18,7 @@ fi
 
 export end=`date +"%Y%m%d"`
 export end=$tag
+export enc=20250110
 
 while [ $tag -le $end ]
 do
