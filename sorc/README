@@ -5,3 +5,9 @@ output.nc   -- output file name
 300         -- number of time steps
 30          -- how often to write out information
 * to come: drift file input name
+
+
+wrt the code:
+in spite of reading in the names of nx, ny, it is necessary to recompile when
+switching between rtofs-cice and ufs-cice. See initialize_in
+

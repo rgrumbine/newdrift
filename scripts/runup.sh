@@ -10,14 +10,14 @@
 
 cd $HOME/rgdev/newdrift/scripts
 
-export tag=20250510
+export tag=20250810
 export COMOUT=$HOME/noscrub/newdrift
 export end=`date +"%Y%m%d"`
 
 while [ $tag -le $end ]
 do
   if [ ! -d $COMOUT/$tag ] ; then
-    time ./try.sh > ${tag}.out
+    time ./rtofs.sh > ${tag}.out
   else
     echo zzz have $tag already
   fi

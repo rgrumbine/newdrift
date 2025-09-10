@@ -6,7 +6,7 @@ MODULE io
 
 CONTAINS
 
-SUBROUTINE initialize_in(nvar, fname, ncid, varid, nx, ny)
+SUBROUTINE initialize_in(nvar, fname, ncid, varid, varnames, xname, yname, nx, ny)
 !  USE metric_mod
   IMPLICIT none
 
@@ -15,18 +15,17 @@ SUBROUTINE initialize_in(nvar, fname, ncid, varid, nx, ny)
   INTEGER, intent(out) :: nx, ny
   INTEGER, intent(out) :: ncid
   INTEGER, intent(out) :: varid(nvar)
-
 ! Names from rtofs output
-  CHARACTER(len=40) :: varnames(nvar)
+  CHARACTER(len=40), intent(in) :: varnames(nvar)
+  CHARACTER(len=50), intent(in) :: xname, yname
+  CHARACTER(len=50) :: nxname, nyname
   
 ! For Netcdf processing
   INTEGER i
   INTEGER retcode
-  CHARACTER(len=50) :: xname, yname
 
-!debug:
   !debug: PRINT *,'entered initialize_in'
-!! This is the cice_inst variable set -- much more extensive
+!! This is the rtofs cice_inst variable set -- much more extensive
 !  varnames(1) = "TLON"
 !  varnames(2) = "TLAT"
 !  varnames(3) = "ULON"
@@ -61,45 +60,41 @@ SUBROUTINE initialize_in(nvar, fname, ncid, varid, nx, ny)
   !varnames(6) = "ice_uvelocity"
   !varnames(7) = "ice_vvelocity"
   !UFS
-  varnames(1) = "TLON"
-  varnames(2) = "TLAT"
-  varnames(3) = "aice_h"
-  varnames(4) = "Tsfc_h"
-  varnames(5) = "hi_h"
-  varnames(6) = "uvel_h"
-  varnames(7) = "vvel_h"
+  !varnames(1) = "TLON"
+  !varnames(2) = "TLAT"
+  !varnames(3) = "aice_h"
+  !varnames(4) = "Tsfc_h"
+  !varnames(5) = "hi_h"
+  !varnames(6) = "uvel_h"
+  !varnames(7) = "vvel_h"
   
   !debug: PRINT *,'trying to open ',fname, len(fname)
   retcode = nf90_open(fname, NF90_NOWRITE, ncid)
   CALL check(retcode)
 
   DO i = 1, nvar
-    !debug: 
-    PRINT *,i,' reading varname ',varnames(i)
+    !debug: PRINT *,i,' reading varname ',varnames(i)
     retcode = nf90_inq_varid(ncid, varnames(i), varid(i))
     CALL check(retcode)
   ENDDO
-  !debug: 
-  PRINT *,'done reading varnames'
+  !debug: PRINT *,'done reading varnames'
 
-  !RG: Read this in from netcdf file -- 
-  !rtofs
-  !xname = "X"
-  !yname = "Y"
-  !retcode = nf90_inquire_dimension(ncid, 3, xname, nx)
+  nxname = xname
+  nyname = yname
+  PRINT *,'xname, yname',xname, yname
+  !RG: Read nx, ny in from netcdf file -- 
+  ! rtofs
+  !retcode = nf90_inquire_dimension(ncid, 3, nxname, nx)
   !CALL check(retcode)
-  !retcode = nf90_inquire_dimension(ncid, 2, yname, ny)
+  !retcode = nf90_inquire_dimension(ncid, 2, nyname, ny)
   !CALL check(retcode)
   !ufs
-  xname = 'ni'
-  yname = 'nj'
-  retcode = nf90_inquire_dimension(ncid, 2, xname, nx)
+  retcode = nf90_inquire_dimension(ncid, 2, nxname, nx)
   CALL check(retcode)
-  retcode = nf90_inquire_dimension(ncid, 3, yname, ny)
+  retcode = nf90_inquire_dimension(ncid, 3, nyname, ny)
   CALL check(retcode)
 
-  !debug: 
-  PRINT *,'leaving initialize_in', nx, ny
+  !debug: PRINT *,'leaving initialize_in', nx, ny
 
 RETURN
 END subroutine initialize_in
@@ -138,8 +133,7 @@ SUBROUTINE initialize_drifters(nvar_drift, drift_name, ncid_drift, &
   INTEGER i, retcode
   CHARACTER(50) varnames(nvar_drift), dimname
 
-  !debug: 
-  PRINT *,'entered drifter initialize'
+  !debug: PRINT *,'entered drifter initialize'
   dimname = 'nbuoy'
   retcode = nf90_open(drift_name, NF90_NOWRITE, ncid_drift)
   CALL check(retcode)
@@ -161,8 +155,7 @@ SUBROUTINE initialize_drifters(nvar_drift, drift_name, ncid_drift, &
   DO i = 1, nvar_drift
     retcode = nf90_inq_varid(ncid_drift, varnames(i), varid_drift(i))
     CALL check(retcode)
-    !debug:
-    PRINT *,'initialize_drifters',retcode, i, varnames(i), varid_drift(i)
+    !debug: PRINT *,'initialize_drifters',retcode, i, varnames(i), varid_drift(i)
   ENDDO
     
   retcode = nf90_inquire_dimension(ncid_drift, 1, dimname, nbuoy)
@@ -193,19 +186,15 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
 
   REAL start_time, end_time
 
-  !debug: 
-  PRINT *,' entered drifter read in'
-  !debug: 
-  PRINT *,ncid_drift, varid_drift
+  !debug: PRINT *,' entered drifter read in'
+  !debug: PRINT *,ncid_drift, varid_drift
   retcode = nf90_get_var(ncid_drift, varid_drift(1), tlat)
   CALL check(retcode)
-  !debug: 
-  PRINT *,'lat ',MAXVAL(tlat), MINVAL(tlat)
+  !debug: PRINT *,'lat ',MAXVAL(tlat), MINVAL(tlat)
 
   retcode = nf90_get_var(ncid_drift, varid_drift(2), tlon)
   CALL check(retcode)
-  !debug: 
-  PRINT *,'lon ',MAXVAL(tlon), MINVAL(tlon)
+  !debug: PRINT *,'lon ',MAXVAL(tlon), MINVAL(tlon)
 
   IF (.not. restart) THEN
     clat = tlat
@@ -219,8 +208,7 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
     !debug: PRINT *,'clon ',MAXVAL(clon), MINVAL(clon)
   ENDIF
 
-  !debug: 
-  PRINT *,' about to create buoys '
+  !debug: PRINT *,' about to create buoys '
   bad_count = 0
   !CALL cpu_time(start_time)
   DO i = 1, nbuoy
@@ -264,8 +252,7 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
 
   very_bad = 0
   DO i = 1, bad_count
-    !debug: 
-    PRINT *,'retry ',i,bad_fi(i), bad_fj(i), bad_lat(i), bad_lon(i)
+    !debug: PRINT *,'retry ',i,bad_fi(i), bad_fj(i), bad_lat(i), bad_lon(i)
     IF (bad_fi(i) < 1 .or. bad_fi(i) > 1.e10 .or. ieee_is_nan(bad_fi(i)) .or. &
         bad_fj(i) < 1 .or. bad_fj(i) > 1.e10 .or. ieee_is_nan(bad_fj(i)) ) THEN
       buoylist(bad_index(i))%x = 1.e30
@@ -283,8 +270,7 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
   ENDDO
   PRINT *,'very bad points: ',very_bad
   
-  !debug: 
-  PRINT *,' leaving drifter read in'
+  !debug: PRINT *,' leaving drifter read in'
   RETURN
 END SUBROUTINE readin_drifters
 !----------------------------------------------------------------
@@ -300,8 +286,7 @@ SUBROUTINE readin(nx, ny, nvars, ncid, varid, allvars)
   DO i = 1, nvars
     retcode = nf90_get_var(ncid, varid(i), allvars(:,:,i) )
     CALL check(retcode)
-    !debug: 
-    PRINT *,'readin',retcode, i, MAXVAL(allvars(:,:,i)), MINVAL(allvars(:,:,i))
+    !debug: PRINT *,'readin',retcode, i, MAXVAL(allvars(:,:,i)), MINVAL(allvars(:,:,i))
     if (retcode < 0) then
       PRINT *,'error on ',ncid, varid(i)
       STOP

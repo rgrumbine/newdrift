@@ -164,7 +164,6 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
 
 
 !debug: WRITE (*,9002) fi, fj, dlat, dlon, tlat, lon, this%ulat(ii,ij), tlon
-!debug:  
   9002 FORMAT('init ',8F10.3)
 
   newton : do
