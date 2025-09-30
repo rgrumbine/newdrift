@@ -5,7 +5,8 @@
 ## wcoss2:
 module load PrgEnv-intel/8.3.3
 module load netcdf/4.7.4
-module load intel-classic/2022.2.0.262
+#module load intel-classic/2022.2.0.262
+module load intel/19.1.3.304
 ln -sf mk.wcoss2 mk.this
 
 ## gaea:

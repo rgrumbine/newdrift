@@ -9,8 +9,11 @@ PROGRAM driver
   INTEGER nvar
   PARAMETER (nvar = 7)
   INTEGER ncid, varid(nvar), nx, ny
+  CHARACTER(len=40) :: varnames(nvar)
+  CHARACTER(len=50) :: xname, yname
   REAL, allocatable  :: allvars(:,:,:)
   CHARACTER(300) fname, tmp, tmp2
+  INTEGER i
 
 ! Arguments to inline drifters
   TYPE(metric) :: xmetric
@@ -34,8 +37,15 @@ PROGRAM driver
   READ (10,*) dt
   READ (10,*) restart
 
+! Read in .nc variable names
+  DO i = 1, nvar
+    READ (10,*) varnames(i)
+    ENDDO
+  READ (10,*) xname  ! x,y dimensions
+  READ (10,*) yname
+
 ! Initialize input Forcing / velocities
-  CALL initialize_in(nvar, trim(fname), ncid, varid, nx, ny)
+  CALL initialize_in(nvar, trim(fname), ncid, varid, varnames, xname, yname, nx, ny)
 
   ALLOCATE(allvars(nx, ny, nvar))
   ALLOCATE(u(nx, ny), v(nx, ny), aice(nx, ny) )

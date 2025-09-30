@@ -64,7 +64,8 @@ do
   else
     echo .TRUE. >> runin
   fi
-  echo runin | time $EXDIR/drifter_rtofs
+  cat rtofs.vars >> runin
+  echo runin | time $EXDIR/drifter
 
   cp out_${hhh}.nc drift_f${hhh}.nc
   mv out_${hhh}.nc drift_in.nc
