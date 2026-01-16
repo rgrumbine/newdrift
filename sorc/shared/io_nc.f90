@@ -81,18 +81,19 @@ SUBROUTINE initialize_in(nvar, fname, ncid, varid, varnames, xname, yname, nx, n
 
   nxname = xname
   nyname = yname
-  PRINT *,'xname, yname',xname, yname
+  !debug: PRINT *,'xname, yname',xname, yname
   !RG: Read nx, ny in from netcdf file -- 
   ! rtofs
-  !retcode = nf90_inquire_dimension(ncid, 3, nxname, nx)
-  !CALL check(retcode)
-  !retcode = nf90_inquire_dimension(ncid, 2, nyname, ny)
-  !CALL check(retcode)
-  !ufs
-  retcode = nf90_inquire_dimension(ncid, 2, nxname, nx)
+  retcode = nf90_inquire_dimension(ncid, 3, nxname, nx)
   CALL check(retcode)
-  retcode = nf90_inquire_dimension(ncid, 3, nyname, ny)
+  retcode = nf90_inquire_dimension(ncid, 2, nyname, ny)
   CALL check(retcode)
+
+  !!ufs
+  !retcode = nf90_inquire_dimension(ncid, 2, nxname, nx)
+  !CALL check(retcode)
+  !retcode = nf90_inquire_dimension(ncid, 3, nyname, ny)
+  !CALL check(retcode)
 
   !debug: PRINT *,'leaving initialize_in', nx, ny
 
@@ -139,15 +140,13 @@ SUBROUTINE initialize_drifters(nvar_drift, drift_name, ncid_drift, &
   CALL check(retcode)
 
   IF (restart) THEN
-    !debug: 
-    PRINT *,'running from warm start'
+    !debug: PRINT *,'running from warm start'
     varnames(1) = 'Initial_Latitude'
     varnames(2) = 'Initial_Longitude'
     varnames(3) = 'Final_Latitude'
     varnames(4) = 'Final_Longitude'
   ELSE
-    !debug: 
-    PRINT *,'running from cold start'
+    !debug: PRINT *,'running from cold start'
     varnames(1) = 'Initial_Latitude'
     varnames(2) = 'Initial_Longitude'
   ENDIF
@@ -160,8 +159,7 @@ SUBROUTINE initialize_drifters(nvar_drift, drift_name, ncid_drift, &
     
   retcode = nf90_inquire_dimension(ncid_drift, 1, dimname, nbuoy)
   CALL check(retcode)
-  !debug: 
-  PRINT *,'initialize -- nbuoy ', nbuoy
+  !debug: PRINT *,'initialize -- nbuoy ', nbuoy
 
   RETURN
 END SUBROUTINE initialize_drifters
@@ -268,7 +266,7 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
       buoylist(bad_index(i))%clon = bad_lon(i)
     ENDIF
   ENDDO
-  PRINT *,'very bad points: ',very_bad
+  !debug: PRINT *,'very bad points: ',very_bad
   
   !debug: PRINT *,' leaving drifter read in'
   RETURN

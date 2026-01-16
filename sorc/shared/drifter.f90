@@ -111,7 +111,7 @@ CONTAINS
       buoy%x    = 1.e30
       buoy%y    = 1.e30
     ELSE IF (abs(xmetric%dlondj(nti,ntj)) > 80 .or. abs(xmetric%dlondi(nti,ntj)) > 80 ) THEN
-      PRINT *,'near seam ',ti,tj,nti, ntj
+      !debug: PRINT *,'near seam ',ti,tj,nti, ntj
       buoy%clat = 1.e30
       buoy%clon = 1.e30
       buoy%x    = 1.e30

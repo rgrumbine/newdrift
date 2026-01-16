@@ -79,8 +79,7 @@ PROGRAM newdrift
 
 ! RTOFS et al. files, not inlineable --------------------------------
 ! Initialize input Forcing / velocities
-  !debug:
-  PRINT *,'calling initialize_in'
+  !debug: PRINT *,'calling initialize_in'
 ! RG: add varnames to arg list
   CALL initialize_in(nvar, trim(fname), ncid, varid, varnames, xname, yname, nx, ny)
 !RG: really initialize_io
@@ -98,8 +97,7 @@ PROGRAM newdrift
   aice = allvars(:,:,3)
   u    = allvars(:,:,6)
   v    = allvars(:,:,7)
-  !debug:
-  PRINT *,'returned from initial read '
+  !debug: PRINT *,'returned from initial read '
 
   !debug: STOP
 !-------------------------- Buoys, inlineable ---------------------
@@ -112,23 +110,18 @@ PROGRAM newdrift
   ENDIF
 
   ALLOCATE(varid_drift(nvar_drift))
-  !debug: 
-  PRINT *,'calling initialize_drifters, nbuoys = ',nbuoys
+  !debug: PRINT *,'calling initialize_drifters, nbuoys = ',nbuoys
   CALL initialize_drifters(nvar_drift, drift_name, ncid_drift, varid_drift, nbuoys, restart)
   ALLOCATE(buoys(nbuoys))
-  !debug: 
-  PRINT *,'back from initialize_drifters, nbuoys = ',nbuoys
+  !debug: PRINT *,'back from initialize_drifters, nbuoys = ',nbuoys
 
   ! For buoy output -- inlineable
   CALL initialize_out(outname, ncid_out, varid_out, nvar_out, nbuoys, dimids)
-  !debug: 
-  PRINT *,'initialize out '
-  !debug: 
-  PRINT *,'nbuoys = ', nbuoys
+  !debug: PRINT *,'initialize out '
+  !debug: PRINT *,'nbuoys = ', nbuoys
 
   CALL readin_drifters(nbuoys, nvar_drift, ncid_drift, varid_drift, buoys, xmetric, restart)
-  !debug:
-  PRINT *,'back from readin_drifters'
+  !debug: PRINT *,'back from readin_drifters'
   !debug: STOP
 !---------------------------------------------------------
 ! RUN
