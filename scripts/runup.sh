@@ -7,10 +7,11 @@
 #PBS -l walltime=6:00:00
 #PBS -l select=1:ncpus=1
 
+set -xe
 
 cd $HOME/rgdev/newdrift/scripts
 
-export tag=20250810
+export tag=20251212
 export COMOUT=$HOME/noscrub/newdrift
 export end=`date +"%Y%m%d"`
 

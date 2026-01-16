@@ -7,7 +7,7 @@
 #PBS -l walltime=6:00:00
 #PBS -l select=1:ncpus=1
 
-#set -xe
+set -xe
 
 #initialize
 #drift_in -- file with full 6 values drifters, set to -99 for i,j,clat, clon
