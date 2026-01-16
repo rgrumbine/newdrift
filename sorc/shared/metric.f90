@@ -115,7 +115,7 @@ END subroutine local_cartesian
 
 ! Convert from buoy's lat-lon location to its ij coordinate (x,y in buoy member)
 SUBROUTINE ll_to_xy(this, lat, lon, x, y)
-
+  USE constants
   IMPLICIT none
   CLASS(metric), intent(in) :: this
   REAL, intent(in)    :: lat, lon
@@ -127,7 +127,7 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
   REAL wrap
 
 ! if flag values (lat or lon >= 1.e30) skip, assign xy to 1,1
-  IF (lat >= 1.e30 .or. lon >= 1.e30) THEN
+  IF (lat >= flag .or. lon >= flag) THEN
     x = 1.
     y = 1.
     RETURN
@@ -225,30 +225,8 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
  9001 FORMAT(I3,6F10.3,4F10.3)
 
   IF (iter .eq. itmax) THEN  ! need brute force or something to cross seam
-    fi = 1.e30
-    fj = 1.e30
-    !debug: WRITE(*,9004) iter, dfi, dfj, fi, fj, dlat, dlon, lat, lon, this%ulat(ii,ij), this%ulon(ii,ij)
-    !CALL this%ll_to_xy_brute(lat, lon, fi, fj)
-    !RG: heavy overhead for calling this, so do it back in buoy intitialization for
-    !    all bad locations at once
-    !CALL irreg_ll2ij_cice(this%nx, this%ny, this%ulat, this%ulon, 1, lat, lon, fi, fj)
-
-    !PRINT *,'irreg ',lat,lon,fi,fj
-    !IF (fi == -1. .or. fj == -1.) THEN
-    !  fi = 1.e30
-    !  fj = 1.e30
-    !ENDIF
-    !IF (fi < 1.e30 .and. fj < 1.e30) THEN
-    !  ii = int(fi+0.5)
-    !  ij = int(fj+0.5)
-    !  dfi = 0.
-    !  dfj = 0.
-    !  dlat = lat - this%ulat(ii,ij)
-    !  tlon = this%ulon(ii,ij)
-    !  if (tlon > 360. .or. tlon < 0) tlon = wrap(tlon)
-    !  dlon = lon - tlon
-    !  !debug: WRITE(*,9004) iter+1, dfi, dfj, fi, fj, dlat, dlon, lat, lon, this%ulat(ii,ij), this%ulon(ii,ij)
-    !ENDIF
+    fi = flag 
+    fj = flag 
   ENDIF
  9004 FORMAT('itmax ',I3,6F10.3,4F10.3)
 
@@ -261,6 +239,7 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
   RETURN
 END SUBROUTINE ll_to_xy 
 SUBROUTINE ll_to_xy_brute(this, lat, lon, fi, fj)
+  USE constants
   CLASS(metric), intent(in) :: this
   REAL, intent(in)    :: lat, lon
   REAL, intent(inout) :: fi, fj
@@ -270,8 +249,8 @@ SUBROUTINE ll_to_xy_brute(this, lat, lon, fi, fj)
 !       should be able to take advantage of that. Lats > 45.
 !    Sometimes also encounter difficulty along 0 E 
   !debug: PRINT *,'brute ',lat,lon
-  fi = 1.e30
-  fj = 1.e30
+  fi = flag
+  fj = flag
   RETURN
 
   dbest = 999.

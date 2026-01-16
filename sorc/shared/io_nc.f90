@@ -165,6 +165,7 @@ SUBROUTINE initialize_drifters(nvar_drift, drift_name, ncid_drift, &
 END SUBROUTINE initialize_drifters
 
 SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist, xmetric, restart)
+  USE constants
   USE metric_mod
   USE, intrinsic :: ieee_arithmetic
   IMPLICIT none
@@ -211,8 +212,8 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
   !CALL cpu_time(start_time)
   DO i = 1, nbuoy
     CALL buoylist(i)%init(tlon(i), tlat(i), clon(i), clat(i), xmetric)
-    if (clat(i) >= 1.e30 .or. clon(i) >= 1.e30 .or. &
-        buoylist(i)%x >= 1.e30 .or. buoylist(i)%y >= 1.e30 ) THEN
+    if (clat(i) >= flag .or. clon(i) >= flag .or. &
+        buoylist(i)%x >= flag .or. buoylist(i)%y >= flag ) THEN
       bad_count = bad_count + 1
     endif
     !debug2: WRITE(*,9001) i, tlon(i), tlat(i), clon(i), clat(i)
@@ -228,10 +229,10 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
   ALLOCATE(bad_fi(bad_count), bad_fj(bad_count))
   bad_count = 1
   DO i = 1, nbuoy
-    if (clat(i) >= 1.e30 .or. clon(i) >= 1.e30 .or. &
-        buoylist(i)%x >= 1.e30 .or. buoylist(i)%y >= 1.e30 ) THEN
+    if (clat(i) >= flag .or. clon(i) >= flag .or. &
+        buoylist(i)%x >= flag .or. buoylist(i)%y >= flag ) THEN
       bad_index(bad_count) = i
-      IF (tlat(i) >= 1.e30 .or. tlon(i) >= 1.e30) THEN
+      IF (tlat(i) >= flag .or. tlon(i) >= flag) THEN
         tlat(i) = 0.
         tlon(i) = 0.
       ENDIF
@@ -253,10 +254,10 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
     !debug: PRINT *,'retry ',i,bad_fi(i), bad_fj(i), bad_lat(i), bad_lon(i)
     IF (bad_fi(i) < 1 .or. bad_fi(i) > 1.e10 .or. ieee_is_nan(bad_fi(i)) .or. &
         bad_fj(i) < 1 .or. bad_fj(i) > 1.e10 .or. ieee_is_nan(bad_fj(i)) ) THEN
-      buoylist(bad_index(i))%x = 1.e30
-      buoylist(bad_index(i))%y = 1.e30
-      buoylist(bad_index(i))%clat = 1.e30
-      buoylist(bad_index(i))%clon = 1.e30
+      buoylist(bad_index(i))%x = flag
+      buoylist(bad_index(i))%y = flag
+      buoylist(bad_index(i))%clat = flag
+      buoylist(bad_index(i))%clon = flag
       PRINT *,'very bad ',buoylist(bad_index(i))%ilat, buoylist(bad_index(i))%ilon
       very_bad = very_bad + 1
     ELSE

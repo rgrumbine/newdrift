@@ -11,6 +11,9 @@ MODULE constants
   REAL kmtonm
   PARAMETER (kmtonm = 1. /  1.852 )
 
+  REAL flag
+  PARAMETER (flag = 1.e30)
+
 END module constants
 
 !haversine arcdis
@@ -58,9 +61,9 @@ SUBROUTINE bearing(lat1, lon1, lat2, lon2, dist, dir)
   REAL, intent(out) :: dist, dir
   REAL harcdis
 
-  IF (lat1 >= 1.e30 .or. lon1 >= 1.e30 .or. lat2 >= 1.e30 .or. lon2 >= 1.e30) THEN
-    dist = 1.e30
-    dir  = 1.e30
+  IF (lat1 >= flag .or. lon1 >= flag .or. lat2 >= flag .or. lon2 >= flag) THEN
+    dist = flag
+    dir  = flag
     RETURN
   ENDIF
 
