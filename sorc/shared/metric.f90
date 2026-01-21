@@ -3,9 +3,10 @@ MODULE metric_mod
 
     !module
     TYPE, public :: metric
-      REAL, allocatable :: dlatdi(:,:), dlondi(:,:), dlatdj(:,:), dlondj(:,:)
-      REAL, allocatable :: dx(:,:), dy(:,:), rot(:,:)
-      REAL, allocatable :: ulat(:,:), ulon(:,:)
+      REAL(kind=real64), allocatable :: dlatdi(:,:), dlondi(:,:), dlatdj(:,:), dlondj(:,:)
+      REAL(kind=real64), allocatable :: dxdi(:,:), dydi(:,:), dxdj(:,:), dydj(:,:)
+      REAL(kind=real64), allocatable :: dx(:,:), dy(:,:), rot(:,:), area(:,:)
+      REAL(kind=real32), allocatable :: ulat(:,:), ulon(:,:)
       INTEGER nx, ny
     CONTAINS
       PROCEDURE :: set, local_metric, local_cartesian, ll_to_xy, ll_to_xy_brute
@@ -30,6 +31,11 @@ SUBROUTINE set(this, nx, ny)
   allocate(this%dlatdj(nx, ny))
   allocate(this%dlondi(nx, ny))
   allocate(this%dlondj(nx, ny))
+  allocate(this%dxdi(nx, ny))
+  allocate(this%dxdj(nx, ny))
+  allocate(this%dydi(nx, ny))
+  allocate(this%dydj(nx, ny))
+  allocate(this%area(nx, ny))
 
   RETURN
 END SUBROUTINE set
@@ -40,7 +46,7 @@ SUBROUTINE local_metric(this)
   IMPLICIT none
   CLASS(metric), intent(inout) :: this
   INTEGER i, j
-  REAL toler
+  REAL toler, harcdis
 
   this%rot = 0.
   CALL this%local_cartesian()
@@ -52,17 +58,35 @@ SUBROUTINE local_metric(this)
     this%dlondi(i,j) = this%ulon(i+1,j) - this%ulon(i,j)
     this%dlatdj(i,j) = this%ulat(i,j+1) - this%ulat(i,j)
     this%dlondj(i,j) = this%ulon(i,j+1) - this%ulon(i,j)
+    !RG: Compute distances by harcdis
+    this%dxdi(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j), this%ulon(i+1,j) )
+    this%dydi(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i+1,j), this%ulon(i,j) )
+    this%dxdj(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j), this%ulon(i,j+1) )
+    this%dydj(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j+1), this%ulon(i,j) )
   ENDDO
   ENDDO
   j = this%ny
   DO i = 2, this%nx
     this%dlatdi(i,j) = this%ulat(i,j) - this%ulat(i-1,j)
     this%dlondi(i,j) = this%ulon(i,j) - this%ulon(i-1,j)
+    this%dlatdj(i,j) = this%ulat(i,j) - this%ulat(i,j-1)
+    this%dlondj(i,j) = this%ulon(i,j) - this%ulon(i,j-1)
+    this%dxdi(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j), this%ulon(i-1,j) )
+    this%dydi(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i-1,j), this%ulon(i,j) )
+    this%dxdj(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j), this%ulon(i,j-1) )
+    this%dydj(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j-1), this%ulon(i,j) )
+
   ENDDO
   i = this%nx
   DO j = 2, this%ny
+    this%dlatdi(i,j) = this%ulat(i,j) - this%ulat(i-1,j)
+    this%dlondi(i,j) = this%ulon(i,j) - this%ulon(i-1,j)
     this%dlatdj(i,j) = this%ulat(i,j) - this%ulat(i,j-1)
     this%dlondj(i,j) = this%ulon(i,j) - this%ulon(i,j-1)
+    this%dxdi(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j), this%ulon(i-1,j) )
+    this%dydi(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i-1,j), this%ulon(i,j) )
+    this%dxdj(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j), this%ulon(i,j-1) )
+    this%dydj(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j-1), this%ulon(i,j) )
   ENDDO
   this%dlatdi(this%nx, this%ny) = this%dlatdi(this%nx - 1, this%ny-1)
   this%dlatdj(this%nx, this%ny) = this%dlatdj(this%nx - 1, this%ny-1)
@@ -70,21 +94,6 @@ SUBROUTINE local_metric(this)
   this%dlondj(this%nx, this%ny) = this%dlondj(this%nx - 1, this%ny-1)
 
   !rot = atan2(?,?)
-
-  !debug: PRINT *,'lat metrics',MAXVAL(this%dlatdi), MINVAL(this%dlatdi), MAXVAL(this%dlatdj), MINVAL(this%dlatdj)
-  !PRINT *,'lon metrics',MAXVAL(this%dlondi), MINVAL(this%dlondi), MAXVAL(this%dlondj), MINVAL(this%dlondj)
-!  toler = 1.0
-!  DO j = 1, this%ny
-!  DO i = 1, this%nx
-!    IF (abs(this%dlondj(i,j) ) > toler ) THEN
-!      PRINT *,'dj ',i,j,this%dlondj(i,j), this%ulon(i,j)
-!    ENDIF
-!    IF (abs(this%dlondi(i,j) ) > toler ) THEN
-!      PRINT *,'di ',i,j,this%dlondi(i,j), this%ulon(i,j)
-!    ENDIF
-!  ENDDO
-!  ENDDO
-
 
   RETURN
 END subroutine local_metric

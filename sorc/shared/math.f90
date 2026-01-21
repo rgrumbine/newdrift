@@ -1,4 +1,6 @@
 MODULE constants
+  USE iso_fortran_env, only : real32, real64
+
   PUBLIC
   REAL pi, rpd
   PARAMETER(pi = 3.141592653589793 )

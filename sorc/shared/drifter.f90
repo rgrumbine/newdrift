@@ -72,6 +72,7 @@ CONTAINS
 
     REAL tu, tv, deltax, deltay, di, dj
     INTEGER ti, tj, nti, ntj
+    REAL toler
 
     if (buoy%x >= flag .or. buoy%y >= flag) RETURN
     if (buoy%clat >= flag .or. buoy%clon >= flag) RETURN
@@ -87,7 +88,7 @@ CONTAINS
     deltay = tv * dt
     IF ((abs(deltax) > 3.*3600) .or. (abs(deltay) > 3.*3600) ) THEN
 !debug: 
-      PRINT *,'fast ',deltax, deltay, deltax/xmetric%dx(ti, tj), deltay/xmetric%dy(ti, tj)
+      PRINT *,'fast ',deltax, deltay
     ENDIF
 
     !RG: beware of seams
