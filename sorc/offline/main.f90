@@ -67,14 +67,15 @@ PROGRAM newdrift
   READ (10,*) nstep
   READ (10,*) outfreq
   READ (10,*) restart
-  !PRINT *,'dt, nstep, outfreq, restart = ',dt, nstep, outfreq, restart
+  !debug: PRINT *,'dt, nstep, outfreq, restart = ',dt, nstep, outfreq, restart
 
 ! RG: Read in .nc variable names
   DO i = 1, nvar
     READ (10,*) varnames(i)
-    ENDDO
+  ENDDO
   READ (10,*) xname  ! x,y dimensions
   READ (10,*) yname
+  !debug: PRINT *,'xname, yname',xname, yname
 
 
 ! RTOFS et al. files, not inlineable --------------------------------
@@ -127,10 +128,7 @@ PROGRAM newdrift
 ! RUN
 
 ! First/only time step (u,v, etc. in hand):
-!debug: 
-  !DO i = 1, 192
   CALL run(buoys, nbuoys, u, v, xmetric, dt)
-  !ENDDO
   closeout = .TRUE.
   CALL writeout(ncid_out, varid_out, nvar_out, buoys, nbuoys, closeout)
 
