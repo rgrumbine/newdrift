@@ -93,6 +93,9 @@ SUBROUTINE local_metric(this)
   this%dlondi(this%nx, this%ny) = this%dlondi(this%nx - 1, this%ny-1)
   this%dlondj(this%nx, this%ny) = this%dlondj(this%nx - 1, this%ny-1)
 
+  ! RG: Note that at this point, 21 January 2026, areas may come out negative
+  this%area = this%dxdi*this%dydj - this%dxdj*this%dydi
+
   !rot = atan2(?,?)
 
   RETURN

@@ -1,5 +1,6 @@
 PROGRAM newdrift
 
+  USE constants
   USE drifter_mod
   USE io
   USE metric_mod
@@ -23,20 +24,18 @@ PROGRAM newdrift
   CHARACTER(len=50) :: xname, yname
   
 ! Read from input (or argument to main)
-  REAL dt, dtout
+  REAL(kind=real32) dt, dtout
   INTEGER outfreq
   LOGICAL restart
 
   TYPE(metric) :: xmetric
 
-  REAL, allocatable  :: allvars(:,:,:)
-  REAL, allocatable  :: u(:,:), v(:,:)
-  REAL, allocatable  :: aice(:,:)
+  REAL(kind=real32), allocatable  :: allvars(:,:,:)
+  REAL(kind=real32), allocatable  :: u(:,:), v(:,:), aice(:,:) ! u,v,aice are extracted from allvars
 
 ! Utilities for main
   INTEGER i, j
   INTEGER n, nstep
-!  REAL x, y
 
 !For drifter 
   CLASS(drifter), allocatable :: buoys(:)

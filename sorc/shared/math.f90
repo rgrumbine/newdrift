@@ -2,18 +2,18 @@ MODULE constants
   USE iso_fortran_env, only : real32, real64
 
   PUBLIC
-  REAL pi, rpd
+  REAL(kind = real64) :: pi, rpd
   PARAMETER(pi = 3.141592653589793 )
   PARAMETER(rpd = pi/180.)
 
-  REAL nansen_ampl, nansen_rotation
+  REAL(kind = real64) :: nansen_ampl, nansen_rotation
   PARAMETER (nansen_ampl = 1.468e-2)
   PARAMETER (nansen_rotation = 28.0)
 
-  REAL kmtonm
+  REAL(kind = real64) :: kmtonm
   PARAMETER (kmtonm = 1. /  1.852 )
 
-  REAL flag
+  REAL(kind = real64) :: flag
   PARAMETER (flag = 1.e30)
 
 END module constants
@@ -21,31 +21,32 @@ END module constants
 !haversine arcdis
 !  http://www.movable-type.co.uk/scripts/gis-faq-5.1.html
 !assumes lat lon in degrees, distance in km
-REAL FUNCTION rearth(lat)
+REAL(kind=real32) FUNCTION rearth(lat)
   USE constants
   IMPLICIT none
-  REAL, intent(in) :: lat
-  rearth = (6378.137 - 21.385*sin(lat*rpd) )
+  REAL(kind=real32), intent(in) :: lat
+  rearth = (6378.137_real32 - 21.385_real32*sin(lat*rpd) )
   RETURN
 END function rearth
 
-REAL FUNCTION harcdis(lat1, lon1, lat2, lon2)
+REAL(kind=real32) FUNCTION harcdis(lat1, lon1, lat2, lon2)
   USE constants
   IMPLICIT none
-  REAL lat1, lon1, lat2, lon2
-  REAL dlat, dlon, mlat
-  REAL a, c
+  REAL(kind=real32), intent(in) :: lat1, lon1, lat2, lon2
+  REAL(kind=real64) :: dlat, dlon, mlat
+  REAL(kind=real64) :: a, c
 
   dlon = lon2 - lon1
   dlat = lat2 - lat1
   mlat = (lat1 + lat2)/2.
 
   a = sin(dlat*rpd/2)**2 + cos(lat1*rpd)*cos(lat2*rpd)*sin(dlon*rpd/2)**2
-  c = 2.*asin(min(1.,sqrt(a)))
+  !equivalent c = 2.*asin(min(1._real64,sqrt(a)))
+  c = 2.*atan2(sqrt(a), sqrt(1._real64 - a) )
 
 ! approximating ellipsoidal flattening RG WGS84
   harcdis = c * (6378.137 - 21.385*sin(mlat*rpd) )
-  RETURN 
+!  RETURN 
 END function harcdis
 
 !bearing
@@ -59,9 +60,9 @@ END function harcdis
 SUBROUTINE bearing(lat1, lon1, lat2, lon2, dist, dir)
   USE constants
   IMPLICIT none
-  REAL, intent(in) :: lat1, lon1, lat2, lon2
-  REAL, intent(out) :: dist, dir
-  REAL harcdis
+  REAL(kind=real32), intent(in) :: lat1, lon1, lat2, lon2
+  REAL(kind=real32), intent(out) :: dist, dir
+  REAL(kind=real32) :: harcdis
 
   IF (lat1 >= flag .or. lon1 >= flag .or. lat2 >= flag .or. lon2 >= flag) THEN
     dist = flag
@@ -85,9 +86,10 @@ END subroutine bearing
 SUBROUTINE unbearing(lat1, lon1, dist, dir, lat2, lon2)
   USE constants
   IMPLICIT none
-  REAL, intent(in) :: lat1, lon1, dist, dir
-  REAL, intent(out) :: lat2, lon2
-  REAL theta, R, rearth
+  REAL(kind=real32), intent(in) :: lat1, lon1, dist, dir
+  REAL(kind=real32), intent(out) :: lat2, lon2
+  REAL(kind=real32) :: theta, R
+  REAL(kind=real32) :: rearth
 
   theta = dir*rpd
   R = rearth(lat1)
@@ -99,10 +101,11 @@ RETURN
 END subroutine unbearing
 
 !Wrap longitude to be in range [0,360]
-REAL FUNCTION wrap(y)
+REAL(kind=real32) FUNCTION wrap(y)
+  USE constants
   IMPLICIT none
-  REAL, intent(in) :: y
-  REAL x
+  REAL(kind=real32), intent(in) :: y
+  REAL(kind=real32) :: x
 
   x = y
   IF (x > 360.) x = x - 360.
@@ -116,9 +119,6 @@ END FUNCTION wrap
 
 
 ! local_metric now in class metric
-!lat, lon in degrees
-!dx, dy in meters
-
 ! local_cartesian now in class metric
 
 ! Convert from buoy's lat-lon location to its ij coordinate (x,y in buoy member)
