@@ -3,9 +3,10 @@ MODULE metric_mod
 
     !module
     TYPE, public :: metric
-      REAL, allocatable :: dlatdi(:,:), dlondi(:,:), dlatdj(:,:), dlondj(:,:)
-      REAL, allocatable :: dx(:,:), dy(:,:), rot(:,:)
-      REAL, allocatable :: ulat(:,:), ulon(:,:)
+      REAL(kind=real64), allocatable :: dlatdi(:,:), dlondi(:,:), dlatdj(:,:), dlondj(:,:)
+      REAL(kind=real64), allocatable :: dxdi(:,:), dydi(:,:), dxdj(:,:), dydj(:,:)
+      REAL(kind=real64), allocatable :: dx(:,:), dy(:,:), rot(:,:), area(:,:)
+      REAL(kind=real32), allocatable :: ulat(:,:), ulon(:,:)
       INTEGER nx, ny
     CONTAINS
       PROCEDURE :: set, local_metric, local_cartesian, ll_to_xy, ll_to_xy_brute
@@ -30,6 +31,11 @@ SUBROUTINE set(this, nx, ny)
   allocate(this%dlatdj(nx, ny))
   allocate(this%dlondi(nx, ny))
   allocate(this%dlondj(nx, ny))
+  allocate(this%dxdi(nx, ny))
+  allocate(this%dxdj(nx, ny))
+  allocate(this%dydi(nx, ny))
+  allocate(this%dydj(nx, ny))
+  allocate(this%area(nx, ny))
 
   RETURN
 END SUBROUTINE set
@@ -40,7 +46,7 @@ SUBROUTINE local_metric(this)
   IMPLICIT none
   CLASS(metric), intent(inout) :: this
   INTEGER i, j
-  REAL toler
+  REAL toler, harcdis
 
   this%rot = 0.
   CALL this%local_cartesian()
@@ -52,39 +58,45 @@ SUBROUTINE local_metric(this)
     this%dlondi(i,j) = this%ulon(i+1,j) - this%ulon(i,j)
     this%dlatdj(i,j) = this%ulat(i,j+1) - this%ulat(i,j)
     this%dlondj(i,j) = this%ulon(i,j+1) - this%ulon(i,j)
+    !RG: Compute distances by harcdis
+    this%dxdi(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j), this%ulon(i+1,j) )
+    this%dydi(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i+1,j), this%ulon(i,j) )
+    this%dxdj(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j), this%ulon(i,j+1) )
+    this%dydj(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j+1), this%ulon(i,j) )
   ENDDO
   ENDDO
   j = this%ny
   DO i = 2, this%nx
     this%dlatdi(i,j) = this%ulat(i,j) - this%ulat(i-1,j)
     this%dlondi(i,j) = this%ulon(i,j) - this%ulon(i-1,j)
+    this%dlatdj(i,j) = this%ulat(i,j) - this%ulat(i,j-1)
+    this%dlondj(i,j) = this%ulon(i,j) - this%ulon(i,j-1)
+    this%dxdi(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j), this%ulon(i-1,j) )
+    this%dydi(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i-1,j), this%ulon(i,j) )
+    this%dxdj(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j), this%ulon(i,j-1) )
+    this%dydj(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j-1), this%ulon(i,j) )
+
   ENDDO
   i = this%nx
   DO j = 2, this%ny
+    this%dlatdi(i,j) = this%ulat(i,j) - this%ulat(i-1,j)
+    this%dlondi(i,j) = this%ulon(i,j) - this%ulon(i-1,j)
     this%dlatdj(i,j) = this%ulat(i,j) - this%ulat(i,j-1)
     this%dlondj(i,j) = this%ulon(i,j) - this%ulon(i,j-1)
+    this%dxdi(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j), this%ulon(i-1,j) )
+    this%dydi(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i-1,j), this%ulon(i,j) )
+    this%dxdj(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j), this%ulon(i,j-1) )
+    this%dydj(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j-1), this%ulon(i,j) )
   ENDDO
   this%dlatdi(this%nx, this%ny) = this%dlatdi(this%nx - 1, this%ny-1)
   this%dlatdj(this%nx, this%ny) = this%dlatdj(this%nx - 1, this%ny-1)
   this%dlondi(this%nx, this%ny) = this%dlondi(this%nx - 1, this%ny-1)
   this%dlondj(this%nx, this%ny) = this%dlondj(this%nx - 1, this%ny-1)
 
+  ! RG: Note that at this point, 21 January 2026, areas may come out negative
+  this%area = this%dxdi*this%dydj - this%dxdj*this%dydi
+
   !rot = atan2(?,?)
-
-  !debug: PRINT *,'lat metrics',MAXVAL(this%dlatdi), MINVAL(this%dlatdi), MAXVAL(this%dlatdj), MINVAL(this%dlatdj)
-  !PRINT *,'lon metrics',MAXVAL(this%dlondi), MINVAL(this%dlondi), MAXVAL(this%dlondj), MINVAL(this%dlondj)
-!  toler = 1.0
-!  DO j = 1, this%ny
-!  DO i = 1, this%nx
-!    IF (abs(this%dlondj(i,j) ) > toler ) THEN
-!      PRINT *,'dj ',i,j,this%dlondj(i,j), this%ulon(i,j)
-!    ENDIF
-!    IF (abs(this%dlondi(i,j) ) > toler ) THEN
-!      PRINT *,'di ',i,j,this%dlondi(i,j), this%ulon(i,j)
-!    ENDIF
-!  ENDDO
-!  ENDDO
-
 
   RETURN
 END subroutine local_metric
@@ -115,7 +127,7 @@ END subroutine local_cartesian
 
 ! Convert from buoy's lat-lon location to its ij coordinate (x,y in buoy member)
 SUBROUTINE ll_to_xy(this, lat, lon, x, y)
-
+  USE constants
   IMPLICIT none
   CLASS(metric), intent(in) :: this
   REAL, intent(in)    :: lat, lon
@@ -127,7 +139,7 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
   REAL wrap
 
 ! if flag values (lat or lon >= 1.e30) skip, assign xy to 1,1
-  IF (lat >= 1.e30 .or. lon >= 1.e30) THEN
+  IF (lat >= flag .or. lon >= flag) THEN
     x = 1.
     y = 1.
     RETURN
@@ -225,30 +237,8 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
  9001 FORMAT(I3,6F10.3,4F10.3)
 
   IF (iter .eq. itmax) THEN  ! need brute force or something to cross seam
-    fi = 1.e30
-    fj = 1.e30
-    !debug: WRITE(*,9004) iter, dfi, dfj, fi, fj, dlat, dlon, lat, lon, this%ulat(ii,ij), this%ulon(ii,ij)
-    !CALL this%ll_to_xy_brute(lat, lon, fi, fj)
-    !RG: heavy overhead for calling this, so do it back in buoy intitialization for
-    !    all bad locations at once
-    !CALL irreg_ll2ij_cice(this%nx, this%ny, this%ulat, this%ulon, 1, lat, lon, fi, fj)
-
-    !PRINT *,'irreg ',lat,lon,fi,fj
-    !IF (fi == -1. .or. fj == -1.) THEN
-    !  fi = 1.e30
-    !  fj = 1.e30
-    !ENDIF
-    !IF (fi < 1.e30 .and. fj < 1.e30) THEN
-    !  ii = int(fi+0.5)
-    !  ij = int(fj+0.5)
-    !  dfi = 0.
-    !  dfj = 0.
-    !  dlat = lat - this%ulat(ii,ij)
-    !  tlon = this%ulon(ii,ij)
-    !  if (tlon > 360. .or. tlon < 0) tlon = wrap(tlon)
-    !  dlon = lon - tlon
-    !  !debug: WRITE(*,9004) iter+1, dfi, dfj, fi, fj, dlat, dlon, lat, lon, this%ulat(ii,ij), this%ulon(ii,ij)
-    !ENDIF
+    fi = flag 
+    fj = flag 
   ENDIF
  9004 FORMAT('itmax ',I3,6F10.3,4F10.3)
 
@@ -261,6 +251,7 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
   RETURN
 END SUBROUTINE ll_to_xy 
 SUBROUTINE ll_to_xy_brute(this, lat, lon, fi, fj)
+  USE constants
   CLASS(metric), intent(in) :: this
   REAL, intent(in)    :: lat, lon
   REAL, intent(inout) :: fi, fj
@@ -270,8 +261,8 @@ SUBROUTINE ll_to_xy_brute(this, lat, lon, fi, fj)
 !       should be able to take advantage of that. Lats > 45.
 !    Sometimes also encounter difficulty along 0 E 
   !debug: PRINT *,'brute ',lat,lon
-  fi = 1.e30
-  fj = 1.e30
+  fi = flag
+  fj = flag
   RETURN
 
   dbest = 999.

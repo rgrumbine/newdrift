@@ -7,14 +7,14 @@
 #PBS -l walltime=6:00:00
 #PBS -l select=1:ncpus=1
 
-set -xe
-
 #initialize
 #drift_in -- file with full 6 values drifters, set to -99 for i,j,clat, clon
 #  at readin/initialize, set i,j and clat/clon = ilat/ilon
 module load intel netcdf
 module load prod_envir wgrib2
 #module list
+
+set -xe
 
 #cd $HOME/rgdev/newdrift/sorc/
 

@@ -1,5 +1,6 @@
 PROGRAM newdrift
 
+  USE constants
   USE drifter_mod
   USE io
   USE metric_mod
@@ -23,20 +24,18 @@ PROGRAM newdrift
   CHARACTER(len=50) :: xname, yname
   
 ! Read from input (or argument to main)
-  REAL dt, dtout
+  REAL(kind=real32) dt, dtout
   INTEGER outfreq
   LOGICAL restart
 
   TYPE(metric) :: xmetric
 
-  REAL, allocatable  :: allvars(:,:,:)
-  REAL, allocatable  :: u(:,:), v(:,:)
-  REAL, allocatable  :: aice(:,:)
+  REAL(kind=real32), allocatable  :: allvars(:,:,:)
+  REAL(kind=real32), allocatable  :: u(:,:), v(:,:), aice(:,:) ! u,v,aice are extracted from allvars
 
 ! Utilities for main
   INTEGER i, j
   INTEGER n, nstep
-!  REAL x, y
 
 !For drifter 
   CLASS(drifter), allocatable :: buoys(:)
@@ -67,14 +66,15 @@ PROGRAM newdrift
   READ (10,*) nstep
   READ (10,*) outfreq
   READ (10,*) restart
-  !PRINT *,'dt, nstep, outfreq, restart = ',dt, nstep, outfreq, restart
+  !debug: PRINT *,'dt, nstep, outfreq, restart = ',dt, nstep, outfreq, restart
 
 ! RG: Read in .nc variable names
   DO i = 1, nvar
     READ (10,*) varnames(i)
-    ENDDO
+  ENDDO
   READ (10,*) xname  ! x,y dimensions
   READ (10,*) yname
+  !debug: PRINT *,'xname, yname',xname, yname
 
 
 ! RTOFS et al. files, not inlineable --------------------------------
@@ -127,10 +127,7 @@ PROGRAM newdrift
 ! RUN
 
 ! First/only time step (u,v, etc. in hand):
-!debug: 
-  !DO i = 1, 192
   CALL run(buoys, nbuoys, u, v, xmetric, dt)
-  !ENDDO
   closeout = .TRUE.
   CALL writeout(ncid_out, varid_out, nvar_out, buoys, nbuoys, closeout)
 
