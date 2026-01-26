@@ -93,7 +93,7 @@ CONTAINS
     b = b / 1000.
     IF ((abs(deltax) > 3.*3600) .or. (abs(deltay) > 3.*3600) ) THEN
 !debug: 
-      PRINT *,'fast ',ti, tj, deltax, deltay
+      PRINT *,'fast ',xmetric%ulat(ti, tj), xmetric%ulon(ti, tj), ti, tj, deltax, deltay
     ENDIF
 
     !RG: beware of seams
