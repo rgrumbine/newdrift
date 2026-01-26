@@ -76,6 +76,7 @@ CONTAINS
 
     if (buoy%x >= flag .or. buoy%y >= flag) RETURN
     if (buoy%clat >= flag .or. buoy%clon >= flag) RETURN
+    if (buoy%ilat >= flag .or. buoy%ilon >= flag) RETURN
     ti = NINT(buoy%x)
     tj = NINT(buoy%y)
     tu = u(ti, tj)
@@ -96,23 +97,31 @@ CONTAINS
     ENDIF
 
     !RG: beware of seams
-    di = a/xmetric%dlondi(ti,tj) !di,dj are degrees
-    dj = b/xmetric%dlatdj(ti,tj)
-    buoy%x = buoy%x + di
-    buoy%y = buoy%y + dj
+    IF (xmetric%dlondi(ti,tj) .ne. 0 .and. xmetric%dlatdj(ti,tj) .ne. 0) THEN
+      di = a/xmetric%dlondi(ti,tj) !di,dj are degrees
+      dj = b/xmetric%dlatdj(ti,tj)
+      buoy%x = buoy%x + di
+      buoy%y = buoy%y + dj
+    ELSE
+      buoy%x = xmetric%nx + 1.
+      buoy%y = xmetric%ny + 1.
+    ENDIF
 
     nti = NINT(buoy%x)
     ntj = NINT(buoy%y)
     ! beware of running outside (1,1),(nx,ny)
     IF (nti < 1 .or. nti > xmetric%nx .or. ntj < 1 .or. ntj > xmetric%ny) THEN
-      !debug: 
-      PRINT *,'buoy out of bounds ',ti,tj,di, dj, nti, ntj
+      !realbug: 
+      PRINT *,'buoy out of bounds ',ti,tj,di, dj, nti, ntj,xmetric%dlondi(ti,tj), xmetric%dlatdj(ti,tj) 
+      buoy%ilat = flag
+      buoy%ilon = flag
       buoy%clat = flag
       buoy%clon = flag
       buoy%x    = flag
       buoy%y    = flag
     ELSE IF (abs(xmetric%dlondj(nti,ntj)) > 80 .or. abs(xmetric%dlondi(nti,ntj)) > 80 ) THEN
-      !debug: PRINT *,'near seam ',ti,tj,nti, ntj
+      !debug: 
+      PRINT *,'near seam ',ti,tj,nti, ntj
       buoy%clat = flag
       buoy%clon = flag
       buoy%x    = flag
@@ -120,7 +129,7 @@ CONTAINS
     ELSE 
       buoy%clat = xmetric%ulat(nti, ntj) + (ntj-buoy%y)*xmetric%dlatdj(nti,ntj)
       buoy%clon = xmetric%ulon(nti, ntj) + (nti-buoy%x)*xmetric%dlondi(nti,ntj) 
-    !debug: PRINT *,'move ',buoy%x, buoy%y, ti, tj, nti, ntj
+    !debug2: PRINT *,'move ',buoy%x, buoy%y, ti, tj, nti, ntj
     ENDIF
 
   RETURN
