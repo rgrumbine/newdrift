@@ -72,7 +72,7 @@ CONTAINS
 
     REAL tu, tv, deltax, deltay, di, dj
     INTEGER ti, tj, nti, ntj
-    REAL toler
+    REAL a, b, toler
 
     if (buoy%x >= flag .or. buoy%y >= flag) RETURN
     if (buoy%clat >= flag .or. buoy%clon >= flag) RETURN
@@ -86,14 +86,18 @@ CONTAINS
     !RG:  These could be interpolated (bilinear, ...)
     deltax = tu * dt  !deltax, deltay are meters
     deltay = tv * dt
+    a = deltax / xmetric%dx(ti, tj)
+    b = deltay / xmetric%dy(ti, tj)
+    a = a / 1000. !a,b are in meters while metric is km
+    b = b / 1000.
     IF ((abs(deltax) > 3.*3600) .or. (abs(deltay) > 3.*3600) ) THEN
 !debug: 
-      PRINT *,'fast ',deltax, deltay
+      PRINT *,'fast ',ti, tj, deltax, deltay
     ENDIF
 
     !RG: beware of seams
-    di = deltax/xmetric%dx(ti, tj) !di,dj are degrees
-    dj = deltay/xmetric%dy(ti, tj)
+    di = a/xmetric%dlondi(ti,tj) !di,dj are degrees
+    dj = b/xmetric%dlatdj(ti,tj)
     buoy%x = buoy%x + di
     buoy%y = buoy%y + dj
 
@@ -101,7 +105,8 @@ CONTAINS
     ntj = NINT(buoy%y)
     ! beware of running outside (1,1),(nx,ny)
     IF (nti < 1 .or. nti > xmetric%nx .or. ntj < 1 .or. ntj > xmetric%ny) THEN
-      PRINT *,'buoy out of bounds ',ti,tj,nti, ntj
+      !debug: 
+      PRINT *,'buoy out of bounds ',ti,tj,di, dj, nti, ntj
       buoy%clat = flag
       buoy%clon = flag
       buoy%x    = flag
