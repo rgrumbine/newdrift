@@ -25,9 +25,7 @@ export NETCDF=$NETCDF_FORTRAN_ROOT
 
 set -xe
 
-cd $HOME/rgdev/newdrift/scripts/
-
-cp ../fix/merged.nc drift_in.nc
+cp $HOME/rgdev/newdrift/fix/merged.nc drift_in.nc
 
 #Loop:
 #forecast hours 000 to 072 by 1
@@ -73,7 +71,7 @@ do
   else
     echo .TRUE. >> runin
   fi
-  cat rtofs.vars >> runin
+  cat $HOME/rgdev/newdrift/scripts/rtofs.vars >> runin
   echo runin | time $EXDIR/drifter
 
   cp out_${hhh}.nc drift_f${hhh}.nc

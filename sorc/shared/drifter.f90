@@ -89,17 +89,22 @@ CONTAINS
     deltay = tv * dt
     a = deltax / xmetric%dx(ti, tj)
     b = deltay / xmetric%dy(ti, tj)
-    a = a / 1000. !a,b are in meters while metric is km
-    b = b / 1000.
     IF ((abs(deltax) > 3.*3600) .or. (abs(deltay) > 3.*3600) ) THEN
 !debug: 
       PRINT *,'fast ',xmetric%ulat(ti, tj), xmetric%ulon(ti, tj), ti, tj, deltax, deltay
     ENDIF
 
     !RG: beware of seams
-    IF (xmetric%dlondi(ti,tj) .ne. 0 .and. xmetric%dlatdj(ti,tj) .ne. 0) THEN
-      di = a/xmetric%dlondi(ti,tj) !di,dj are degrees
-      dj = b/xmetric%dlatdj(ti,tj)
+    IF (xmetric%dlondi(ti,tj) .ne. 0 .and. xmetric%dlatdj(ti,tj) .ne. 0 .and. xmetric%area(ti, tj) .ne. 0) THEN
+      ! these two are true if x,y are parallel to i,j
+      !di = a/xmetric%dlondi(ti,tj) !di,dj are grid points
+      !dj = b/xmetric%dlatdj(ti,tj)
+      di = (a*xmetric%dlatdj(ti,tj) - b*xmetric%dlondj(ti,tj))/xmetric%area(ti,tj)
+      dj = (b*xmetric%dlondi(ti,tj) - a*xmetric%dlatdi(ti,tj))/xmetric%area(ti,tj)
+!debug:      IF (di .ne. 0 .or. dj .ne. 0) THEN 
+!debug:        WRITE (*,9004) di, dj, deltax, deltay
+!debug:   9004 FORMAT('di dj deltax deltay ',2F9.5, 2F9.1)
+!debug:      ENDIF
       buoy%x = buoy%x + di
       buoy%y = buoy%y + dj
     ELSE
@@ -149,17 +154,18 @@ SUBROUTINE run(buoys, nbuoy, u, v, xmetric, dt)
 
   INTEGER k, track
 
-  track = INT(0.5+nbuoy*5./6.)
+  !debug: track = INT(0.5+nbuoy*5./6.)
 
   DO k = 1, nbuoy
     !c-like (object-like) 
-    IF (k .eq. track) THEN
-      PRINT *,buoys(k)%clat, buoys(k)%clon, buoys(k)%x, buoys(k)%y
-    ENDIF
+    !debug: IF (k .eq. track) THEN
+    !debug:   PRINT *,buoys(k)%clat, buoys(k)%clon, buoys(k)%x, buoys(k)%y
+    !debug: ENDIF
+
     CALL buoys(k)%move(u, v, xmetric, dt)
-    IF (k .eq. track) THEN
-      PRINT *,'  ',buoys(k)%clat, buoys(k)%clon, buoys(k)%x, buoys(k)%y, dt
-    ENDIF
+    !debug: IF (k .eq. track) THEN
+    !debug:   PRINT *,'  ',buoys(k)%clat, buoys(k)%clon, buoys(k)%x, buoys(k)%y, dt
+    !debug: ENDIF
   ENDDO
 
 END SUBROUTINE run

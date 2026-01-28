@@ -94,8 +94,9 @@ SUBROUTINE local_metric(this)
   this%dlondj(this%nx, this%ny) = this%dlondj(this%nx - 1, this%ny-1)
 
   ! RG: Note that at this point, 21 January 2026, areas may come out negative
-  this%area = this%dxdi*this%dydj - this%dxdj*this%dydi
-
+  this%area = this%dlondi*this%dlatdj - this%dlondj*this%dlatdi
+  !debug: PRINT *,'area max min',MAXVAL(this%area), MINVAL(this%area)
+  
   !rot = atan2(?,?)
 
   RETURN

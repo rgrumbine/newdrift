@@ -144,7 +144,8 @@ PROGRAM newdrift
 
 ! First/only time step (u,v, etc. in hand):
   !timing CALL cpu_time(start_time)
-  !timing CALL run(buoys, nbuoys, u, v, xmetric, dt)
+ 
+  CALL run(buoys, nbuoys, u, v, xmetric, dt)
   closeout = .TRUE.
   CALL writeout(ncid_out, varid_out, nvar_out, buoys, nbuoys, closeout)
   !timing CALL cpu_time(end_time)
