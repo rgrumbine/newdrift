@@ -72,10 +72,11 @@ CONTAINS
 
     REAL tu, tv, deltax, deltay, di, dj
     INTEGER ti, tj, nti, ntj
-    REAL toler
+    REAL a, b, toler
 
     if (buoy%x >= flag .or. buoy%y >= flag) RETURN
     if (buoy%clat >= flag .or. buoy%clon >= flag) RETURN
+    if (buoy%ilat >= flag .or. buoy%ilon >= flag) RETURN
     ti = NINT(buoy%x)
     tj = NINT(buoy%y)
     tu = u(ti, tj)
@@ -86,28 +87,46 @@ CONTAINS
     !RG:  These could be interpolated (bilinear, ...)
     deltax = tu * dt  !deltax, deltay are meters
     deltay = tv * dt
-    IF ((abs(deltax) > 3.*3600) .or. (abs(deltay) > 3.*3600) ) THEN
+    a = deltax / xmetric%dx(ti, tj)
+    b = deltay / xmetric%dy(ti, tj)
+    IF ((abs(deltax) > 3.*dt) .or. (abs(deltay) > 3.*dt) ) THEN
 !debug: 
-      PRINT *,'fast ',deltax, deltay
+      PRINT *,'fast ',xmetric%ulat(ti, tj), xmetric%ulon(ti, tj), ti, tj, deltax, deltay
     ENDIF
 
     !RG: beware of seams
-    di = deltax/xmetric%dx(ti, tj) !di,dj are degrees
-    dj = deltay/xmetric%dy(ti, tj)
-    buoy%x = buoy%x + di
-    buoy%y = buoy%y + dj
+    IF (xmetric%dlondi(ti,tj) .ne. 0 .and. xmetric%dlatdj(ti,tj) .ne. 0 .and. xmetric%area(ti, tj) .ne. 0) THEN
+      ! these two are true if x,y are parallel to i,j
+      !di = a/xmetric%dlondi(ti,tj) !di,dj are grid points
+      !dj = b/xmetric%dlatdj(ti,tj)
+      di = (a*xmetric%dlatdj(ti,tj) - b*xmetric%dlondj(ti,tj))/xmetric%area(ti,tj)
+      dj = (b*xmetric%dlondi(ti,tj) - a*xmetric%dlatdi(ti,tj))/xmetric%area(ti,tj)
+!debug:      IF (di .ne. 0 .or. dj .ne. 0) THEN 
+!debug:        WRITE (*,9004) di, dj, deltax, deltay
+!debug:   9004 FORMAT('di dj deltax deltay ',2F9.5, 2F9.1)
+!debug:      ENDIF
+      buoy%x = buoy%x + di
+      buoy%y = buoy%y + dj
+    ELSE
+      buoy%x = xmetric%nx + 1.
+      buoy%y = xmetric%ny + 1.
+    ENDIF
 
     nti = NINT(buoy%x)
     ntj = NINT(buoy%y)
     ! beware of running outside (1,1),(nx,ny)
     IF (nti < 1 .or. nti > xmetric%nx .or. ntj < 1 .or. ntj > xmetric%ny) THEN
-      PRINT *,'buoy out of bounds ',ti,tj,nti, ntj
+      !realbug: 
+      PRINT *,'buoy out of bounds ',ti,tj,di, dj, nti, ntj,xmetric%dlondi(ti,tj), xmetric%dlatdj(ti,tj) 
+      buoy%ilat = flag
+      buoy%ilon = flag
       buoy%clat = flag
       buoy%clon = flag
       buoy%x    = flag
       buoy%y    = flag
     ELSE IF (abs(xmetric%dlondj(nti,ntj)) > 80 .or. abs(xmetric%dlondi(nti,ntj)) > 80 ) THEN
-      !debug: PRINT *,'near seam ',ti,tj,nti, ntj
+      !debug: 
+      PRINT *,'near seam ',ti,tj,nti, ntj
       buoy%clat = flag
       buoy%clon = flag
       buoy%x    = flag
@@ -115,7 +134,7 @@ CONTAINS
     ELSE 
       buoy%clat = xmetric%ulat(nti, ntj) + (ntj-buoy%y)*xmetric%dlatdj(nti,ntj)
       buoy%clon = xmetric%ulon(nti, ntj) + (nti-buoy%x)*xmetric%dlondi(nti,ntj) 
-    !debug: PRINT *,'move ',buoy%x, buoy%y, ti, tj, nti, ntj
+    !debug2: PRINT *,'move ',buoy%x, buoy%y, ti, tj, nti, ntj
     ENDIF
 
   RETURN
@@ -135,17 +154,18 @@ SUBROUTINE run(buoys, nbuoy, u, v, xmetric, dt)
 
   INTEGER k, track
 
-  track = INT(0.5+nbuoy*5./6.)
+  !debug: track = INT(0.5+nbuoy*5./6.)
 
   DO k = 1, nbuoy
     !c-like (object-like) 
-    IF (k .eq. track) THEN
-      PRINT *,buoys(k)%clat, buoys(k)%clon, buoys(k)%x, buoys(k)%y
-    ENDIF
+    !debug: IF (k .eq. track) THEN
+    !debug:   PRINT *,buoys(k)%clat, buoys(k)%clon, buoys(k)%x, buoys(k)%y
+    !debug: ENDIF
+
     CALL buoys(k)%move(u, v, xmetric, dt)
-    IF (k .eq. track) THEN
-      PRINT *,'  ',buoys(k)%clat, buoys(k)%clon, buoys(k)%x, buoys(k)%y, dt
-    ENDIF
+    !debug: IF (k .eq. track) THEN
+    !debug:   PRINT *,'  ',buoys(k)%clat, buoys(k)%clon, buoys(k)%x, buoys(k)%y, dt
+    !debug: ENDIF
   ENDDO
 
 END SUBROUTINE run

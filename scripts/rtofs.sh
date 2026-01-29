@@ -1,4 +1,5 @@
 #!/bin/bash 
+#wcoss2:
 #PBS -N newdrift
 #PBS -o driftout
 #PBS -j oe
@@ -7,29 +8,36 @@
 #PBS -l walltime=6:00:00
 #PBS -l select=1:ncpus=1
 
+#wcoss2:
+#module load intel netcdf
+#module load prod_envir wgrib2
+
+#ursa:
+module load intel-oneapi-compilers
+module load hpc-x/2.18.1-icc
+module load netcdf-c/4.9.2
+module load netcdf-fortran/4.6.1
+export NETCDF=$NETCDF_FORTRAN_ROOT
+#module list
+
 #initialize
 #drift_in -- file with full 6 values drifters, set to -99 for i,j,clat, clon
 #  at readin/initialize, set i,j and clat/clon = ilat/ilon
-module load intel netcdf
-module load prod_envir wgrib2
-#module list
 
 set -xe
 
-#cd $HOME/rgdev/newdrift/sorc/
-
-cp ../fix/merged.nc drift_in.nc
+cp $HOME/rgdev/newdrift/fix/merged.nc drift_in.nc
 
 #Loop:
 #forecast hours 000 to 072 by 1
 #forecast hours 072 to 192 by 3
 
 EXDIR=${EXDIR:-$HOME/rgdev/newdrift/exec}
-tag=${tag:-20250518}
-#macos: base=/Volumes/Data/rtofs/
-#hera: base=$HOME/clim_data/rtofs/rtofs.$tag/
-#wcoss2:
-base=$HOME/noscrub/model_intercompare/rtofs_cice/rtofs.$tag/
+PDY=${PDY:-20260101}
+#macos: COMIN=/Volumes/Data/rtofs/
+#ursa: 
+COMIN=$HOME/clim_data/rtofs/rtofs.$PDY/
+#wcoss2: COMIN=$HOME/noscrub/model_intercompare/rtofs_cice/rtofs.$PDY/
 
 hhh=000
 # Pick up from partial run:
@@ -40,14 +48,14 @@ while [ $hhh -le 192 ]
 #while [ $hhh -le 000 ] 
 do
   fname=rtofs_glo_2ds_f${hhh}_ice.nc
-  if [ ! -f ${base}/$fname ] ; then
-    echo could not find ${base}/$fname
+  if [ ! -f ${COMIN}/$fname ] ; then
+    echo could not find ${COMIN}/$fname
     exit 1
   #else
-  #  ls -l ${base}/$fname 
+  #  ls -l ${COMIN}/$fname 
   fi
 
-  echo \'${base}/$fname\' > runin 
+  echo \'${COMIN}/$fname\' > runin 
   echo \'drift_in.nc\'   >> runin
   echo \'out_${hhh}.nc\' >> runin
   if [ $hhh -lt 72 ] ; then
@@ -64,7 +72,7 @@ do
   else
     echo .TRUE. >> runin
   fi
-  cat rtofs.vars >> runin
+  cat $HOME/rgdev/newdrift/scripts/rtofs.vars >> runin
   echo runin | time $EXDIR/drifter
 
   cp out_${hhh}.nc drift_f${hhh}.nc
@@ -83,7 +91,7 @@ done
 
 #mv outputs to $com
 if [ -f drift_f192.nc ] ; then
-  mkdir -p $COMOUT/$tag
-  mv *.nc ${tag}.out $COMOUT/$tag
+  mkdir -p $COMOUT/$PDY
+  mv *.nc ${PDY}.out $COMOUT/$PDY
 fi
 

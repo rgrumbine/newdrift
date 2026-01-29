@@ -111,15 +111,22 @@ SUBROUTINE initial_read(fname, nvar, ncid, varid, &
 
   TYPE(metric),intent(inout) :: xmetric
   REAL, intent(inout) :: allvars(xmetric%nx, xmetric%ny, nvar)
+  REAL start_time, end_time
 
 ! Forcing / velocities
   !Get first set of data and construct the local metric for drifting
+  !timing CALL cpu_time(start_time)
   CALL readin(xmetric%nx, xmetric%ny, nvar, ncid, varid, allvars)
+  !timing CALL cpu_time(end_time)
+  !timing PRINT *,'sub initial_read time for readin',end_time - start_time
 
 !2ds_ice:
   xmetric%ulat = allvars(:,:,2)
   xmetric%ulon = allvars(:,:,1)
+  !timing CALL cpu_time(start_time)
   CALL xmetric%local_metric()
+  !timing CALL cpu_time(end_time)
+  !timing PRINT *,'sub initial_read time for local_metric',end_time - start_time
 
 END SUBROUTINE initial_read
 !----------------------------------------------------------------
@@ -209,7 +216,7 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
 
   !debug: PRINT *,' about to create buoys '
   bad_count = 0
-  !debug: CALL cpu_time(start_time)
+  !timing CALL cpu_time(start_time)
   DO i = 1, nbuoy
     CALL buoylist(i)%init(tlon(i), tlat(i), clon(i), clat(i), xmetric)
     if (clat(i) >= flag .or. clon(i) >= flag .or. &
@@ -219,8 +226,8 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
     !debug2: WRITE(*,9001) i, tlon(i), tlat(i), clon(i), clat(i)
   ENDDO
  9001 FORMAT(I6,4F10.3)
-  !debug: CALL cpu_time(end_time)
-  !debug: PRINT *,'buoy list timing ',start_time, end_time, end_time - start_time
+  !timing CALL cpu_time(end_time)
+  !timing PRINT *,'sub readin_drifters buoy list timing ',end_time - start_time
 
 ! Processing en masse all buoys which have bad locations 
 ! RG: make this its own routine for general use
@@ -244,11 +251,11 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
   ENDDO
   bad_count = bad_count - 1 
   !RG: now call mass searcher irreg_
-  !debug: CALL cpu_time(start_time)
+  !timing CALL cpu_time(start_time)
   CALL irreg_ll2ij_cice(xmetric%nx, xmetric%ny, xmetric%ulat, xmetric%ulon, &
           bad_count, bad_lat, bad_lon, bad_fi, bad_fj)
-  !debug: CALL cpu_time(end_time)
-  !debug: PRINT *,'irreg timing ',start_time, end_time, end_time - start_time
+  !timing CALL cpu_time(end_time)
+  !timing PRINT *,'sub readin_drifters irreg timing ',end_time - start_time
 
   very_bad = 0
   DO i = 1, bad_count
@@ -259,7 +266,7 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
       buoylist(bad_index(i))%y = flag
       buoylist(bad_index(i))%clat = flag
       buoylist(bad_index(i))%clon = flag
-      PRINT *,'very bad ',buoylist(bad_index(i))%ilat, buoylist(bad_index(i))%ilon
+      PRINT *,'could not place ',buoylist(bad_index(i))%ilat, buoylist(bad_index(i))%ilon
       very_bad = very_bad + 1
     ELSE
       buoylist(bad_index(i))%x = bad_fi(i)
@@ -268,7 +275,7 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
       buoylist(bad_index(i))%clon = bad_lon(i)
     ENDIF
   ENDDO
-  !debug: PRINT *,'very bad points: ',very_bad
+  !debug: PRINT *,'could not place points: ',very_bad
   
   !debug: PRINT *,' leaving drifter read in'
   RETURN

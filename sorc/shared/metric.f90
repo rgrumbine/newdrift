@@ -59,10 +59,10 @@ SUBROUTINE local_metric(this)
     this%dlatdj(i,j) = this%ulat(i,j+1) - this%ulat(i,j)
     this%dlondj(i,j) = this%ulon(i,j+1) - this%ulon(i,j)
     !RG: Compute distances by harcdis
-    this%dxdi(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j), this%ulon(i+1,j) )
-    this%dydi(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i+1,j), this%ulon(i,j) )
-    this%dxdj(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j), this%ulon(i,j+1) )
-    this%dydj(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j+1), this%ulon(i,j) )
+!    this%dxdi(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j), this%ulon(i+1,j) )
+!    this%dydi(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i+1,j), this%ulon(i,j) )
+!    this%dxdj(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j), this%ulon(i,j+1) )
+!    this%dydj(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j+1), this%ulon(i,j) )
   ENDDO
   ENDDO
   j = this%ny
@@ -71,10 +71,10 @@ SUBROUTINE local_metric(this)
     this%dlondi(i,j) = this%ulon(i,j) - this%ulon(i-1,j)
     this%dlatdj(i,j) = this%ulat(i,j) - this%ulat(i,j-1)
     this%dlondj(i,j) = this%ulon(i,j) - this%ulon(i,j-1)
-    this%dxdi(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j), this%ulon(i-1,j) )
-    this%dydi(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i-1,j), this%ulon(i,j) )
-    this%dxdj(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j), this%ulon(i,j-1) )
-    this%dydj(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j-1), this%ulon(i,j) )
+!    this%dxdi(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j), this%ulon(i-1,j) )
+!    this%dydi(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i-1,j), this%ulon(i,j) )
+!    this%dxdj(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j), this%ulon(i,j-1) )
+!    this%dydj(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j-1), this%ulon(i,j) )
 
   ENDDO
   i = this%nx
@@ -83,10 +83,10 @@ SUBROUTINE local_metric(this)
     this%dlondi(i,j) = this%ulon(i,j) - this%ulon(i-1,j)
     this%dlatdj(i,j) = this%ulat(i,j) - this%ulat(i,j-1)
     this%dlondj(i,j) = this%ulon(i,j) - this%ulon(i,j-1)
-    this%dxdi(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j), this%ulon(i-1,j) )
-    this%dydi(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i-1,j), this%ulon(i,j) )
-    this%dxdj(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j), this%ulon(i,j-1) )
-    this%dydj(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j-1), this%ulon(i,j) )
+!    this%dxdi(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j), this%ulon(i-1,j) )
+!    this%dydi(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i-1,j), this%ulon(i,j) )
+!    this%dxdj(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j), this%ulon(i,j-1) )
+!    this%dydj(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j-1), this%ulon(i,j) )
   ENDDO
   this%dlatdi(this%nx, this%ny) = this%dlatdi(this%nx - 1, this%ny-1)
   this%dlatdj(this%nx, this%ny) = this%dlatdj(this%nx - 1, this%ny-1)
@@ -94,8 +94,9 @@ SUBROUTINE local_metric(this)
   this%dlondj(this%nx, this%ny) = this%dlondj(this%nx - 1, this%ny-1)
 
   ! RG: Note that at this point, 21 January 2026, areas may come out negative
-  this%area = this%dxdi*this%dydj - this%dxdj*this%dydi
-
+  this%area = this%dlondi*this%dlatdj - this%dlondj*this%dlatdi
+  !debug: PRINT *,'area max min',MAXVAL(this%area), MINVAL(this%area)
+  
   !rot = atan2(?,?)
 
   RETURN
