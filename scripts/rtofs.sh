@@ -1,4 +1,5 @@
 #!/bin/bash 
+#wcoss2:
 #PBS -N newdrift
 #PBS -o driftout
 #PBS -j oe
@@ -32,11 +33,11 @@ cp $HOME/rgdev/newdrift/fix/merged.nc drift_in.nc
 #forecast hours 072 to 192 by 3
 
 EXDIR=${EXDIR:-$HOME/rgdev/newdrift/exec}
-tag=${tag:-20260101}
-#macos: base=/Volumes/Data/rtofs/
+PDY=${PDY:-20260101}
+#macos: COMIN=/Volumes/Data/rtofs/
 #ursa: 
-base=$HOME/clim_data/rtofs/rtofs.$tag/
-#wcoss2: base=$HOME/noscrub/model_intercompare/rtofs_cice/rtofs.$tag/
+COMIN=$HOME/clim_data/rtofs/rtofs.$PDY/
+#wcoss2: COMIN=$HOME/noscrub/model_intercompare/rtofs_cice/rtofs.$PDY/
 
 hhh=000
 # Pick up from partial run:
@@ -47,14 +48,14 @@ while [ $hhh -le 192 ]
 #while [ $hhh -le 000 ] 
 do
   fname=rtofs_glo_2ds_f${hhh}_ice.nc
-  if [ ! -f ${base}/$fname ] ; then
-    echo could not find ${base}/$fname
+  if [ ! -f ${COMIN}/$fname ] ; then
+    echo could not find ${COMIN}/$fname
     exit 1
   #else
-  #  ls -l ${base}/$fname 
+  #  ls -l ${COMIN}/$fname 
   fi
 
-  echo \'${base}/$fname\' > runin 
+  echo \'${COMIN}/$fname\' > runin 
   echo \'drift_in.nc\'   >> runin
   echo \'out_${hhh}.nc\' >> runin
   if [ $hhh -lt 72 ] ; then
@@ -90,7 +91,7 @@ done
 
 #mv outputs to $com
 if [ -f drift_f192.nc ] ; then
-  mkdir -p $COMOUT/$tag
-  mv *.nc ${tag}.out $COMOUT/$tag
+  mkdir -p $COMOUT/$PDY
+  mv *.nc ${PDY}.out $COMOUT/$PDY
 fi
 

@@ -89,7 +89,7 @@ CONTAINS
     deltay = tv * dt
     a = deltax / xmetric%dx(ti, tj)
     b = deltay / xmetric%dy(ti, tj)
-    IF ((abs(deltax) > 3.*3600) .or. (abs(deltay) > 3.*3600) ) THEN
+    IF ((abs(deltax) > 3.*dt) .or. (abs(deltay) > 3.*dt) ) THEN
 !debug: 
       PRINT *,'fast ',xmetric%ulat(ti, tj), xmetric%ulon(ti, tj), ti, tj, deltax, deltay
     ENDIF
