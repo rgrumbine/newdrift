@@ -35,7 +35,7 @@ subroutine irreg_ll2ij_cice (nx, ny, grdlat, grdlon, npts, lats, lons, xi, yj)
 !
       implicit none
 !
-      integer, parameter :: max_neighbors=100000
+      integer, parameter :: max_neighbors=1000000
 !
 !     ..local array dimensions
 !

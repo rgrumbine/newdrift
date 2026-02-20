@@ -1,8 +1,8 @@
 #!/bin/bash 
 #ursa
-#SBATCH -J newdrift09
-#SBATCH -e newdrift09.err
-#SBATCH -o newdrift09.out
+#SBATCH -J newdrift
+#SBATCH -e newdrift.err
+#SBATCH -o newdrift.out
 #SBATCH -t 7:55:00
 #SBATCH -q batch
 #SBATCH -A marine-cpu
@@ -25,10 +25,10 @@ pid=$$
 mkdir -p /scratch3/NCEPDEV/stmp/wx21rg/newdrift.$pid
 cd /scratch3/NCEPDEV/stmp/wx21rg/newdrift.$pid
 
-export PDY=20250901
+export PDY=20250301
 export COMOUT=$HOME/noscrub/newdrift
 export end=`date +"%Y%m%d"`
-export end=20250930
+#export end=20250331
 
 while [ $PDY -le $end ]
 do
