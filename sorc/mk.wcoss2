@@ -1,7 +1,7 @@
 
 include mk.all
 
-FOPTS=-c -O2 -std08 -I $(NETCDF_INCLUDES) 
+FOPTS=-c -O2 -std18 -I $(NETCDF_INCLUDES) 
 LIBDIRS=-L $(NETCDF_LIBRARIES)
 
 FC=ifort

@@ -435,7 +435,7 @@ SUBROUTINE writeout(ncid_out, varid_out, nvar_out, buoys, nbuoy, closeout)
   INTEGER, intent(in) ::  ncid_out, nvar_out, nbuoy
   INTEGER, intent(in) ::  varid_out(nvar_out)
   LOGICAL, intent(in) :: closeout
-  TYPE(drifter), intent(in) :: buoys(nbuoy)
+  TYPE(drifter), DIMENSION(:), intent(in) :: buoys
 
   CALL outvars(ncid_out, varid_out, nvar_out, buoys, nbuoy )
   IF (closeout) THEN

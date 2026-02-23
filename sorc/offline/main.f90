@@ -39,7 +39,7 @@ PROGRAM newdrift
   REAL start_time, end_time
 
 !For drifter 
-  CLASS(drifter), allocatable :: buoys(:)
+  CLASS(drifter), DIMENSION(:), allocatable :: buoys
   INTEGER nbuoys
   CHARACTER(300) drift_name
 
