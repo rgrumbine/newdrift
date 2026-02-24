@@ -22,10 +22,15 @@
 
 set -xe
 pid=$$
-mkdir -p /scratch3/NCEPDEV/stmp/wx21rg/newdrift.$pid
-cd /scratch3/NCEPDEV/stmp/wx21rg/newdrift.$pid
 
-export tag=20260101
+##Wcoss2
+mkdir -p /lfs/h2/emc/ptmp/wx21rg/newdrift.$pid
+cd /lfs/h2/emc/ptmp/wx21rg/newdrift.$pid
+##ursa
+#mkdir -p /scratch3/NCEPDEV/stmp/wx21rg/newdrift.$pid
+#cd /scratch3/NCEPDEV/stmp/wx21rg/newdrift.$pid
+
+export PDY=20260101
 export COMOUT=$HOME/noscrub/newdrift
 export end=`date +"%Y%m%d"`
 export end=20260223
