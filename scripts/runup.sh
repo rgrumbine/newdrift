@@ -1,6 +1,6 @@
 #!/bin/bash 
-#PBS -N driftup
-#PBS -o driftup
+#PBS -N driftup2
+#PBS -o driftup2
 #PBS -j oe
 #PBS -A ICE-DEV
 #PBS -q dev
@@ -11,16 +11,16 @@
 
 cd $HOME/rgdev/newdrift/scripts
 
-export tag=20260113
+export tag=20260101
 export COMOUT=$HOME/noscrub/newdrift
 export end=`date +"%Y%m%d"`
-export end=20260119
+#export end=20260101
 
 while [ $tag -le $end ]
 do
   if [ ! -d $COMOUT/$tag ] ; then
     time ./rtofs.sh > ${tag}.out
-    #rm *.nc
+   # rm *.nc
     #time ./rtofs.sh 
   else
     echo zzz have $tag already

@@ -5,7 +5,7 @@ MODULE metric_mod
     TYPE, public :: metric
       REAL(kind=real64), allocatable :: dlatdi(:,:), dlondi(:,:), dlatdj(:,:), dlondj(:,:)
       REAL(kind=real64), allocatable :: dxdi(:,:), dydi(:,:), dxdj(:,:), dydj(:,:)
-      REAL(kind=real64), allocatable :: dx(:,:), dy(:,:), rot(:,:), area(:,:)
+      REAL(kind=real64), allocatable :: dx(:,:), dy(:,:), rot(:,:), deg_area(:,:), area(:,:)
       REAL(kind=real32), allocatable :: ulat(:,:), ulon(:,:)
       INTEGER nx, ny
     CONTAINS
@@ -36,6 +36,7 @@ SUBROUTINE set(this, nx, ny)
   allocate(this%dydi(nx, ny))
   allocate(this%dydj(nx, ny))
   allocate(this%area(nx, ny))
+  allocate(this%deg_area(nx, ny))
 
   RETURN
 END SUBROUTINE set
@@ -88,13 +89,27 @@ SUBROUTINE local_metric(this)
     this%dxdj(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j), this%ulon(i,j-1) )
     this%dydj(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j-1), this%ulon(i,j) )
   ENDDO
+  ! Corners
   this%dlatdi(this%nx, this%ny) = this%dlatdi(this%nx - 1, this%ny-1)
   this%dlatdj(this%nx, this%ny) = this%dlatdj(this%nx - 1, this%ny-1)
   this%dlondi(this%nx, this%ny) = this%dlondi(this%nx - 1, this%ny-1)
   this%dlondj(this%nx, this%ny) = this%dlondj(this%nx - 1, this%ny-1)
+  this%dlatdi(this%nx,1) = this%dlatdi(this%nx - 1,2)
+  this%dlatdj(this%nx,1) = this%dlatdj(this%nx - 1,2)
+  this%dlondi(this%nx,1) = this%dlondi(this%nx - 1,2)
+  this%dlondj(this%nx,1) = this%dlondj(this%nx - 1,2)
 
   ! RG: Note that at this point, 21 January 2026, areas may come out negative
   this%area = this%dxdi*this%dydj - this%dxdj*this%dydi
+  this%deg_area = this%dlondi*this%dlatdj - this%dlatdi*this%dlondj
+  !debug:
+  !PRINT *,'deg_area ',MAXVAL(this%deg_area), MINVAL(this%deg_area)
+  !debug2:
+  !DO j = 1, this%ny
+  !DO i = 1, this%nx
+  !  PRINT *,'deg**2 ',i,j,this%deg_area(i,j)
+  !ENDDO
+  !ENDDO
 
   !rot = atan2(?,?)
 
