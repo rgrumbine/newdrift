@@ -200,7 +200,7 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
     ! keep fi, fj, inside (1,1),(nx,ny)
     if (fi > this%nx) THEN
       !debug: PRINT *,'fi > nx ',fi
-      fi = mod(fi, float(this%nx) )
+      fi = mod(fi, REAL(this%nx) )
     endif
     if (fi < 0) THEN !Assuming that grid wraps around in i
       fi = fi + this%nx
