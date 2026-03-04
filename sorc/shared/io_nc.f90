@@ -110,8 +110,11 @@ SUBROUTINE initial_read(fname, nvar, ncid, varid, &
   INTEGER, intent(in)  :: nvar, ncid, varid(nvar)
 
   TYPE(metric),intent(inout) :: xmetric
-  REAL, intent(inout) :: allvars(xmetric%nx, xmetric%ny, nvar)
+  REAL(kind=real64), intent(inout) :: allvars(xmetric%nx, xmetric%ny, nvar)
   REAL start_time, end_time
+
+  REAL(kind=real64) :: dlat, dlon
+  INTEGER i, j
 
 ! Forcing / velocities
   !Get first set of data and construct the local metric for drifting
@@ -123,6 +126,11 @@ SUBROUTINE initial_read(fname, nvar, ncid, varid, &
 !2ds_ice:
   xmetric%ulat = allvars(:,:,2)
   xmetric%ulon = allvars(:,:,1)
+  !debug: PRINT *,'ulon nc readin ',MAXVAL(xmetric%ulon), MINVAL(xmetric%ulon)
+  WHERE(xmetric%ulon > 720) xmetric%ulon = xmetric%ulon - 720
+  WHERE(xmetric%ulon > 360) xmetric%ulon = xmetric%ulon - 360
+  !debug: PRINT *,'ulat nc readin ',MAXVAL(xmetric%ulat), MINVAL(xmetric%ulat)
+  !debug: PRINT *,'ulon nc readin after cleanup',MAXVAL(xmetric%ulon), MINVAL(xmetric%ulon)
   !timing CALL cpu_time(start_time)
   CALL xmetric%local_metric()
   !timing CALL cpu_time(end_time)
@@ -184,10 +192,10 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
   LOGICAL, intent(in) :: restart
 
   INTEGER i, retcode, bad_count, very_bad
-  REAL tlon(nbuoy), tlat(nbuoy)
-  REAL clon(nbuoy), clat(nbuoy)
-  REAL, allocatable :: bad_lat(:), bad_lon(:)
-  REAL, allocatable :: bad_fi(:), bad_fj(:)
+  REAL(kind=real64) :: tlon(nbuoy), tlat(nbuoy)
+  REAL(kind=real64) :: clon(nbuoy), clat(nbuoy)
+  REAL(kind=real64), allocatable :: bad_lat(:), bad_lon(:)
+  REAL(kind=real64), allocatable :: bad_fi(:), bad_fj(:)
   INTEGER, allocatable :: bad_index(:)
 
   REAL start_time, end_time
@@ -218,6 +226,7 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
   bad_count = 0
   !timing CALL cpu_time(start_time)
   DO i = 1, nbuoy
+    !debug2: PRINT *,'initializing buoy ',i,tlat(i), tlon(i)
     CALL buoylist(i)%init(tlon(i), tlat(i), clon(i), clat(i), xmetric)
     if (clat(i) >= flag .or. clon(i) >= flag .or. &
         buoylist(i)%x >= flag .or. buoylist(i)%y >= flag ) THEN
@@ -252,8 +261,8 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
   bad_count = bad_count - 1 
   !RG: now call mass searcher irreg_
   !timing CALL cpu_time(start_time)
-  CALL irreg_ll2ij_cice(xmetric%nx, xmetric%ny, xmetric%ulat, xmetric%ulon, &
-          bad_count, bad_lat, bad_lon, bad_fi, bad_fj)
+!  CALL irreg_ll2ij_cice(xmetric%nx, xmetric%ny, xmetric%ulat, xmetric%ulon, &
+!          bad_count, bad_lat, bad_lon, bad_fi, bad_fj)
   !timing CALL cpu_time(end_time)
   !timing PRINT *,'sub readin_drifters irreg timing ',end_time - start_time
 
@@ -285,7 +294,7 @@ SUBROUTINE readin(nx, ny, nvars, ncid, varid, allvars)
   IMPLICIT none
   INTEGER, intent(in)    :: nvars
   INTEGER, intent(in)    :: nx, ny, ncid, varid(nvars)
-  REAL, intent(inout)    :: allvars(nx, ny, nvars)
+  REAL(kind=real64), intent(inout)    :: allvars(nx, ny, nvars)
   
   INTEGER i, retcode
   
@@ -368,9 +377,9 @@ SUBROUTINE outvars(ncid, varid, nvar, buoys, nbuoy)
   TYPE(drifter), intent(in) :: buoys(nbuoy)
 
   INTEGER retcode
-  REAL, allocatable :: var(:,:)
+  REAL(kind=real64), allocatable :: var(:,:)
   INTEGER i, k
-  REAL wrap, distance, bear
+  REAL(kind=real64) :: wrap, distance, bear
 
 !Note that netcdf dimensions are in C order, not fortran
   !debug: PRINT *,'entered outvars'

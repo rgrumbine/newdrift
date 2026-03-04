@@ -30,7 +30,7 @@ metric.f90
     ll_to_xy        -- convert from lat-lon location to ij coordinate
     ll_to_xy_brute  -- brute force lat-lon to ij coordinate: sweep 
                         entire grid for closest point
-    xy_to_ll        -- placeholder
+    xy_to_ll        -- convert from xy (ij) to lat-lon
 
 
 irreg_ll2ij_cice.f90

@@ -7,9 +7,9 @@ MODULE drifter_mod
 
   IMPLICIT none
   TYPE, public :: drifter
-    REAL x, y        ! current i,j location
-    REAL ilat, ilon  ! initial latitude-longitude
-    REAL clat, clon  ! current latitude-longitude
+    REAL(kind=real64) :: x, y        ! current i,j location
+    REAL(kind=real64) :: ilat, ilon  ! initial latitude-longitude
+    REAL(kind=real64) :: clat, clon  ! current latitude-longitude
   CONTAINS
     PROCEDURE, pass :: init, move, zero
   END TYPE drifter
@@ -20,10 +20,10 @@ CONTAINS
     USE constants
     USE metric_mod
     IMPLICIT none
-    REAL, intent(in) :: tlon, tlat, clon, clat
+    REAL(kind=real64), intent(in) :: tlon, tlat, clon, clat
     TYPE(metric), intent(in) :: xmetric
     CLASS(drifter), intent(inout) :: buoy
-    REAL x, y
+    REAL(kind=real64) :: x, y
 
     buoy%ilat = tlat
     buoy%ilon = tlon
@@ -67,12 +67,12 @@ CONTAINS
 
     CLASS(drifter), intent(inout) :: buoy
     TYPE(metric), intent(in) :: xmetric
-    REAL, intent(in) ::  u(xmetric%nx, xmetric%ny), v(xmetric%nx, xmetric%ny)
-    REAL, intent(in) :: dt
+    REAL(kind=real64), intent(in) ::  u(xmetric%nx, xmetric%ny), v(xmetric%nx, xmetric%ny)
+    REAL(kind=real64), intent(in) :: dt
 
-    REAL tu, tv, deltax, deltay, di, dj
+    REAL(kind=real64) :: tu, tv, deltax, deltay, di, dj
     INTEGER ti, tj, nti, ntj
-    REAL a, b, toler
+    REAL(kind=real64) :: a, b, toler
 
     if (buoy%x >= flag .or. buoy%y >= flag) RETURN
     if (buoy%clat >= flag .or. buoy%clon >= flag) RETURN
@@ -96,7 +96,7 @@ CONTAINS
 
     !RG: beware of seams
     IF (xmetric%dlondi(ti,tj) .ne. 0 .and. xmetric%dlatdj(ti,tj) .ne. 0 .and. xmetric%area(ti, tj) .ne. 0) THEN
-      ! these two are true if x,y are parallel to i,j
+      ! these two are true only if x,y are parallel to i,j
       !di = a/xmetric%dlondi(ti,tj) !di,dj are grid points
       !dj = b/xmetric%dlatdj(ti,tj)
       di = (a*xmetric%dlatdj(ti,tj) - b*xmetric%dlondj(ti,tj))/xmetric%area(ti,tj)
@@ -124,7 +124,7 @@ CONTAINS
       buoy%clon = flag
       buoy%x    = flag
       buoy%y    = flag
-    ELSE IF (abs(xmetric%dlondj(nti,ntj)) > 80 .or. abs(xmetric%dlondi(nti,ntj)) > 80 ) THEN
+    ELSE IF (abs(xmetric%dlondj(nti,ntj)) > 40 .or. abs(xmetric%dlondi(nti,ntj)) > 40 ) THEN
       !debug: 
       PRINT *,'near seam ',ti,tj,nti, ntj
       buoy%clat = flag
@@ -147,25 +147,28 @@ SUBROUTINE run(buoys, nbuoy, u, v, xmetric, dt)
 
   TYPE(metric), intent(in) :: xmetric
   INTEGER, intent(in) :: nbuoy
-  REAL, intent(in) :: u(xmetric%nx, xmetric%ny), v(xmetric%nx, xmetric%ny)
-  REAL, intent(in) :: dt
+  REAL(kind=real64), intent(in) :: u(xmetric%nx, xmetric%ny), v(xmetric%nx, xmetric%ny)
+  REAL(kind=real64), intent(in) :: dt
 
   TYPE(drifter), intent(inout) ::  buoys(nbuoy)
 
   INTEGER k, track
 
-  !debug: track = INT(0.5+nbuoy*5./6.)
+  !debug: 
+  track = INT(0.5+nbuoy*5./6.)
 
   DO k = 1, nbuoy
     !c-like (object-like) 
-    !debug: IF (k .eq. track) THEN
-    !debug:   PRINT *,buoys(k)%clat, buoys(k)%clon, buoys(k)%x, buoys(k)%y
-    !debug: ENDIF
+    !debug: 
+    IF (k .eq. track) THEN
+      PRINT *,buoys(k)%clat, buoys(k)%clon, buoys(k)%x, buoys(k)%y
+    ENDIF
 
     CALL buoys(k)%move(u, v, xmetric, dt)
-    !debug: IF (k .eq. track) THEN
-    !debug:   PRINT *,'  ',buoys(k)%clat, buoys(k)%clon, buoys(k)%x, buoys(k)%y, dt
-    !debug: ENDIF
+    !debug: 
+    IF (k .eq. track) THEN
+      PRINT *,'  ',buoys(k)%clat, buoys(k)%clon, buoys(k)%x, buoys(k)%y, dt
+    ENDIF
   ENDDO
 
 END SUBROUTINE run

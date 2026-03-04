@@ -6,8 +6,9 @@ MODULE metric_mod
       REAL(kind=real64), allocatable :: dlatdi(:,:), dlondi(:,:), dlatdj(:,:), dlondj(:,:)
       REAL(kind=real64), allocatable :: dxdi(:,:), dydi(:,:), dxdj(:,:), dydj(:,:)
       REAL(kind=real64), allocatable :: dx(:,:), dy(:,:), rot(:,:), deg_area(:,:), area(:,:)
-      REAL(kind=real32), allocatable :: ulat(:,:), ulon(:,:)
-      INTEGER nx, ny
+      REAL(kind=real64), allocatable :: ulat(:,:), ulon(:,:)
+      INTEGER :: nx = 0
+      INTEGER :: ny = 0
     CONTAINS
       PROCEDURE :: set, local_metric, local_cartesian, ll_to_xy, ll_to_xy_brute
       PROCEDURE :: xy_to_ll
@@ -47,7 +48,7 @@ SUBROUTINE local_metric(this)
   IMPLICIT none
   CLASS(metric), intent(inout) :: this
   INTEGER i, j
-  REAL toler, harcdis
+  REAL(kind=real64) :: toler, harcdis
 
   this%rot = 0.
   CALL this%local_cartesian()
@@ -59,11 +60,6 @@ SUBROUTINE local_metric(this)
     this%dlondi(i,j) = this%ulon(i+1,j) - this%ulon(i,j)
     this%dlatdj(i,j) = this%ulat(i,j+1) - this%ulat(i,j)
     this%dlondj(i,j) = this%ulon(i,j+1) - this%ulon(i,j)
-    !RG: Compute distances by harcdis
-!    this%dxdi(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j), this%ulon(i+1,j) )
-!    this%dydi(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i+1,j), this%ulon(i,j) )
-!    this%dxdj(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j), this%ulon(i,j+1) )
-!    this%dydj(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j+1), this%ulon(i,j) )
   ENDDO
   ENDDO
   j = this%ny
@@ -72,10 +68,6 @@ SUBROUTINE local_metric(this)
     this%dlondi(i,j) = this%ulon(i,j) - this%ulon(i-1,j)
     this%dlatdj(i,j) = this%ulat(i,j) - this%ulat(i,j-1)
     this%dlondj(i,j) = this%ulon(i,j) - this%ulon(i,j-1)
-!    this%dxdi(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j), this%ulon(i-1,j) )
-!    this%dydi(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i-1,j), this%ulon(i,j) )
-!    this%dxdj(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j), this%ulon(i,j-1) )
-!    this%dydj(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j-1), this%ulon(i,j) )
 
   ENDDO
   i = this%nx
@@ -84,10 +76,6 @@ SUBROUTINE local_metric(this)
     this%dlondi(i,j) = this%ulon(i,j) - this%ulon(i-1,j)
     this%dlatdj(i,j) = this%ulat(i,j) - this%ulat(i,j-1)
     this%dlondj(i,j) = this%ulon(i,j) - this%ulon(i,j-1)
-!    this%dxdi(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j), this%ulon(i-1,j) )
-!    this%dydi(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i-1,j), this%ulon(i,j) )
-!    this%dxdj(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j), this%ulon(i,j-1) )
-!    this%dydj(i,j) = harcdis(this%ulat(i,j), this%ulon(i,j), this%ulat(i,j-1), this%ulon(i,j) )
   ENDDO
   ! Corners
   this%dlatdi(this%nx, this%ny) = this%dlatdi(this%nx - 1, this%ny-1)
@@ -98,6 +86,10 @@ SUBROUTINE local_metric(this)
   this%dlatdj(this%nx,1) = this%dlatdj(this%nx - 1,2)
   this%dlondi(this%nx,1) = this%dlondi(this%nx - 1,2)
   this%dlondj(this%nx,1) = this%dlondj(this%nx - 1,2)
+  this%dlatdi(1,this%ny) = this%dlatdi(2, this%ny)
+  this%dlatdj(1,this%ny) = this%dlatdj(2, this%ny)
+  this%dlondi(1,this%ny) = this%dlondi(2, this%ny)
+  this%dlondj(1,this%ny) = this%dlondj(2, this%ny)
 
   this%area = this%dlondi*this%dlatdj - this%dlondj*this%dlatdi
   !debug: PRINT *,'area max min',MAXVAL(this%area), MINVAL(this%area)
@@ -120,11 +112,11 @@ SUBROUTINE local_cartesian(this)
   DO j = 1, this%ny
   DO i = 1, this%nx
     this%dy(i,j) = 111132.92 - 559.82*cos(2*this%ulat(i,j)*rpd) + &
-                           1.175*cos(4*this%ulat(i,j)*rpd) - &
-                          0.0023*cos(6*this%ulat(i,j)*rpd)
-    this%dx(i,j) = 111412.84*cos(  this%ulat(i,j)*rpd) - &
-                   93.5*cos(3*this%ulat(i,j)*rpd) + &
-                  0.118*cos(5*this%ulat(i,j)*rpd)
+                           1.175 *cos(4*this%ulat(i,j)*rpd) - &
+                           0.0023*cos(6*this%ulat(i,j)*rpd)
+    this%dx(i,j) = 111412.84 *cos(  this%ulat(i,j)*rpd) - &
+                       93.5  *cos(3*this%ulat(i,j)*rpd) + &
+                        0.118*cos(5*this%ulat(i,j)*rpd)
   ENDDO
   ENDDO
 
@@ -136,26 +128,26 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
   USE constants
   IMPLICIT none
   CLASS(metric), intent(in) :: this
-  REAL, intent(in)    :: lat, lon
-  REAL, intent(inout)   :: x, y
+  REAL(kind=real64), intent(in)    :: lat, lon
+  REAL(kind=real64), intent(inout)   :: x, y
 
   INTEGER :: iter, itmax, ii, ij
-  REAL toler, tlat, tlon, delta, dlat, dlon, fi, fj, dfi, dfj
-  REAL ratio
-  REAL wrap
+  REAL(kind=real64) :: toler, tlat, tlon, delta, dlat, dlon, fi, fj, dfi, dfj
+  REAL(kind=real64) :: ratio, wrap
+  REAL(kind=real64) :: flat, flon
 
-! if flag values (lat or lon >= 1.e30) skip, assign xy to 1,1
+! if flag values (lat or lon >= 1.e30) skip, assign xy to flag, flag
   IF (lat >= flag .or. lon >= flag) THEN
-    x = 1.
-    y = 1.
+    x = flag
+    y = flag
     RETURN
   ENDIF
 
 ! Use something like Newton method with starting point as if grid were linear
-  itmax = 60
+  itmax = 90
   iter  = 0
-  toler = 0.05 ! degrees
-  ratio = 1.
+  toler = 1./32. ! degrees
+  ratio = 1.0
 
   tlon = lon
   !RG: i = 1 at ~74 longitude
@@ -181,7 +173,7 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
   dlon = lon - tlon
 
 
-!debug: WRITE (*,9002) fi, fj, dlat, dlon, tlat, lon, this%ulat(ii,ij), tlon
+!debug: WRITE (*,9002) fi, fj, dlat, dlon, tlat, tlon, this%ulat(ii,ij), tlon
   9002 FORMAT('init ',8F10.3)
 
   newton : do
@@ -200,7 +192,7 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
     ! keep fi, fj, inside (1,1),(nx,ny)
     if (fi > this%nx) THEN
       !debug: PRINT *,'fi > nx ',fi
-      fi = mod(fi, REAL(this%nx) )
+      fi = mod(fi, REAL(this%nx,kind=real64) )
     endif
     if (fi < 0) THEN !Assuming that grid wraps around in i
       fi = fi + this%nx
@@ -231,10 +223,10 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
     if (tlon > 360. .or. tlon < 0) tlon = wrap(tlon)
     dlon = lon - tlon
 
-!debug:     WRITE(*,9001) iter, dfi, dfj, fi, fj, dlat, dlon, tlat, lon, this%ulat(ii,ij), tlon
-    IF (iter > 35 ) THEN
+!debug2:     WRITE(*,9001) iter, dfi, dfj, fi, fj, dlat, dlon, lat, lon, flat, flon
+    IF (iter > nint(0.6*itmax) ) THEN
       ratio = 0.25
-    ELSE IF (iter > 20) THEN
+    ELSE IF (iter > nint(itmax/3._real64) ) THEN
       ratio = 0.5
     ENDIF
     IF (iter >= itmax .or. (abs(dlat) < toler .and. abs(dlon) < toler)) exit newton
@@ -248,7 +240,7 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
   ENDIF
  9004 FORMAT('itmax ',I3,6F10.3,4F10.3)
 
-    !debug: WRITE(*,9003) iter, dfi, dfj, fi, fj, dlat, dlon, lat, lon, this%ulat(ii,ij), this%ulon(ii,ij)
+    !debug: WRITE(*,9003) iter, dfi, dfj, fi, fj, dlat, dlon, lat, lon, flat, flon
  9003 FORMAT('final ',I3,6F10.3,4F10.3)
 
   ! x,y = i,j (floating) of floe
@@ -259,10 +251,10 @@ END SUBROUTINE ll_to_xy
 SUBROUTINE ll_to_xy_brute(this, lat, lon, fi, fj)
   USE constants
   CLASS(metric), intent(in) :: this
-  REAL, intent(in)    :: lat, lon
-  REAL, intent(inout) :: fi, fj
+  REAL(kind=real64), intent(in)    :: lat, lon
+  REAL(kind=real64), intent(inout) :: fi, fj
   INTEGER i,j, jmin, bi, bj 
-  REAL dlat, dlon, tlon, dbest, wrap
+  REAL(kind=real64) :: dlat, dlon, tlon, dbest, wrap
 !RG: This is very slow. The newton search fails (mostly) because of the tripolar seam.
 !       should be able to take advantage of that. Lats > 45.
 !    Sometimes also encounter difficulty along 0 E 
@@ -301,11 +293,28 @@ END SUBROUTINE ll_to_xy_brute
 
 
 SUBROUTINE xy_to_ll(this, lat, lon, x, y)
-
+  USE constants
   IMPLICIT none
   CLASS(metric), intent(in) :: this
-  REAL, intent(in)    :: lat, lon
-  REAL, intent(inout)   :: x, y
+  REAL(kind=real64), intent(out)    :: lat, lon
+  REAL(kind=real64), intent(in)     :: x, y
+  INTEGER ii, ij
+  REAL(kind=real64) :: di, dj
+
+  if (x < 0.5 .or. x > this%nx+0.5 .or. y < 0.5 .or. y > this%ny+0.5) then
+    PRINT *,'off grid in xytoll', x, y
+    lat = flag
+    lon = flag
+    RETURN
+  endif
+  ii = NINT(x)
+  ij = NINT(y)
+  di = x - ii
+  dj = y - ij
+  lat = this%ulat(ii,ij)
+  lon = this%ulon(ii,ij)
+  lat = lat + di*this%dlatdi(ii,ij) + dj*this%dlatdj(ii,ij)
+  lon = lon + di*this%dlondi(ii,ij) + dj*this%dlondj(ii,ij)
 
   RETURN
 END SUBROUTINE xy_to_ll 

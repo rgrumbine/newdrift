@@ -24,14 +24,14 @@ PROGRAM newdrift
   CHARACTER(len=50) :: xname, yname
   
 ! Read from input (or argument to main)
-  REAL(kind=real32) dt, dtout
+  REAL(kind=real64) dt, dtout
   INTEGER outfreq
   LOGICAL restart
 
   TYPE(metric) :: xmetric
 
-  REAL(kind=real32), allocatable  :: allvars(:,:,:)
-  REAL(kind=real32), allocatable  :: u(:,:), v(:,:), aice(:,:) ! u,v,aice are extracted from allvars
+  REAL(kind=real64), allocatable  :: allvars(:,:,:)
+  REAL(kind=real64), allocatable  :: u(:,:), v(:,:), aice(:,:) ! u,v,aice are extracted from allvars
 
 ! Utilities for main
   INTEGER i, j
@@ -122,6 +122,7 @@ PROGRAM newdrift
   CALL initialize_drifters(nvar_drift, drift_name, ncid_drift, varid_drift, nbuoys, restart)
   ALLOCATE(buoys(nbuoys))
   !debug: PRINT *,'back from initialize_drifters, nbuoys = ',nbuoys
+  !STOP
   !timing CALL cpu_time(end_time)
   !timing PRINT *,'time for initialize_drifters ',end_time - start_time
   !timing start_time = end_time
@@ -131,7 +132,7 @@ PROGRAM newdrift
   !timing CALL cpu_time(end_time)
   !timing PRINT *,'time for initialize_out ',end_time - start_time
   !timing start_time = end_time
-  !debug: PRINT *,'initialize out '
+  !debug: PRINT *,'back from initialize out '
   !debug: PRINT *,'nbuoys = ', nbuoys
 
   CALL readin_drifters(nbuoys, nvar_drift, ncid_drift, varid_drift, buoys, xmetric, restart)
@@ -144,8 +145,12 @@ PROGRAM newdrift
 
 ! First/only time step (u,v, etc. in hand):
   !timing CALL cpu_time(start_time)
- 
+  !debug 0.2778 ~= 1 km/hr: 
+  u = 0.2778
+  v = 0.0 
+  !debug: PRINT *,'calling run'
   CALL run(buoys, nbuoys, u, v, xmetric, dt)
+  !debug: PRINT *,'back from run'
   closeout = .TRUE.
   CALL writeout(ncid_out, varid_out, nvar_out, buoys, nbuoys, closeout)
   !timing CALL cpu_time(end_time)

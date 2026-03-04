@@ -1,10 +1,10 @@
 MODULE constants
-  USE iso_fortran_env, only : real32, real64
+  USE iso_fortran_env, only : real64
+  IMPLICIT none
 
   PUBLIC
-  REAL(kind = real64) :: pi, rpd
-  PARAMETER(pi = 3.141592653589793 )
-  PARAMETER(rpd = pi/180.)
+  REAL(real64), PARAMETER :: pi  = 3.14159265358979323846_real64
+  REAL(real64), PARAMETER :: rpd = pi / 180.0_real64
 
   REAL(kind = real64) :: nansen_ampl, nansen_rotation
   PARAMETER (nansen_ampl = 1.468e-2)
@@ -13,26 +13,25 @@ MODULE constants
   REAL(kind = real64) :: kmtonm
   PARAMETER (kmtonm = 1. /  1.852 )
 
-  REAL(kind = real64) :: flag
-  PARAMETER (flag = 1.e30)
+  REAL(real64), PARAMETER :: flag = 1.0e30_real64
 
 END module constants
 
 !haversine arcdis
 !  http://www.movable-type.co.uk/scripts/gis-faq-5.1.html
 !assumes lat lon in degrees, distance in km
-REAL(kind=real32) FUNCTION rearth(lat)
+REAL(kind=real64) FUNCTION rearth(lat)
   USE constants
   IMPLICIT none
-  REAL(kind=real32), intent(in) :: lat
-  rearth = (6378.137_real32 - 21.385_real32*sin(lat*rpd) )
+  REAL(kind=real64), intent(in) :: lat
+  rearth = (6378.137_real64 - 21.385_real64*sin(lat*rpd) )
   RETURN
 END function rearth
 
-REAL(kind=real32) FUNCTION harcdis(lat1, lon1, lat2, lon2)
+REAL(kind=real64) FUNCTION harcdis(lat1, lon1, lat2, lon2)
   USE constants
   IMPLICIT none
-  REAL(kind=real32), intent(in) :: lat1, lon1, lat2, lon2
+  REAL(kind=real64), intent(in) :: lat1, lon1, lat2, lon2
   REAL(kind=real64) :: dlat, dlon, mlat
   REAL(kind=real64) :: a, c
 
@@ -60,9 +59,9 @@ END function harcdis
 SUBROUTINE bearing(lat1, lon1, lat2, lon2, dist, dir)
   USE constants
   IMPLICIT none
-  REAL(kind=real32), intent(in) :: lat1, lon1, lat2, lon2
-  REAL(kind=real32), intent(out) :: dist, dir
-  REAL(kind=real32) :: harcdis
+  REAL(kind=real64), intent(in) :: lat1, lon1, lat2, lon2
+  REAL(kind=real64), intent(out) :: dist, dir
+  REAL(kind=real64) :: harcdis
 
   IF (lat1 >= flag .or. lon1 >= flag .or. lat2 >= flag .or. lon2 >= flag) THEN
     dist = flag
@@ -86,10 +85,10 @@ END subroutine bearing
 SUBROUTINE unbearing(lat1, lon1, dist, dir, lat2, lon2)
   USE constants
   IMPLICIT none
-  REAL(kind=real32), intent(in) :: lat1, lon1, dist, dir
-  REAL(kind=real32), intent(out) :: lat2, lon2
-  REAL(kind=real32) :: theta, R
-  REAL(kind=real32) :: rearth
+  REAL(kind=real64), intent(in) :: lat1, lon1, dist, dir
+  REAL(kind=real64), intent(out) :: lat2, lon2
+  REAL(kind=real64) :: theta, R
+  REAL(kind=real64) :: rearth
 
   theta = dir*rpd
   R = rearth(lat1)
@@ -101,11 +100,11 @@ RETURN
 END subroutine unbearing
 
 !Wrap longitude to be in range [0,360]
-REAL(kind=real32) FUNCTION wrap(y)
+REAL(kind=real64) FUNCTION wrap(y)
   USE constants
   IMPLICIT none
-  REAL(kind=real32), intent(in) :: y
-  REAL(kind=real32) :: x
+  REAL(kind=real64), intent(in) :: y
+  REAL(kind=real64) :: x
 
   x = y
   IF (x > 360.) x = x - 360.

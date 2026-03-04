@@ -1,7 +1,7 @@
 #!/bin/bash 
 ###WCOSS2
-#PBS -N driftup
-#PBS -o driftup
+#PBS -N driftup4
+#PBS -o driftup4
 #PBS -j oe
 #PBS -A ICE-DEV
 #PBS -q dev
@@ -25,15 +25,15 @@ pid=$$
 
 ##Wcoss2
 mkdir -p /lfs/h2/emc/ptmp/wx21rg/newdrift.$pid
-cd /lfs/h2/emc/ptmp/wx21rg/newdrift.$pid
+#cd /lfs/h2/emc/ptmp/wx21rg/newdrift.$pid
 ##ursa
 #mkdir -p /scratch3/NCEPDEV/stmp/wx21rg/newdrift.$pid
 #cd /scratch3/NCEPDEV/stmp/wx21rg/newdrift.$pid
 
-export PDY=20260101
+export PDY=20260226
 export COMOUT=$HOME/noscrub/newdrift
 export end=`date +"%Y%m%d"`
-export end=20260223
+export end=20260226
 
 
 while [ $PDY -le $end ]

@@ -11,16 +11,16 @@ PROGRAM driver
   INTEGER ncid, varid(nvar), nx, ny
   CHARACTER(len=40) :: varnames(nvar)
   CHARACTER(len=50) :: xname, yname
-  REAL, allocatable  :: allvars(:,:,:)
+  REAL(kind=real64), allocatable  :: allvars(:,:,:)
   CHARACTER(300) fname, tmp, tmp2
   INTEGER i
 
 ! Arguments to inline drifters
   TYPE(metric) :: xmetric
   CHARACTER(300) drift_in, drift_out
-  REAL dt
+  REAL(kind=real64) :: dt
   LOGICAL restart, closeout
-  REAL, allocatable :: u(:,:), v(:,:), aice(:,:)
+  REAL(kind=real64), allocatable :: u(:,:), v(:,:), aice(:,:)
   INTEGER phase
 
 ! RTOFS et al. files, not inlineable --------------------------------
