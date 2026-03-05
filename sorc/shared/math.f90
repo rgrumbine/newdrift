@@ -111,7 +111,7 @@ REAL(kind=real64) FUNCTION wrap(y)
   IF (x > 360.) x = x - 360.
   IF (x > 360.) x = x - 360.
   IF (x < 0) x = x + 360.
-
+  !debug: PRINT *,'wrap ',y,x
   wrap = x
   RETURN
 END FUNCTION wrap

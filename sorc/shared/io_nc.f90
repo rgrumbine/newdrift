@@ -280,8 +280,8 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
   very_bad = 0
   DO i = 1, bad_count
     !debug: PRINT *,'retry ',i,bad_fi(i), bad_fj(i), bad_lat(i), bad_lon(i)
-    IF (bad_fi(i) < 1 .or. bad_fi(i) > 1.e9 .or. ieee_is_nan(bad_fi(i)) .or. &
-        bad_fj(i) < 1 .or. bad_fj(i) > 1.e9 .or. ieee_is_nan(bad_fj(i)) ) THEN
+    IF (bad_fi(i) < 1 .or. bad_fi(i) >= flag .or. ieee_is_nan(bad_fi(i)) .or. &
+        bad_fj(i) < 1 .or. bad_fj(i) >= flag .or. ieee_is_nan(bad_fj(i)) ) THEN
       buoylist(bad_index(i))%x = flag
       buoylist(bad_index(i))%y = flag
       buoylist(bad_index(i))%clat = flag

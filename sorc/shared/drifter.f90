@@ -155,7 +155,8 @@ SUBROUTINE run(buoys, nbuoy, u, v, xmetric, dt)
   INTEGER k, track
 
   !debug: 
-  track = INT(0.5+nbuoy*5./6.)
+  !track = INT(0.5+nbuoy*6./7.)
+  track = 100
 
   DO k = 1, nbuoy
     !c-like (object-like) 
