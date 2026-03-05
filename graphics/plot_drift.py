@@ -29,7 +29,7 @@ plot_dist  = np.zeros((nbuoy))
 
 count = 0
 for i in range(0,nbuoy):
-    if (dist[i] != 0 and flat[i] < 1.e30 and flon[i] < 1.e30):
+    if (dist[i] != 0 and flat[i] < 1.e9 and flon[i] < 1.e9):
       init_lat[count] = ilat[i]
       init_lon[count] = ilon[i]
       plot_bear[count] = bear[i]

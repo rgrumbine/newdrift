@@ -146,8 +146,8 @@ PROGRAM newdrift
 ! First/only time step (u,v, etc. in hand):
   !timing CALL cpu_time(start_time)
   !debug 0.2778 ~= 1 km/hr: 
-  u = 0.2778
-  v = 0.2778 
+  !u = 0.2778
+  !v = 0.2778 
   !debug: PRINT *,'calling run'
   CALL run(buoys, nbuoys, u, v, xmetric, dt)
   !debug: PRINT *,'back from run'
