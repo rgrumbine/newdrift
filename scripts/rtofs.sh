@@ -36,7 +36,7 @@ cp $HOME/rgdev/newdrift/fix/merged.nc drift_in.nc
 #forecast hours 000 to 072 by 1
 #forecast hours 072 to 192 by 3
 
-EXDIR=${EXDIR:-$HOME/rgdev/newdrift/exec}
+EXDIR=${EXDIR:-$HOME/rgdev/devdrift/exec}
 PDY=${PDY:-20260101}
 
 hhh=000
@@ -72,7 +72,7 @@ do
   else
     echo .TRUE. >> runin
   fi
-  cat $HOME/rgdev/newdrift/scripts/rtofs.vars >> runin
+  cat $HOME/rgdev/devdrift/scripts/rtofs.vars >> runin
   echo runin | time $EXDIR/drifter
 
   cp out_${hhh}.nc drift_f${hhh}.nc

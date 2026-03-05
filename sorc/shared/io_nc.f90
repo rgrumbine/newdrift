@@ -131,6 +131,17 @@ SUBROUTINE initial_read(fname, nvar, ncid, varid, &
   WHERE(xmetric%ulon > 360) xmetric%ulon = xmetric%ulon - 360
   !debug: PRINT *,'ulat nc readin ',MAXVAL(xmetric%ulat), MINVAL(xmetric%ulat)
   !debug: PRINT *,'ulon nc readin after cleanup',MAXVAL(xmetric%ulon), MINVAL(xmetric%ulon)
+  !debug -- regular lat-lon grid:
+  dlat = 180./xmetric%ny
+  dlon = 360./xmetric%nx
+  DO j = 1, xmetric%ny
+    xmetric%ulat(:,j) = j*dlat - 90.0 - dlat/2.
+  ENDDO
+  DO i = 1, xmetric%nx
+    xmetric%ulon(i,:) = i*dlon - dlon/2.
+  ENDDO
+  !end debug
+
   !timing CALL cpu_time(start_time)
   CALL xmetric%local_metric()
   !timing CALL cpu_time(end_time)
@@ -269,8 +280,8 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
   very_bad = 0
   DO i = 1, bad_count
     !debug: PRINT *,'retry ',i,bad_fi(i), bad_fj(i), bad_lat(i), bad_lon(i)
-    IF (bad_fi(i) < 1 .or. bad_fi(i) > 1.e10 .or. ieee_is_nan(bad_fi(i)) .or. &
-        bad_fj(i) < 1 .or. bad_fj(i) > 1.e10 .or. ieee_is_nan(bad_fj(i)) ) THEN
+    IF (bad_fi(i) < 1 .or. bad_fi(i) > 1.e9 .or. ieee_is_nan(bad_fi(i)) .or. &
+        bad_fj(i) < 1 .or. bad_fj(i) > 1.e9 .or. ieee_is_nan(bad_fj(i)) ) THEN
       buoylist(bad_index(i))%x = flag
       buoylist(bad_index(i))%y = flag
       buoylist(bad_index(i))%clat = flag
@@ -357,7 +368,7 @@ SUBROUTINE initialize_out(fname, ncid, varid, nvar, nbuoy, dimids)
 
 ! assign varid to varnames
   DO i = 1, nvar
-    retcode = nf90_def_var(ncid, trim(varnames(i)), NF90_REAL, dimids, varid(i))
+    retcode = nf90_def_var(ncid, trim(varnames(i)), NF90_DOUBLE, dimids, varid(i))
     CALL check(retcode)
   ENDDO
 

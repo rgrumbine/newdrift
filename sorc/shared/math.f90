@@ -13,7 +13,7 @@ MODULE constants
   REAL(kind = real64) :: kmtonm
   PARAMETER (kmtonm = 1. /  1.852 )
 
-  REAL(real64), PARAMETER :: flag = 1.0e30_real64
+  REAL(real64), PARAMETER :: flag = 1.0e9_real64
 
 END module constants
 

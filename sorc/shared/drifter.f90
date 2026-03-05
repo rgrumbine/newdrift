@@ -4,6 +4,7 @@
 !    also time step to extrapolate over
 MODULE drifter_mod
   USE metric_mod
+  USE constants
 
   IMPLICIT none
   TYPE, public :: drifter
@@ -62,7 +63,7 @@ CONTAINS
 
   SUBROUTINE move(buoy, u, v, xmetric, dt)
 !note dx, dy are the mesh variables
-    USE metric_mod
+    USE metric_mod, only: xy_to_ll
     IMPLICIT none
 
     CLASS(drifter), intent(inout) :: buoy
@@ -72,7 +73,7 @@ CONTAINS
 
     REAL(kind=real64) :: tu, tv, deltax, deltay, di, dj
     INTEGER ti, tj, nti, ntj
-    REAL(kind=real64) :: a, b, toler
+    REAL(kind=real64) :: a, b, toler, flat, flon
 
     if (buoy%x >= flag .or. buoy%y >= flag) RETURN
     if (buoy%clat >= flag .or. buoy%clon >= flag) RETURN
@@ -101,15 +102,11 @@ CONTAINS
       !dj = b/xmetric%dlatdj(ti,tj)
       di = (a*xmetric%dlatdj(ti,tj) - b*xmetric%dlondj(ti,tj))/xmetric%area(ti,tj)
       dj = (b*xmetric%dlondi(ti,tj) - a*xmetric%dlatdi(ti,tj))/xmetric%area(ti,tj)
-!debug:      IF (di .ne. 0 .or. dj .ne. 0) THEN 
-!debug:        WRITE (*,9004) di, dj, deltax, deltay
-!debug:   9004 FORMAT('di dj deltax deltay ',2F9.5, 2F9.1)
-!debug:      ENDIF
       buoy%x = buoy%x + di
       buoy%y = buoy%y + dj
     ELSE
-      buoy%x = xmetric%nx + 1.
-      buoy%y = xmetric%ny + 1.
+      buoy%x = flag
+      buoy%y = flag
     ENDIF
 
     nti = NINT(buoy%x)
@@ -132,8 +129,11 @@ CONTAINS
       buoy%x    = flag
       buoy%y    = flag
     ELSE 
-      buoy%clat = xmetric%ulat(nti, ntj) + (ntj-buoy%y)*xmetric%dlatdj(nti,ntj)
-      buoy%clon = xmetric%ulon(nti, ntj) + (nti-buoy%x)*xmetric%dlondi(nti,ntj) 
+      !buoy%clat = xmetric%ulat(nti, ntj) + (ntj-buoy%y)*xmetric%dlatdj(nti,ntj)
+      !buoy%clon = xmetric%ulon(nti, ntj) + (nti-buoy%x)*xmetric%dlondi(nti,ntj) 
+      CALL xy_to_ll(xmetric, flat, flon, buoy%x, buoy%y)
+      buoy%clat = flat
+      buoy%clon = flon
     !debug2: PRINT *,'move ',buoy%x, buoy%y, ti, tj, nti, ntj
     ENDIF
 
@@ -161,15 +161,17 @@ SUBROUTINE run(buoys, nbuoy, u, v, xmetric, dt)
     !c-like (object-like) 
     !debug: 
     IF (k .eq. track) THEN
-      PRINT *,buoys(k)%clat, buoys(k)%clon, buoys(k)%x, buoys(k)%y
+      WRITE(*,9001) buoys(k)%clat, buoys(k)%clon, buoys(k)%x, buoys(k)%y
     ENDIF
 
     CALL buoys(k)%move(u, v, xmetric, dt)
     !debug: 
     IF (k .eq. track) THEN
-      PRINT *,'  ',buoys(k)%clat, buoys(k)%clon, buoys(k)%x, buoys(k)%y, dt
+      WRITE(*,9002) buoys(k)%clat, buoys(k)%clon, buoys(k)%x, buoys(k)%y, dt
     ENDIF
   ENDDO
+ 9001 FORMAT('track',4F10.4)
+ 9002 FORMAT('track',4F10.4, F7.1)
 
 END SUBROUTINE run
 

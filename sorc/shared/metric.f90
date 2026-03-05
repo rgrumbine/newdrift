@@ -93,6 +93,10 @@ SUBROUTINE local_metric(this)
 
   this%area = this%dlondi*this%dlatdj - this%dlondj*this%dlatdi
   !debug: PRINT *,'area max min',MAXVAL(this%area), MINVAL(this%area)
+  !debug: PRINT *,'dlatdj max min',MAXVAL(this%dlatdj), MINVAL(this%dlatdj)
+  !debug: PRINT *,'dlondj max min',MAXVAL(this%dlondj), MINVAL(this%dlondj)
+  !debug: PRINT *,'dlatdi max min',MAXVAL(this%dlatdi), MINVAL(this%dlatdi)
+  !debug: PRINT *,'dlondi max min',MAXVAL(this%dlondi), MINVAL(this%dlondi)
   
   !rot = atan2(?,?)
 
@@ -136,7 +140,7 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
   REAL(kind=real64) :: ratio, wrap
   REAL(kind=real64) :: flat, flon
 
-! if flag values (lat or lon >= 1.e30) skip, assign xy to flag, flag
+! if flag values (lat or lon >= flag) skip, assign xy to flag, flag
   IF (lat >= flag .or. lon >= flag) THEN
     x = flag
     y = flag
@@ -150,49 +154,46 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
   ratio = 1.0
 
   tlon = lon
-  !RG: i = 1 at ~74 longitude
-  fi = (tlon/360)*this%nx
-  if (fi <= 0.5) fi = 1
-  ii    = int(fi+0.5)
-
   tlat = lat
+  
+  fi = this%nx / 2
+  fj = this%ny / 2
+  !fj = (tlat+78.64)*this%ny/(90+78.64)
+
+  if (fi <= 0.5) fi = 1
+
   if (lat == 90) tlat = lat - 0.05
-  fj = (tlat+78.64)*this%ny/(90+78.64)
-  if (fj <= 0) THEN
-    fj = 1.
-  ENDIF
-  IF (fj >= this%ny) THEN
-    PRINT *,'fj overrunning grid',fj, lat, tlat, this%ny
-    STOP
-  ENDIF
-  ij    = int(fj+0.5)
+
+  ii    = nint(fi)
+  ij    = nint(fj)
 
   dlat = tlat - this%ulat(ii,ij)
   tlon = this%ulon(ii,ij)
   if (tlon > 360. .or. tlon < 0) tlon = wrap(tlon)
-  dlon = lon - tlon
-
+  dlon = tlon - wrap(this%ulon(ii,ij))
 
 !debug: WRITE (*,9002) fi, fj, dlat, dlon, tlat, tlon, this%ulat(ii,ij), tlon
   9002 FORMAT('init ',8F10.3)
 
   newton : do
     iter = iter + 1
-    delta = (this%dlatdi(ii,ij)*this%dlondj(ii,ij) - this%dlatdj(ii,ij)*this%dlondi(ii,ij))
+    delta = this%area(ii,ij)
     if (delta == 0) THEN
-      !debug: PRINT *,'delta == 0 ',delta
+      !debug: 
+      PRINT *,'delta == 0 ',delta
       delta = 3.e-3
     endif
 
     dfi   = ratio * ((dlat*this%dlondj(ii,ij)) - (dlon*this%dlatdj(ii,ij)) ) / delta
     dfj   = ratio * ((this%dlatdi(ii,ij)*dlon) - (dlat*this%dlondi(ii,ij)) ) / delta
-    fi    = fi + dfi
-    fj    = fj + dfj
+    fi    = fi - dfi
+    fj    = fj - dfj
 
     ! keep fi, fj, inside (1,1),(nx,ny)
-    if (fi > this%nx) THEN
+    if (fi > this%nx + 0.5) THEN
       !debug: PRINT *,'fi > nx ',fi
       fi = mod(fi, REAL(this%nx,kind=real64) )
+      if (fi .eq. 0) fi = this%nx
     endif
     if (fi < 0) THEN !Assuming that grid wraps around in i
       fi = fi + this%nx
@@ -215,15 +216,23 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
       fj = 1
       !debug: PRINT *,'fj < 0.5'
     endif
-    ii    = int(fi+0.5)
-    ij    = int(fj+0.5)
+    ii    = nint(fi)
+    ij    = nint(fj)
 
-    dlat = tlat - this%ulat(ii,ij)
-    tlon = this%ulon(ii,ij)
-    if (tlon > 360. .or. tlon < 0) tlon = wrap(tlon)
-    dlon = lon - tlon
+    CALL xy_to_ll(this, flat, flon, fi, fj)
+    IF (flat .ge. flag .or. flon .ge. flag) THEN
+      iter = itmax
+    ELSE
+      dlat = tlat - flat
+      dlon = tlon - flon
+    ENDIF
+    !dlat = tlat - this%ulat(ii,ij)
+    !tlon = this%ulon(ii,ij)
+    !if (tlon > 360. .or. tlon < 0) tlon = wrap(tlon)
+    !dlon = lon - tlon
 
-!debug2:     WRITE(*,9001) iter, dfi, dfj, fi, fj, dlat, dlon, lat, lon, flat, flon
+!debug2:     
+    WRITE(*,9001) iter, dfi, dfj, fi, fj, dlat, dlon, lat, lon, flat, flon
     IF (iter > nint(0.6*itmax) ) THEN
       ratio = 0.25
     ELSE IF (iter > nint(itmax/3._real64) ) THEN
@@ -240,7 +249,8 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
   ENDIF
  9004 FORMAT('itmax ',I3,6F10.3,4F10.3)
 
-    !debug: WRITE(*,9003) iter, dfi, dfj, fi, fj, dlat, dlon, lat, lon, flat, flon
+    !debug: 
+    WRITE(*,9003) iter, dfi, dfj, fi, fj, dlat, dlon, lat, lon, flat, flon
  9003 FORMAT('final ',I3,6F10.3,4F10.3)
 
   ! x,y = i,j (floating) of floe

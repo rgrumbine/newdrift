@@ -39,7 +39,7 @@ export end=20260226
 while [ $PDY -le $end ]
 do
   if [ ! -d $COMOUT/$PDY ] ; then
-    time $HOME/rgdev/newdrift/scripts/rtofs.sh > ${PDY}.out
+    time $HOME/rgdev/devdrift/scripts/rtofs.sh > ${PDY}.out
     #rm *.nc
   else
     echo zzz have $PDY already
