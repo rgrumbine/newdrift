@@ -150,7 +150,7 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
 ! Use something like Newton method with starting point as if grid were linear
   itmax = 90
   iter  = 0
-  toler = 1./1024. ! degrees
+  toler = 1./8192. ! degrees
   ratio = 1.0
 
   tlon = lon
