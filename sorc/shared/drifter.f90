@@ -115,6 +115,7 @@ CONTAINS
     IF (nti < 1 .or. nti > xmetric%nx .or. ntj < 1 .or. ntj > xmetric%ny) THEN
       !realbug: 
       PRINT *,'buoy out of bounds ',ti,tj,di, dj, nti, ntj,xmetric%dlondi(ti,tj), xmetric%dlatdj(ti,tj) 
+ 9001 FORMAT(2I5,2F10.3,2I5,2E13.6)
       buoy%ilat = flag
       buoy%ilon = flag
       buoy%clat = flag

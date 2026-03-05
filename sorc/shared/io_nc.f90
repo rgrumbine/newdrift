@@ -282,11 +282,11 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
     !debug: PRINT *,'retry ',i,bad_fi(i), bad_fj(i), bad_lat(i), bad_lon(i)
     IF (bad_fi(i) < 1 .or. bad_fi(i) >= flag .or. ieee_is_nan(bad_fi(i)) .or. &
         bad_fj(i) < 1 .or. bad_fj(i) >= flag .or. ieee_is_nan(bad_fj(i)) ) THEN
+      PRINT *,'could not place ',buoylist(bad_index(i))%ilat, buoylist(bad_index(i))%ilon
       buoylist(bad_index(i))%x = flag
       buoylist(bad_index(i))%y = flag
       buoylist(bad_index(i))%clat = flag
       buoylist(bad_index(i))%clon = flag
-      PRINT *,'could not place ',buoylist(bad_index(i))%ilat, buoylist(bad_index(i))%ilon
       very_bad = very_bad + 1
     ELSE
       buoylist(bad_index(i))%x = bad_fi(i)

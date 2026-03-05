@@ -156,10 +156,11 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
   tlon = lon
   tlat = lat
   
-  fi = 1.0
-  fj = 1.0
-  !fi = this%nx / 2
-  !fj = this%ny / 2
+  ! First guess for location
+  !fi = 1.0
+  !fj = 1.0
+  fi = this%nx / 2
+  fj = this%ny / 2
   !fj = (tlat+78.64)*this%ny/(90+78.64)
 
   if (fi <= 0.5) fi = 1
@@ -196,29 +197,27 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
     if (fi > this%nx + 0.5) THEN
       !debug: 
       PRINT *,'fi > nx ',fi
-      fi = mod(fi, REAL(this%nx,kind=real64) )
+      fi = mod(fi, REAL(this%nx,kind=real64) ) !RG: Assumes grid wraps in i
       if (fi .eq. 0) fi = this%nx
     endif
     if (fi < 0) THEN !Assuming that grid wraps around in i
       fi = fi + this%nx
-      !debug: 
-      PRINT *,'fi < 0',fi
+      !debug: PRINT *,'fi < 0',fi
     endif
     if (fi <= 0.5) THEN
       fi = 1
-      !debug: 
-      PRINT *,'fi < 0.5'
+      !debug: PRINT *,'fi < 0.5'
     endif
 
-    if (fj > this%ny) THEN
-      fj = 0.75*this%ny
+    if (fj > this%ny+0.5) THEN
       !debug: 
-      PRINT *,'fj > ny'
+      PRINT *,'fj > ny',fj
+      fj = 0.75*this%ny
     endif
     if (fj < 0) THEN
-      fj = 0.25*this%ny
       !debug: 
-      PRINT *,'fj < 0'
+      PRINT *,'fj < 0',fj
+      fj = 0.25*this%ny
     endif
     if (fj <= 0.5) THEN
       fj = 1

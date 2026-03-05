@@ -30,8 +30,8 @@ COMIN=$HOME/noscrub/model_intercompare/rtofs_cice/rtofs.$PDY/
 
 set -xe
 
-#cp $HOME/rgdev/newdrift/fix/merged.nc drift_in.nc
-cp $HOME/rgdev/newdrift/fix/skiles_pts.nc drift_in.nc
+cp $HOME/rgdev/newdrift/fix/merged.nc drift_in.nc
+#cp $HOME/rgdev/newdrift/fix/skiles_pts.nc drift_in.nc
 
 #Loop:
 #forecast hours 000 to 072 by 1
@@ -44,8 +44,8 @@ hhh=000
 # Pick up from partial run:
 #cp drift_f010.nc drift_in.nc
 #hhh=011
-#while [ $hhh -le 192 ] 
-while [ $hhh -le 024 ] 
+while [ $hhh -le 192 ] 
+#while [ $hhh -le 024 ] 
 #while [ $hhh -le 001 ] 
 do
   fname=rtofs_glo_2ds_f${hhh}_ice.nc
