@@ -195,8 +195,7 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
 
     ! keep fi, fj, inside (1,1),(nx,ny)
     if (fi > this%nx + 0.5) THEN
-      !debug: 
-      PRINT *,'fi > nx ',fi
+      !debug: PRINT *,'fi > nx ',fi
       fi = mod(fi, REAL(this%nx,kind=real64) ) !RG: Assumes grid wraps in i
       if (fi .eq. 0) fi = this%nx
     endif
@@ -210,19 +209,16 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
     endif
 
     if (fj > this%ny+0.5) THEN
-      !debug: 
-      PRINT *,'fj > ny',fj
+      !debug: PRINT *,'fj > ny',fj
       fj = 0.75*this%ny
     endif
     if (fj < 0) THEN
-      !debug: 
-      PRINT *,'fj < 0',fj
+      !debug: PRINT *,'fj < 0',fj
       fj = 0.25*this%ny
     endif
     if (fj <= 0.5) THEN
       fj = 1
-      !debug: 
-      PRINT *,'fj < 0.5'
+      !debug: PRINT *,'fj < 0.5'
     endif
     ii    = nint(fi)
     ij    = nint(fj)
@@ -259,7 +255,7 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
     !debug: 
     WRITE(*,9004) iter, dfi, dfj, fi, fj, dlat, dlon, lat, lon, flat, flon
   ENDIF
- 9004 FORMAT('itmax ',I3,6F10.3,4F10.3)
+ 9004 FORMAT('itmax ',I3,6(F10.3,1x),4F10.3)
 
     !debug: WRITE(*,9003) iter, dfi, dfj, fi, fj, dlat, dlon, lat, lon, flat, flon
  9003 FORMAT('final ',I3,6F10.3,4F10.3)

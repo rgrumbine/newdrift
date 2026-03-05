@@ -173,7 +173,7 @@ SUBROUTINE run(buoys, nbuoy, u, v, xmetric, dt)
     ENDIF
   ENDDO
  9001 FORMAT('track',4F10.4)
- 9002 FORMAT('track',4F10.4, F7.1)
+ 9002 FORMAT('track',4F10.4, 1x,F7.1)
 
 END SUBROUTINE run
 
