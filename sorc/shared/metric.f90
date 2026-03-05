@@ -256,6 +256,8 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
   IF (iter .eq. itmax) THEN  ! need brute force or something to cross seam
     fi = flag 
     fj = flag 
+    !debug: 
+    WRITE(*,9004) iter, dfi, dfj, fi, fj, dlat, dlon, lat, lon, flat, flon
   ENDIF
  9004 FORMAT('itmax ',I3,6F10.3,4F10.3)
 

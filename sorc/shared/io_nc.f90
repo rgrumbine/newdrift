@@ -131,15 +131,15 @@ SUBROUTINE initial_read(fname, nvar, ncid, varid, &
   WHERE(xmetric%ulon > 360) xmetric%ulon = xmetric%ulon - 360
   !debug: PRINT *,'ulat nc readin ',MAXVAL(xmetric%ulat), MINVAL(xmetric%ulat)
   !debug: PRINT *,'ulon nc readin after cleanup',MAXVAL(xmetric%ulon), MINVAL(xmetric%ulon)
-  !debug -- regular lat-lon grid:
-  dlat = 180./xmetric%ny
-  dlon = 360./xmetric%nx
-  DO j = 1, xmetric%ny
-    xmetric%ulat(:,j) = j*dlat - 90.0 - dlat/2.
-  ENDDO
-  DO i = 1, xmetric%nx
-    xmetric%ulon(i,:) = i*dlon - dlon/2.
-  ENDDO
+  !debug -- regular latlon grid:
+  !dlat = 180./xmetric%ny
+  !dlon = 360./xmetric%nx
+  !DO j = 1, xmetric%ny
+  !  xmetric%ulat(:,j) = j*dlat - 90.0 - dlat/2.
+  !ENDDO
+  !DO i = 1, xmetric%nx
+  !  xmetric%ulon(i,:) = i*dlon - dlon/2.
+  !ENDDO
   !end debug
 
   !timing CALL cpu_time(start_time)
