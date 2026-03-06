@@ -30,7 +30,7 @@ mkdir -p /lfs/h2/emc/ptmp/wx21rg/newdrift.$pid
 #mkdir -p /scratch3/NCEPDEV/stmp/wx21rg/newdrift.$pid
 #cd /scratch3/NCEPDEV/stmp/wx21rg/newdrift.$pid
 
-export PDY=20260226
+export PDY=20260101
 export COMOUT=$HOME/noscrub/newdrift
 export end=`date +"%Y%m%d"`
 export end=20260226

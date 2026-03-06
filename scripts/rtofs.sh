@@ -89,8 +89,8 @@ do
 done
 #endloop
 
-exit
-#mv outputs to $com
+#debug: exit
+# mv outputs to $com
 if [ -f drift_f192.nc ] ; then
   mkdir -p $COMOUT/$PDY
   mv *.nc ${PDY}.out $COMOUT/$PDY
