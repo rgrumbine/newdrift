@@ -1,0 +1,54 @@
+* in first column denotes called by main program
+
+math.f90
+  module constants
+  functions 
+    rearth -- earth radius as fn of latitude 
+    harcdis -- haversine distance between lat-lon points
+    bearing -- bearing between two lat-lon points
+    unbearing -- given bearing and distance, return final lat-lon 
+    wrap (longitudes into [0,360]),
+
+
+drifter.f90
+*  module drifter_mod
+  use metric_mod
+  subroutines 
+    init
+    zero 
+    move(buoy, u, v, xmetric, dt) -- move a given buoy, called by run
+*    run(buoys, nbuoy, u, v, xmetric, dt) -- move all buoys
+
+
+metric.f90
+*  module metric_mod
+  use constants
+  subroutines:
+*    set             -- allocate metric arrays
+    local_metric    -- compute dlatdi, dlatdj, dlondi, dlondj (does not compute rot)
+    local_cartesian -- compute dx, dy meters per degree
+    ll_to_xy        -- convert from lat-lon location to ij coordinate
+    ll_to_xy_brute  -- brute force lat-lon to ij coordinate: sweep 
+                        entire grid for closest point
+    xy_to_ll        -- convert from xy (ij) to lat-lon
+
+
+irreg_ll2ij_cice.f90
+  straight subroutine, convert arrays of lat-lon points to xi,xj locations on grid
+    -- called by io_nc:readin_drifters
+
+
+io_nc.f90
+*  module io
+  use netcdf, drifter_mod, metric_mod
+  subroutines:
+*    initialize_in
+*    initial_read
+*    initialize_drifters
+*    readin_drifters -- read in initial buoy locations
+    readin          -- read in from forcing file
+    check           -- .nc check and print error messages as needed
+*    initialize_out  --
+    outvars         -- write out buoy fcst information
+    close_out       -- close output file
+*    writeout        -- call outvars, close file if desired

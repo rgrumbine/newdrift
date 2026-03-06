@@ -9,11 +9,11 @@ SUBROUTINE driftmain(dt, restart, closeout, &
   IMPLICIT none
 !arguments:
   TYPE(metric), intent(in) :: xmetric
-  REAL, intent(in)    :: dt
+  REAL(kind=real64), intent(in)    :: dt
   LOGICAL, intent(in) :: restart, closeout
   CHARACTER(*), intent(in) :: drift_in, drift_out
-  REAL, intent(in)    :: u(xmetric%nx, xmetric%ny), v(xmetric%nx, xmetric%ny)
-  REAL, intent(in)    :: aice(xmetric%nx, xmetric%ny)
+  REAL(kind=real64), intent(in)    :: u(xmetric%nx, xmetric%ny), v(xmetric%nx, xmetric%ny)
+  REAL(kind=real64), intent(in)    :: aice(xmetric%nx, xmetric%ny)
   INTEGER,intent(in)  :: phase
 
 ! Netcdf-related

@@ -4,6 +4,6 @@ include mk.all
 NETCDF_INC=$(HOME)/usrlocal/include
 NETCDF_LIBRARIES=$(HOME)/usrlocal/lib
 
-FOPTS = -c -O2 -Wall -std=f2008 -I $(NETCDF_INC)
+FOPTS = -c -O2 -Wall -std=f2018 -I $(NETCDF_INC)
 FC = gfortran
 

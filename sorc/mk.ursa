@@ -4,7 +4,7 @@ include mk.all
 NETCDF_INCLUDES = $(NETCDF)/include
 NETCDF_LIBRARIES = $(NETCDF)/lib
 
-FOPTS = -c -O2 -std08 -I $(NETCDF_INCLUDES)
+FOPTS = -c -O2 -std18 -I $(NETCDF_INCLUDES)
 LIBDIRS = -L $(NETCDF_LIBRARIES)
 
 FC = ifx

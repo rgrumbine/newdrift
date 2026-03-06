@@ -1023,9 +1023,9 @@ subroutine irreg_ll2ij_cice (nx, ny, grdlat, grdlon, npts, lats, lons, xi, yj)
 !..............................executable...............................
 !
       if (n.lt.2) return
-      do 11 j=1,n
+      do j=1,n
         indx(j)=j
-11    continue
+      enddo
       l=n/2+1
       ir=n
 10    continue

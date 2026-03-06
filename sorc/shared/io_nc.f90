@@ -81,18 +81,19 @@ SUBROUTINE initialize_in(nvar, fname, ncid, varid, varnames, xname, yname, nx, n
 
   nxname = xname
   nyname = yname
-  PRINT *,'xname, yname',xname, yname
+  !debug: PRINT *,'xname, yname',xname, yname
   !RG: Read nx, ny in from netcdf file -- 
   ! rtofs
-  !retcode = nf90_inquire_dimension(ncid, 3, nxname, nx)
-  !CALL check(retcode)
-  !retcode = nf90_inquire_dimension(ncid, 2, nyname, ny)
-  !CALL check(retcode)
-  !ufs
-  retcode = nf90_inquire_dimension(ncid, 2, nxname, nx)
+  retcode = nf90_inquire_dimension(ncid, 3, nxname, nx)
   CALL check(retcode)
-  retcode = nf90_inquire_dimension(ncid, 3, nyname, ny)
+  retcode = nf90_inquire_dimension(ncid, 2, nyname, ny)
   CALL check(retcode)
+
+  !!ufs
+  !retcode = nf90_inquire_dimension(ncid, 2, nxname, nx)
+  !CALL check(retcode)
+  !retcode = nf90_inquire_dimension(ncid, 3, nyname, ny)
+  !CALL check(retcode)
 
   !debug: PRINT *,'leaving initialize_in', nx, ny
 
@@ -109,16 +110,42 @@ SUBROUTINE initial_read(fname, nvar, ncid, varid, &
   INTEGER, intent(in)  :: nvar, ncid, varid(nvar)
 
   TYPE(metric),intent(inout) :: xmetric
-  REAL, intent(inout) :: allvars(xmetric%nx, xmetric%ny, nvar)
+  REAL(kind=real64), intent(inout) :: allvars(xmetric%nx, xmetric%ny, nvar)
+  REAL start_time, end_time
+
+  REAL(kind=real64) :: dlat, dlon
+  INTEGER i, j
 
 ! Forcing / velocities
   !Get first set of data and construct the local metric for drifting
+  !timing CALL cpu_time(start_time)
   CALL readin(xmetric%nx, xmetric%ny, nvar, ncid, varid, allvars)
+  !timing CALL cpu_time(end_time)
+  !timing PRINT *,'sub initial_read time for readin',end_time - start_time
 
 !2ds_ice:
   xmetric%ulat = allvars(:,:,2)
   xmetric%ulon = allvars(:,:,1)
+  !debug: PRINT *,'ulon nc readin ',MAXVAL(xmetric%ulon), MINVAL(xmetric%ulon)
+  WHERE(xmetric%ulon > 720) xmetric%ulon = xmetric%ulon - 720
+  WHERE(xmetric%ulon > 360) xmetric%ulon = xmetric%ulon - 360
+  !debug: PRINT *,'ulat nc readin ',MAXVAL(xmetric%ulat), MINVAL(xmetric%ulat)
+  !debug: PRINT *,'ulon nc readin after cleanup',MAXVAL(xmetric%ulon), MINVAL(xmetric%ulon)
+  !debug -- regular latlon grid:
+  !dlat = 180./xmetric%ny
+  !dlon = 360./xmetric%nx
+  !DO j = 1, xmetric%ny
+  !  xmetric%ulat(:,j) = j*dlat - 90.0 - dlat/2.
+  !ENDDO
+  !DO i = 1, xmetric%nx
+  !  xmetric%ulon(i,:) = i*dlon - dlon/2.
+  !ENDDO
+  !end debug
+
+  !timing CALL cpu_time(start_time)
   CALL xmetric%local_metric()
+  !timing CALL cpu_time(end_time)
+  !timing PRINT *,'sub initial_read time for local_metric',end_time - start_time
 
 END SUBROUTINE initial_read
 !----------------------------------------------------------------
@@ -139,15 +166,13 @@ SUBROUTINE initialize_drifters(nvar_drift, drift_name, ncid_drift, &
   CALL check(retcode)
 
   IF (restart) THEN
-    !debug: 
-    PRINT *,'running from warm start'
+    !debug: PRINT *,'running from warm start'
     varnames(1) = 'Initial_Latitude'
     varnames(2) = 'Initial_Longitude'
     varnames(3) = 'Final_Latitude'
     varnames(4) = 'Final_Longitude'
   ELSE
-    !debug: 
-    PRINT *,'running from cold start'
+    !debug: PRINT *,'running from cold start'
     varnames(1) = 'Initial_Latitude'
     varnames(2) = 'Initial_Longitude'
   ENDIF
@@ -160,13 +185,13 @@ SUBROUTINE initialize_drifters(nvar_drift, drift_name, ncid_drift, &
     
   retcode = nf90_inquire_dimension(ncid_drift, 1, dimname, nbuoy)
   CALL check(retcode)
-  !debug: 
-  PRINT *,'initialize -- nbuoy ', nbuoy
+  !debug: PRINT *,'initialize -- nbuoy ', nbuoy
 
   RETURN
 END SUBROUTINE initialize_drifters
 
 SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist, xmetric, restart)
+  USE constants
   USE metric_mod
   USE, intrinsic :: ieee_arithmetic
   IMPLICIT none
@@ -178,10 +203,10 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
   LOGICAL, intent(in) :: restart
 
   INTEGER i, retcode, bad_count, very_bad
-  REAL tlon(nbuoy), tlat(nbuoy)
-  REAL clon(nbuoy), clat(nbuoy)
-  REAL, allocatable :: bad_lat(:), bad_lon(:)
-  REAL, allocatable :: bad_fi(:), bad_fj(:)
+  REAL(kind=real64) :: tlon(nbuoy), tlat(nbuoy)
+  REAL(kind=real64) :: clon(nbuoy), clat(nbuoy)
+  REAL(kind=real64), allocatable :: bad_lat(:), bad_lon(:)
+  REAL(kind=real64), allocatable :: bad_fi(:), bad_fj(:)
   INTEGER, allocatable :: bad_index(:)
 
   REAL start_time, end_time
@@ -210,30 +235,32 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
 
   !debug: PRINT *,' about to create buoys '
   bad_count = 0
-  !CALL cpu_time(start_time)
+  !timing CALL cpu_time(start_time)
   DO i = 1, nbuoy
+    !debug2: PRINT *,'initializing buoy ',i,tlat(i), tlon(i)
     CALL buoylist(i)%init(tlon(i), tlat(i), clon(i), clat(i), xmetric)
-    if (clat(i) >= 1.e30 .or. clon(i) >= 1.e30 .or. &
-        buoylist(i)%x >= 1.e30 .or. buoylist(i)%y >= 1.e30 ) THEN
+    if (clat(i) >= flag .or. clon(i) >= flag .or. &
+        buoylist(i)%x >= flag .or. buoylist(i)%y >= flag ) THEN
       bad_count = bad_count + 1
     endif
     !debug2: WRITE(*,9001) i, tlon(i), tlat(i), clon(i), clat(i)
   ENDDO
  9001 FORMAT(I6,4F10.3)
-  !CALL cpu_time(end_time)
-  !PRINT *,'buoy list timing ',start_time, end_time, end_time - start_time
+  !timing CALL cpu_time(end_time)
+  !timing PRINT *,'sub readin_drifters buoy list timing ',end_time - start_time
 
 ! Processing en masse all buoys which have bad locations 
 ! RG: make this its own routine for general use
+  !debug:
   PRINT *,'count of bad locations: ',bad_count
   ALLOCATE(bad_index(bad_count), bad_lat(bad_count), bad_lon(bad_count))
   ALLOCATE(bad_fi(bad_count), bad_fj(bad_count))
   bad_count = 1
   DO i = 1, nbuoy
-    if (clat(i) >= 1.e30 .or. clon(i) >= 1.e30 .or. &
-        buoylist(i)%x >= 1.e30 .or. buoylist(i)%y >= 1.e30 ) THEN
+    if (clat(i) >= flag .or. clon(i) >= flag .or. &
+        buoylist(i)%x >= flag .or. buoylist(i)%y >= flag ) THEN
       bad_index(bad_count) = i
-      IF (tlat(i) >= 1.e30 .or. tlon(i) >= 1.e30) THEN
+      IF (tlat(i) >= flag .or. tlon(i) >= flag) THEN
         tlat(i) = 0.
         tlon(i) = 0.
       ENDIF
@@ -243,23 +270,23 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
     endif
   ENDDO
   bad_count = bad_count - 1 
-  !Rg: now call mass searcher irreg_
-  !CALL cpu_time(start_time)
-  CALL irreg_ll2ij_cice(xmetric%nx, xmetric%ny, xmetric%ulat, xmetric%ulon, &
-          bad_count, bad_lat, bad_lon, bad_fi, bad_fj)
-  !CALL cpu_time(end_time)
-  !PRINT *,'irreg timing ',start_time, end_time, end_time - start_time
+  !RG: now call mass searcher irreg_
+  !timing CALL cpu_time(start_time)
+!  CALL irreg_ll2ij_cice(xmetric%nx, xmetric%ny, xmetric%ulat, xmetric%ulon, &
+!          bad_count, bad_lat, bad_lon, bad_fi, bad_fj)
+  !timing CALL cpu_time(end_time)
+  !timing PRINT *,'sub readin_drifters irreg timing ',end_time - start_time
 
   very_bad = 0
   DO i = 1, bad_count
     !debug: PRINT *,'retry ',i,bad_fi(i), bad_fj(i), bad_lat(i), bad_lon(i)
-    IF (bad_fi(i) < 1 .or. bad_fi(i) > 1.e10 .or. ieee_is_nan(bad_fi(i)) .or. &
-        bad_fj(i) < 1 .or. bad_fj(i) > 1.e10 .or. ieee_is_nan(bad_fj(i)) ) THEN
-      buoylist(bad_index(i))%x = 1.e30
-      buoylist(bad_index(i))%y = 1.e30
-      buoylist(bad_index(i))%clat = 1.e30
-      buoylist(bad_index(i))%clon = 1.e30
-      PRINT *,'very bad ',buoylist(bad_index(i))%ilat, buoylist(bad_index(i))%ilon
+    IF (bad_fi(i) < 1 .or. bad_fi(i) >= flag .or. ieee_is_nan(bad_fi(i)) .or. &
+        bad_fj(i) < 1 .or. bad_fj(i) >= flag .or. ieee_is_nan(bad_fj(i)) ) THEN
+      !debug: PRINT *,'could not place ',buoylist(bad_index(i))%ilat, buoylist(bad_index(i))%ilon
+      buoylist(bad_index(i))%x = flag
+      buoylist(bad_index(i))%y = flag
+      buoylist(bad_index(i))%clat = flag
+      buoylist(bad_index(i))%clon = flag
       very_bad = very_bad + 1
     ELSE
       buoylist(bad_index(i))%x = bad_fi(i)
@@ -268,7 +295,7 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
       buoylist(bad_index(i))%clon = bad_lon(i)
     ENDIF
   ENDDO
-  PRINT *,'very bad points: ',very_bad
+  !debug: PRINT *,'could not place points: ',very_bad
   
   !debug: PRINT *,' leaving drifter read in'
   RETURN
@@ -278,7 +305,7 @@ SUBROUTINE readin(nx, ny, nvars, ncid, varid, allvars)
   IMPLICIT none
   INTEGER, intent(in)    :: nvars
   INTEGER, intent(in)    :: nx, ny, ncid, varid(nvars)
-  REAL, intent(inout)    :: allvars(nx, ny, nvars)
+  REAL(kind=real64), intent(inout)    :: allvars(nx, ny, nvars)
   
   INTEGER i, retcode
   
@@ -303,7 +330,7 @@ SUBROUTINE check(status)
   INTEGER, intent(in) :: status
   IF (status /= nf90_noerr) THEN
     PRINT *,nf90_strerror(status)
-    !STOP "erredout"
+    !debug: STOP "erredout"
     PRINT *, "erredout"
   ENDIF
   RETURN
@@ -341,7 +368,7 @@ SUBROUTINE initialize_out(fname, ncid, varid, nvar, nbuoy, dimids)
 
 ! assign varid to varnames
   DO i = 1, nvar
-    retcode = nf90_def_var(ncid, trim(varnames(i)), NF90_REAL, dimids, varid(i))
+    retcode = nf90_def_var(ncid, trim(varnames(i)), NF90_DOUBLE, dimids, varid(i))
     CALL check(retcode)
   ENDDO
 
@@ -361,9 +388,9 @@ SUBROUTINE outvars(ncid, varid, nvar, buoys, nbuoy)
   TYPE(drifter), intent(in) :: buoys(nbuoy)
 
   INTEGER retcode
-  REAL, allocatable :: var(:,:)
+  REAL(kind=real64), allocatable :: var(:,:)
   INTEGER i, k
-  REAL wrap, distance, bear
+  REAL(kind=real64) :: wrap, distance, bear
 
 !Note that netcdf dimensions are in C order, not fortran
   !debug: PRINT *,'entered outvars'

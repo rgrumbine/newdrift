@@ -13,8 +13,8 @@ flon  = buoys.variables['Final_Longitude'][:]
 
 count = 0
 for i in range(0,nbuoy):
-    if (dist[i] != 0):
+    if (dist[i] != 0 and ilat[i] < 1.e9 and dist[i] < 1.e9):
       count += 1
-      print(i,ilat[i], ilon[i], dist[i], bear[i], flat[i], flon[i])
+      print(i,f"{ilat[i]:.4f}", f"{ilon[i]:.4f}", f"{dist[i]:.4f}", f"{bear[i]:.4f}", f"{flat[i]:.4f}", f"{flon[i]:.4f}")
 
 print(count,' buoys moved')
