@@ -205,8 +205,9 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
   INTEGER i, retcode, bad_count, very_bad
   REAL(kind=real64) :: tlon(nbuoy), tlat(nbuoy)
   REAL(kind=real64) :: clon(nbuoy), clat(nbuoy)
-  REAL(kind=real64), allocatable :: bad_lat(:), bad_lon(:)
-  REAL(kind=real64), allocatable :: bad_fi(:), bad_fj(:)
+  REAL(kind=real32), allocatable :: bad_lat(:), bad_lon(:)
+  REAL(kind=real32), allocatable :: tmp_lat(:,:), tmp_lon(:,:)
+  REAL(kind=real32), allocatable :: bad_fi(:), bad_fj(:)
   INTEGER, allocatable :: bad_index(:)
 
   REAL start_time, end_time
@@ -271,9 +272,13 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
   ENDDO
   bad_count = bad_count - 1 
   !RG: now call mass searcher irreg_
+  !debug: PRINT *,'calling irreg'
   !timing CALL cpu_time(start_time)
-!  CALL irreg_ll2ij_cice(xmetric%nx, xmetric%ny, xmetric%ulat, xmetric%ulon, &
-!          bad_count, bad_lat, bad_lon, bad_fi, bad_fj)
+  ALLOCATE(tmp_lat(xmetric%nx, xmetric%ny), tmp_lon(xmetric%nx, xmetric%ny))
+  tmp_lat = xmetric%ulat
+  tmp_lon = xmetric%ulon
+  CALL irreg_ll2ij_cice(xmetric%nx, xmetric%ny, tmp_lat, tmp_lon, &
+          bad_count, bad_lat, bad_lon, bad_fi, bad_fj)
   !timing CALL cpu_time(end_time)
   !timing PRINT *,'sub readin_drifters irreg timing ',end_time - start_time
 
@@ -282,7 +287,9 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
     !debug: PRINT *,'retry ',i,bad_fi(i), bad_fj(i), bad_lat(i), bad_lon(i)
     IF (bad_fi(i) < 1 .or. bad_fi(i) >= flag .or. ieee_is_nan(bad_fi(i)) .or. &
         bad_fj(i) < 1 .or. bad_fj(i) >= flag .or. ieee_is_nan(bad_fj(i)) ) THEN
-      !debug: PRINT *,'could not place ',buoylist(bad_index(i))%ilat, buoylist(bad_index(i))%ilon
+      !debug: 
+      WRITE(*,9010) buoylist(bad_index(i))%ilat, buoylist(bad_index(i))%ilon
+ 9010 FORMAT('could not place ',2F10.3)
       buoylist(bad_index(i))%x = flag
       buoylist(bad_index(i))%y = flag
       buoylist(bad_index(i))%clat = flag
@@ -295,7 +302,8 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
       buoylist(bad_index(i))%clon = bad_lon(i)
     ENDIF
   ENDDO
-  !debug: PRINT *,'could not place points: ',very_bad
+  !debug: 
+  PRINT *,'could not place points: ',very_bad
   
   !debug: PRINT *,' leaving drifter read in'
   RETURN

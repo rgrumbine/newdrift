@@ -9,9 +9,9 @@
 #PBS -l select=1:ncpus=1
 
 #ursa
-#SBATCH -J newdrift09
-#SBATCH -e newdrift09.err
-#SBATCH -o newdrift09.out
+#SBATCH -J devdrift09
+#SBATCH -e devdrift09.err
+#SBATCH -o devdrift09.out
 #SBATCH -t 7:55:00
 #SBATCH -q batch
 #SBATCH -A marine-cpu
@@ -24,14 +24,14 @@ set -xe
 pid=$$
 
 ##Wcoss2
-mkdir -p /lfs/h2/emc/ptmp/wx21rg/newdrift.$pid
-#cd /lfs/h2/emc/ptmp/wx21rg/newdrift.$pid
+#mkdir -p /lfs/h2/emc/ptmp/wx21rg/devdrift.$pid
+#cd /lfs/h2/emc/ptmp/wx21rg/devdrift.$pid
 ##ursa
-#mkdir -p /scratch3/NCEPDEV/stmp/wx21rg/newdrift.$pid
-#cd /scratch3/NCEPDEV/stmp/wx21rg/newdrift.$pid
+mkdir -p /scratch3/NCEPDEV/stmp/wx21rg/devdrift.$pid
+cd /scratch3/NCEPDEV/stmp/wx21rg/devdrift.$pid
 
-export PDY=20260101
-export COMOUT=$HOME/noscrub/newdrift
+export PDY=20260226
+export COMOUT=$HOME/noscrub/devdrift
 export end=`date +"%Y%m%d"`
 export end=20260226
 

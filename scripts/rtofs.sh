@@ -1,6 +1,6 @@
 #!/bin/bash 
 #wcoss2:
-#PBS -N newdrift
+#PBS -N devdrift
 #PBS -o driftout
 #PBS -j oe
 #PBS -A ICE-DEV
@@ -9,20 +9,19 @@
 #PBS -l select=1:ncpus=1
 
 #wcoss2:
-module load intel netcdf
-module load prod_envir wgrib2
-COMIN=$HOME/noscrub/model_intercompare/rtofs_cice/rtofs.$PDY/
+#module load intel netcdf
+#module load prod_envir wgrib2
+#COMIN=$HOME/noscrub/model_intercompare/rtofs_cice/rtofs.$PDY/
 
 #macos: COMIN=/Volumes/Data/rtofs/
 
 #ursa:
-#module load intel-oneapi-compilers
-#module load hpc-x/2.18.1-icc
-#module load netcdf-c/4.9.2
-#module load netcdf-fortran/4.6.1
-#export NETCDF=$NETCDF_FORTRAN_ROOT
-#module list
-#ursa: COMIN=$HOME/clim_data/rtofs/rtofs.$PDY/
+module load intel-oneapi-compilers
+module load hpc-x/2.18.1-icc
+module load netcdf-c/4.9.2
+module load netcdf-fortran/4.6.1
+export NETCDF=$NETCDF_FORTRAN_ROOT
+COMIN=$HOME/clim_data/rtofs/rtofs.$PDY/
 
 #initialize
 #drift_in -- file with full 6 values drifters, set to -99 for i,j,clat, clon
@@ -30,8 +29,8 @@ COMIN=$HOME/noscrub/model_intercompare/rtofs_cice/rtofs.$PDY/
 
 set -xe
 
-cp $HOME/rgdev/newdrift/fix/merged.nc drift_in.nc
-#cp $HOME/rgdev/newdrift/fix/skiles_pts.nc drift_in.nc
+cp $HOME/rgdev/devdrift/fix/merged.nc drift_in.nc
+#cp $HOME/rgdev/devdrift/fix/skiles_pts.nc drift_in.nc
 
 #Loop:
 #forecast hours 000 to 072 by 1
@@ -44,9 +43,9 @@ hhh=000
 # Pick up from partial run:
 #cp drift_f010.nc drift_in.nc
 #hhh=011
-while [ $hhh -le 192 ] 
-#while [ $hhh -le 024 ] 
-#while [ $hhh -le 001 ] 
+#while [ $hhh -le 192 ] 
+while [ $hhh -le 024 ] 
+#while [ $hhh -le 000 ] 
 do
   fname=rtofs_glo_2ds_f${hhh}_ice.nc
   if [ ! -f ${COMIN}/$fname ] ; then
@@ -89,7 +88,8 @@ do
 done
 #endloop
 
-#debug: exit
+#debug: 
+exit
 # mv outputs to $com
 if [ -f drift_f192.nc ] ; then
   mkdir -p $COMOUT/$PDY

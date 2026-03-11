@@ -233,10 +233,6 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
       dlon = tlon - flon
       !debug: PRINT *,'dlat dlon ',dlat, dlon
     ENDIF
-    !dlat = tlat - this%ulat(ii,ij)
-    !tlon = this%ulon(ii,ij)
-    !if (tlon > 360. .or. tlon < 0) tlon = wrap(tlon)
-    !dlon = lon - tlon
 
 !debug2:     WRITE(*,9001) iter, dfi, dfj, fi, fj, dlat, dlon, lat, lon, flat, flon
     IF (iter > nint(0.6*itmax) ) THEN
@@ -252,8 +248,7 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
   IF (iter .eq. itmax) THEN  ! need brute force or something to cross seam
     fi = flag 
     fj = flag 
-    !debug: 
-    WRITE(*,9004) iter, dfi, dfj, fi, fj, dlat, dlon, lat, lon, flat, flon
+    !debug: WRITE(*,9004) iter, dfi, dfj, fi, fj, dlat, dlon, lat, lon, flat, flon
   ENDIF
  9004 FORMAT('itmax ',I3,6(F10.3,1x),4F10.3)
 

@@ -1,5 +1,5 @@
 MODULE constants
-  USE iso_fortran_env, only : real64
+  USE iso_fortran_env, only : real64, real32
   IMPLICIT none
 
   PUBLIC
