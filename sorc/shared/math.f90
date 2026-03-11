@@ -17,9 +17,6 @@ MODULE constants
 
 END module constants
 
-!haversine arcdis
-!  http://www.movable-type.co.uk/scripts/gis-faq-5.1.html
-!assumes lat lon in degrees, distance in km
 REAL(kind=real64) FUNCTION rearth(lat)
   USE constants
   IMPLICIT none
@@ -28,6 +25,9 @@ REAL(kind=real64) FUNCTION rearth(lat)
   RETURN
 END function rearth
 
+!haversine arcdis
+!  http://www.movable-type.co.uk/scripts/gis-faq-5.1.html
+!assumes lat lon in degrees, distance in km
 REAL(kind=real64) FUNCTION harcdis(lat1, lon1, lat2, lon2)
   USE constants
   IMPLICIT none
@@ -44,7 +44,8 @@ REAL(kind=real64) FUNCTION harcdis(lat1, lon1, lat2, lon2)
   c = 2.*atan2(sqrt(a), sqrt(1._real64 - a) )
 
 ! approximating ellipsoidal flattening RG WGS84
-  harcdis = c * (6378.137 - 21.385*sin(mlat*rpd) )
+  !harcdis = c * (6378.137 - 21.385*sin(mlat*rpd) )
+  harcdis = c * rearth(mlat)
 !  RETURN 
 END function harcdis
 

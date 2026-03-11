@@ -323,7 +323,7 @@ SUBROUTINE readin(nx, ny, nvars, ncid, varid, allvars)
     CALL check(retcode)
     !debug: PRINT *,'readin',retcode, i, MAXVAL(allvars(:,:,i)), MINVAL(allvars(:,:,i))
     if (retcode < 0) then
-      PRINT *,'error on ',ncid, varid(i)
+      PRINT *,'error on nf90_get_var in readin',ncid, varid(i)
       STOP
     endif
   ENDDO
