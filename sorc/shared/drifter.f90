@@ -126,6 +126,8 @@ CONTAINS
       !debug: 
       WRITE(*,9002) ti,tj,nti, ntj,xmetric%dlondj(nti,ntj), xmetric%dlondi(nti,ntj)
  9002 FORMAT('near seam ',4I5,2E14.6)
+      buoy%ilat = flag
+      buoy%ilon = flag
       buoy%clat = flag
       buoy%clon = flag
       buoy%x    = flag
@@ -157,6 +159,7 @@ SUBROUTINE run(buoys, nbuoy, u, v, xmetric, dt)
   track = 0
   !debug: 
   !track = INT(0.5+nbuoy*5./6.)
+  track = 118703
 
   DO k = 1, nbuoy
     !c-like (object-like) 

@@ -35,8 +35,10 @@ PROGRAM newdrift
 
 ! Utilities for main
   INTEGER i, j
-  INTEGER n, nstep
+  INTEGER n, nstep, ndiv
   REAL start_time, end_time
+  REAL(kind=real64) :: dtdiv
+
 
 !For drifter 
   CLASS(drifter), allocatable :: buoys(:)
@@ -146,10 +148,14 @@ PROGRAM newdrift
 ! First/only time step (u,v, etc. in hand):
   !timing CALL cpu_time(start_time)
   !debug 0.2778 ~= 1 km/hr: 
-  u = 0.0
-  v = 0.0 
+  u = -0.2778
+  v = 0.0
   !debug: PRINT *,'calling run'
-  CALL run(buoys, nbuoys, u, v, xmetric, dt)
+  ndiv = 1
+  dtdiv = dt/ndiv
+  DO i = 1, ndiv
+    CALL run(buoys, nbuoys, u, v, xmetric, dtdiv)
+  ENDDO
   !debug: PRINT *,'back from run'
   closeout = .TRUE.
   CALL writeout(ncid_out, varid_out, nvar_out, buoys, nbuoys, closeout)

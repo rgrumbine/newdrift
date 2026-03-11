@@ -132,14 +132,14 @@ SUBROUTINE initial_read(fname, nvar, ncid, varid, &
   !debug: PRINT *,'ulat nc readin ',MAXVAL(xmetric%ulat), MINVAL(xmetric%ulat)
   !debug: PRINT *,'ulon nc readin after cleanup',MAXVAL(xmetric%ulon), MINVAL(xmetric%ulon)
   !debug -- regular latlon grid:
-  !dlat = 180./xmetric%ny
-  !dlon = 360./xmetric%nx
-  !DO j = 1, xmetric%ny
-  !  xmetric%ulat(:,j) = j*dlat - 90.0 - dlat/2.
-  !ENDDO
-  !DO i = 1, xmetric%nx
-  !  xmetric%ulon(i,:) = i*dlon - dlon/2.
-  !ENDDO
+  dlat = 180./xmetric%ny
+  dlon = 360./xmetric%nx
+  DO j = 1, xmetric%ny
+    xmetric%ulat(:,j) = j*dlat - 90.0 - dlat/2.
+  ENDDO
+  DO i = 1, xmetric%nx
+    xmetric%ulon(i,:) = i*dlon - dlon/2.
+  ENDDO
   !end debug
 
   !timing CALL cpu_time(start_time)
@@ -289,7 +289,9 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
         bad_fj(i) < 1 .or. bad_fj(i) >= flag .or. ieee_is_nan(bad_fj(i)) ) THEN
       !debug: 
       WRITE(*,9010) buoylist(bad_index(i))%ilat, buoylist(bad_index(i))%ilon
- 9010 FORMAT('could not place ',2F10.3)
+ 9010 FORMAT('could not place ',2E14.6)
+      buoylist(bad_index(i))%ilat = flag
+      buoylist(bad_index(i))%ilon = flag
       buoylist(bad_index(i))%x = flag
       buoylist(bad_index(i))%y = flag
       buoylist(bad_index(i))%clat = flag

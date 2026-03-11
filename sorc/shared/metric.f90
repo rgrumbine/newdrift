@@ -124,6 +124,14 @@ SUBROUTINE local_cartesian(this)
   ENDDO
   ENDDO
 
+!! Spherical
+!  DO j = 1, this%ny
+!  DO i = 1, this%nx
+!    this%dy(i,j) = 111111.0
+!    this%dx(i,j) = 111111.0 * cos(this%ulat(i,j)*rpd)
+!  ENDDO
+!  ENDDO
+
   RETURN
 END subroutine local_cartesian
 
