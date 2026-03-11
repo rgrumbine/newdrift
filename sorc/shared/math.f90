@@ -33,7 +33,7 @@ REAL(kind=real64) FUNCTION harcdis(lat1, lon1, lat2, lon2)
   IMPLICIT none
   REAL(kind=real64), intent(in) :: lat1, lon1, lat2, lon2
   REAL(kind=real64) :: dlat, dlon, mlat
-  REAL(kind=real64) :: a, c
+  REAL(kind=real64) :: a, c, rearth
 
   dlon = lon2 - lon1
   dlat = lat2 - lat1
