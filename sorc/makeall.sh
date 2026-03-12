@@ -38,6 +38,4 @@ echo `env | grep  NETCDF`
 #cp -p shared/*.f90 .
 
 make
-if [ -f output.nc ] ; then
-  rm output.nc
-fi
+mv drifter in_drifter ../exec

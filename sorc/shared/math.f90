@@ -44,8 +44,8 @@ REAL(kind=real64) FUNCTION harcdis(lat1, lon1, lat2, lon2)
   c = 2.*atan2(sqrt(a), sqrt(1._real64 - a) )
 
 ! approximating ellipsoidal flattening RG WGS84
-  !harcdis = c * (6378.137 - 21.385*sin(mlat*rpd) )
   harcdis = c * rearth(mlat)
+  !harcdis = c * 6371.2_real64 !spherical earth
 !  RETURN 
 END function harcdis
 

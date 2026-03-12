@@ -98,8 +98,6 @@ SUBROUTINE local_metric(this)
   !debug: PRINT *,'dlatdi max min',MAXVAL(this%dlatdi), MINVAL(this%dlatdi)
   !debug: PRINT *,'dlondi max min',MAXVAL(this%dlondi), MINVAL(this%dlondi)
   
-  !rot = atan2(?,?)
-
   RETURN
 END subroutine local_metric
 
@@ -108,19 +106,20 @@ SUBROUTINE local_cartesian(this)
   USE constants
   IMPLICIT none
   CLASS(metric), intent(inout) :: this
-  INTEGER k
   INTEGER i, j
+  REAL(kind=real64) :: harcdis
 
 ! From WGS84 via Amy Solomon, ESRL
 ! Meters per degree
   DO j = 1, this%ny
   DO i = 1, this%nx
-    this%dy(i,j) = 111132.92 - 559.82*cos(2*this%ulat(i,j)*rpd) + &
-                           1.175 *cos(4*this%ulat(i,j)*rpd) - &
-                           0.0023*cos(6*this%ulat(i,j)*rpd)
-    this%dx(i,j) = 111412.84 *cos(  this%ulat(i,j)*rpd) - &
-                       93.5  *cos(3*this%ulat(i,j)*rpd) + &
-                        0.118*cos(5*this%ulat(i,j)*rpd)
+    this%dy(i,j) = 111132.92_real64 - &
+                      559.82_real64  *cos(2.0_real64*this%ulat(i,j)*rpd) + &
+                        1.175_real64 *cos(4.0_real64*this%ulat(i,j)*rpd) - &
+                        0.0023_real64*cos(6.0_real64*this%ulat(i,j)*rpd)
+    this%dx(i,j) = 111412.84_real64 *cos(  this%ulat(i,j)*rpd) - &
+                       93.5_real64  *cos(3.0_real64*this%ulat(i,j)*rpd) + &
+                        0.118_real64*cos(5.0_real64*this%ulat(i,j)*rpd)
   ENDDO
   ENDDO
 
@@ -131,6 +130,8 @@ SUBROUTINE local_cartesian(this)
 !    this%dx(i,j) = 111111.0 * cos(this%ulat(i,j)*rpd)
 !  ENDDO
 !  ENDDO
+
+  PRINT *,'cartesian dx',MAXVAL(this%dx), MINVAL(this%dx)
 
   RETURN
 END subroutine local_cartesian

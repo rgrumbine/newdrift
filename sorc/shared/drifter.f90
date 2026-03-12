@@ -12,7 +12,7 @@ MODULE drifter_mod
     REAL(kind=real64) :: ilat, ilon  ! initial latitude-longitude
     REAL(kind=real64) :: clat, clon  ! current latitude-longitude
   CONTAINS
-    PROCEDURE, pass :: init, move, zero
+    PROCEDURE, pass :: init, move, zero, invalidate_buoy
   END TYPE drifter
 
 
@@ -75,9 +75,10 @@ CONTAINS
     INTEGER ti, tj, nti, ntj
     REAL(kind=real64) :: a, b, toler, flat, flon
 
-    if (buoy%x >= flag .or. buoy%y >= flag) RETURN
-    if (buoy%clat >= flag .or. buoy%clon >= flag) RETURN
-    if (buoy%ilat >= flag .or. buoy%ilon >= flag) RETURN
+    IF (any([buoy%x, buoy%y, buoy%clat, buoy%clon, buoy%ilat, buoy%ilon] >= flag)) THEN
+      CALL invalidate_buoy(buoy)
+      RETURN
+    ENDIF
     ti = NINT(buoy%x)
     tj = NINT(buoy%y)
     tu = u(ti, tj)
@@ -86,19 +87,13 @@ CONTAINS
     if (tu >= flag .or. tv >= flag) RETURN
 
     !RG:  These could be interpolated (bilinear, ...)
-    deltax = tu * dt  !deltax, deltay are meters
-    deltay = tv * dt
-    a = deltax / xmetric%dx(ti, tj)
-    b = deltay / xmetric%dy(ti, tj)
-    IF ((abs(deltax) > 3.*dt) .or. (abs(deltay) > 3.*dt) ) THEN
-!debug: 
-      PRINT *,'fast ',xmetric%ulat(ti, tj), xmetric%ulon(ti, tj), ti, tj, deltax, deltay
-    ENDIF
+    a = (tu * dt) / xmetric%dx(ti, tj)
+    b = (tv * dt) / xmetric%dy(ti, tj)
 
     !RG: beware of seams
     IF (xmetric%dlondi(ti,tj) .ne. 0 .and. xmetric%dlatdj(ti,tj) .ne. 0 .and. xmetric%area(ti, tj) .ne. 0) THEN
       ! these two are true only if x,y are parallel to i,j
-      !di = a/xmetric%dlondi(ti,tj) !di,dj are grid points
+      !di = a/xmetric%dlondi(ti,tj) !di,dj are units of grid points
       !dj = b/xmetric%dlatdj(ti,tj)
       di = (a*xmetric%dlatdj(ti,tj) - b*xmetric%dlondj(ti,tj))/xmetric%area(ti,tj)
       dj = (b*xmetric%dlondi(ti,tj) - a*xmetric%dlatdi(ti,tj))/xmetric%area(ti,tj)
@@ -116,22 +111,12 @@ CONTAINS
       !realbug: 
       WRITE(*,9001) ti,tj,di, dj, nti, ntj, xmetric%dlondi(ti,tj), xmetric%dlatdj(ti,tj) 
  9001 FORMAT('buoy out of bounds ',2I5,2F10.3,2I11,2E14.6)
-      buoy%ilat = flag
-      buoy%ilon = flag
-      buoy%clat = flag
-      buoy%clon = flag
-      buoy%x    = flag
-      buoy%y    = flag
+      CALL invalidate_buoy(buoy)
     ELSE IF (abs(xmetric%dlondj(nti,ntj)) > 80 .or. abs(xmetric%dlondi(nti,ntj)) > 80 ) THEN
       !debug: 
       WRITE(*,9002) ti,tj,nti, ntj,xmetric%dlondj(nti,ntj), xmetric%dlondi(nti,ntj)
  9002 FORMAT('near seam ',4I5,2E14.6)
-      buoy%ilat = flag
-      buoy%ilon = flag
-      buoy%clat = flag
-      buoy%clon = flag
-      buoy%x    = flag
-      buoy%y    = flag
+      CALL invalidate_buoy(buoy)
     ELSE 
       CALL xy_to_ll(xmetric, flat, flon, buoy%x, buoy%y)
       buoy%clat = flat
@@ -141,6 +126,14 @@ CONTAINS
 
   RETURN
   END subroutine move
+
+  ! Helper to reset all buoy values to flag
+  SUBROUTINE invalidate_buoy(b)
+     CLASS(drifter), INTENT(inout) :: b
+     b%x = flag; b%y = flag
+     b%clat = flag; b%clon = flag
+     b%ilat = flag; b%ilon = flag
+  END SUBROUTINE invalidate_buoy
 
 !----------------------------------------------------------------
 SUBROUTINE run(buoys, nbuoy, u, v, xmetric, dt)

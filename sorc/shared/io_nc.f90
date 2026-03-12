@@ -127,19 +127,21 @@ SUBROUTINE initial_read(fname, nvar, ncid, varid, &
   xmetric%ulat = allvars(:,:,2)
   xmetric%ulon = allvars(:,:,1)
   !debug: PRINT *,'ulon nc readin ',MAXVAL(xmetric%ulon), MINVAL(xmetric%ulon)
-  WHERE(xmetric%ulon > 720) xmetric%ulon = xmetric%ulon - 720
-  WHERE(xmetric%ulon > 360) xmetric%ulon = xmetric%ulon - 360
+  xmetric%ulon = modulo(xmetric%ulon,360.0_real64)
   !debug: PRINT *,'ulat nc readin ',MAXVAL(xmetric%ulat), MINVAL(xmetric%ulat)
   !debug: PRINT *,'ulon nc readin after cleanup',MAXVAL(xmetric%ulon), MINVAL(xmetric%ulon)
+
   !debug -- regular latlon grid:
-  dlat = 180./xmetric%ny
-  dlon = 360./xmetric%nx
+  dlat = 180._real64/xmetric%ny
+  dlon = 360._real64/xmetric%nx
   DO j = 1, xmetric%ny
-    xmetric%ulat(:,j) = j*dlat - 90.0 - dlat/2.
+    xmetric%ulat(:,j) = (j-0.5_real64)*dlat - 90.0_real64
   ENDDO
   DO i = 1, xmetric%nx
-    xmetric%ulon(i,:) = i*dlon - dlon/2.
+    xmetric%ulon(i,:) = (i-0.5_real64)*dlon
   ENDDO
+  PRINT *,'ulat max min',MAXVAL(xmetric%ulat), MINVAL(xmetric%ulat)
+  PRINT *,'ulon max min',MAXVAL(xmetric%ulon), MINVAL(xmetric%ulon)
   !end debug
 
   !timing CALL cpu_time(start_time)
