@@ -140,8 +140,8 @@ SUBROUTINE initial_read(fname, nvar, ncid, varid, &
   DO i = 1, xmetric%nx
     xmetric%ulon(i,:) = (i-0.5_real64)*dlon
   ENDDO
-  PRINT *,'ulat max min',MAXVAL(xmetric%ulat), MINVAL(xmetric%ulat)
-  PRINT *,'ulon max min',MAXVAL(xmetric%ulon), MINVAL(xmetric%ulon)
+  !debug: PRINT *,'ulat max min',MAXVAL(xmetric%ulat), MINVAL(xmetric%ulat)
+  !debug: PRINT *,'ulon max min',MAXVAL(xmetric%ulon), MINVAL(xmetric%ulon)
   !end debug
 
   !timing CALL cpu_time(start_time)
@@ -290,18 +290,16 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
     IF (bad_fi(i) < 1 .or. bad_fi(i) >= flag .or. ieee_is_nan(bad_fi(i)) .or. &
         bad_fj(i) < 1 .or. bad_fj(i) >= flag .or. ieee_is_nan(bad_fj(i)) ) THEN
       !debug: 
-      WRITE(*,9010) buoylist(bad_index(i))%ilat, buoylist(bad_index(i))%ilon
- 9010 FORMAT('could not place ',2E14.6)
       buoylist(bad_index(i))%ilat = flag
       buoylist(bad_index(i))%ilon = flag
-      buoylist(bad_index(i))%x = flag
-      buoylist(bad_index(i))%y = flag
+      buoylist(bad_index(i))%x    = flag
+      buoylist(bad_index(i))%y    = flag
       buoylist(bad_index(i))%clat = flag
       buoylist(bad_index(i))%clon = flag
       very_bad = very_bad + 1
     ELSE
-      buoylist(bad_index(i))%x = bad_fi(i)
-      buoylist(bad_index(i))%y = bad_fj(i)
+      buoylist(bad_index(i))%x    = bad_fi(i)
+      buoylist(bad_index(i))%y    = bad_fj(i)
       buoylist(bad_index(i))%clat = bad_lat(i)
       buoylist(bad_index(i))%clon = bad_lon(i)
     ENDIF

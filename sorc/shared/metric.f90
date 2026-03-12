@@ -131,7 +131,7 @@ SUBROUTINE local_cartesian(this)
 !  ENDDO
 !  ENDDO
 
-  PRINT *,'cartesian dx',MAXVAL(this%dx), MINVAL(this%dx)
+  !debug: PRINT *,'cartesian dx',MAXVAL(this%dx), MINVAL(this%dx)
 
   RETURN
 END subroutine local_cartesian
