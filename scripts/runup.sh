@@ -24,16 +24,17 @@ set -xe
 pid=$$
 
 ##Wcoss2
-#mkdir -p /lfs/h2/emc/ptmp/wx21rg/devdrift.$pid
-#cd /lfs/h2/emc/ptmp/wx21rg/devdrift.$pid
+mkdir -p /lfs/h2/emc/ptmp/wx21rg/devdrift.$pid
+cd /lfs/h2/emc/ptmp/wx21rg/devdrift.$pid
+
 ##ursa
-mkdir -p /scratch3/NCEPDEV/stmp/wx21rg/devdrift.$pid
-cd /scratch3/NCEPDEV/stmp/wx21rg/devdrift.$pid
+#mkdir -p /scratch3/NCEPDEV/stmp/wx21rg/devdrift.$pid
+#cd /scratch3/NCEPDEV/stmp/wx21rg/devdrift.$pid
 
 export PDY=20260226
 export COMOUT=$HOME/noscrub/devdrift
 export end=`date +"%Y%m%d"`
-export end=20260226
+#export end=20260226
 
 
 while [ $PDY -le $end ]
