@@ -131,18 +131,18 @@ SUBROUTINE initial_read(fname, nvar, ncid, varid, &
   !debug: PRINT *,'ulat nc readin ',MAXVAL(xmetric%ulat), MINVAL(xmetric%ulat)
   !debug: PRINT *,'ulon nc readin after cleanup',MAXVAL(xmetric%ulon), MINVAL(xmetric%ulon)
 
-  !debug -- regular latlon grid:
-  dlat = 180._real64/xmetric%ny
-  dlon = 360._real64/xmetric%nx
-  DO j = 1, xmetric%ny
-    xmetric%ulat(:,j) = (j-0.5_real64)*dlat - 90.0_real64
-  ENDDO
-  DO i = 1, xmetric%nx
-    xmetric%ulon(i,:) = (i-0.5_real64)*dlon
-  ENDDO
-  !debug: PRINT *,'ulat max min',MAXVAL(xmetric%ulat), MINVAL(xmetric%ulat)
-  !debug: PRINT *,'ulon max min',MAXVAL(xmetric%ulon), MINVAL(xmetric%ulon)
-  !end debug
+  !!debug -- regular latlon grid:
+  !dlat = 180._real64/xmetric%ny
+  !dlon = 360._real64/xmetric%nx
+  !DO j = 1, xmetric%ny
+  !  xmetric%ulat(:,j) = (j-0.5_real64)*dlat - 90.0_real64
+  !ENDDO
+  !DO i = 1, xmetric%nx
+  !  xmetric%ulon(i,:) = (i-0.5_real64)*dlon
+  !ENDDO
+  !!debug: PRINT *,'ulat max min',MAXVAL(xmetric%ulat), MINVAL(xmetric%ulat)
+  !!debug: PRINT *,'ulon max min',MAXVAL(xmetric%ulon), MINVAL(xmetric%ulon)
+  !!end debug
 
   !timing CALL cpu_time(start_time)
   CALL xmetric%local_metric()
