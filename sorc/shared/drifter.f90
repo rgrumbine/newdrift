@@ -21,10 +21,9 @@ CONTAINS
     USE constants
     USE metric_mod
     IMPLICIT none
-    REAL(kind=real64), intent(in) :: tlon, tlat, clon, clat
     TYPE(metric), intent(in) :: xmetric
     CLASS(drifter), intent(inout) :: buoy
-    REAL(kind=real64) :: x, y
+    REAL(kind=real64), intent(in) :: tlon, tlat, clon, clat
 
     buoy%ilat = tlat
     buoy%ilon = tlon
@@ -36,15 +35,12 @@ CONTAINS
       buoy%clon = tlon
     endif
 
-    CALL xmetric%ll_to_xy(clat, clon, x, y)
-    buoy%x = x
-    buoy%y = y
-    if (x >= flag .or. y >= flag) THEN
+    CALL xmetric%ll_to_xy(clat, clon, buoy%x, buoy%y)
+    if (buoy%x >= flag .or. buoy%y >= flag) THEN
       !debug: PRINT *,'skipping buoy at ',clat, clon
       buoy%clat = flag
       buoy%clon = flag
     endif
-    !RG: initialize to skip if dlon/d(ij) too large
 
     RETURN
   END SUBROUTINE init
@@ -113,8 +109,7 @@ CONTAINS
  9001 FORMAT('buoy out of bounds ',2I5,2F10.3,2I11,2E14.6)
       CALL invalidate_buoy(buoy)
     ELSE IF (abs(xmetric%dlondj(nti,ntj)) > 80 .or. abs(xmetric%dlondi(nti,ntj)) > 80 ) THEN
-      !debug: 
-      WRITE(*,9002) ti,tj,nti, ntj,xmetric%dlondj(nti,ntj), xmetric%dlondi(nti,ntj)
+      !debug: WRITE(*,9002) ti,tj,nti, ntj,xmetric%dlondj(nti,ntj), xmetric%dlondi(nti,ntj)
  9002 FORMAT('near seam ',4I5,2E14.6)
       CALL invalidate_buoy(buoy)
     ELSE 
@@ -150,25 +145,23 @@ SUBROUTINE run(buoys, nbuoy, u, v, xmetric, dt)
   INTEGER k, track
 
   track = 0
-  !debug: 
-  !track = INT(0.5+nbuoy*5./6.)
-  track = 118703
+  !debug: track = 118100
 
   DO k = 1, nbuoy
     !c-like (object-like) 
     !debug: 
     IF (k .eq. track) THEN
-      WRITE(*,9001) buoys(k)%clat, buoys(k)%clon, buoys(k)%x, buoys(k)%y
+      WRITE(*,9001) buoys(k)%ilat, buoys(k)%ilon, buoys(k)%clat, buoys(k)%clon, buoys(k)%x, buoys(k)%y
     ENDIF
 
     CALL buoys(k)%move(u, v, xmetric, dt)
     !debug: 
     IF (k .eq. track) THEN
-      WRITE(*,9002) buoys(k)%clat, buoys(k)%clon, buoys(k)%x, buoys(k)%y, dt
+      WRITE(*,9002) buoys(k)%ilat, buoys(k)%ilon, buoys(k)%clat, buoys(k)%clon, buoys(k)%x, buoys(k)%y, dt
     ENDIF
   ENDDO
- 9001 FORMAT('track',4F10.4)
- 9002 FORMAT('track',4F10.4, 1x,F7.1)
+ 9001 FORMAT('track',6F10.4)
+ 9002 FORMAT('track',6F10.4, 1x,F7.1)
 
 END SUBROUTINE run
 

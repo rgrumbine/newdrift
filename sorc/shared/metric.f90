@@ -149,8 +149,9 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
   REAL(kind=real64) :: ratio, wrap
   REAL(kind=real64) :: flat, flon
 
-! if flag values (lat or lon >= flag) skip, assign xy to flag, flag
-  IF (lat >= flag .or. lon >= flag) THEN
+! if flag values (lat or lon >= flag) skip, assign xy to flag
+! also skip for exactly on north pole
+  IF (lat >= flag .or. lon >= flag .or. lat == 90.0_real64) THEN
     x = flag
     y = flag
     RETURN
@@ -159,7 +160,7 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
 ! Use something like Newton method with starting point as if grid were linear
   itmax = 90
   iter  = 0
-  toler = 1./1024./128./8. ! degrees
+  toler = 1./1024./1024. ! degrees
   ratio = 1.0
 
   tlon = lon
@@ -173,8 +174,6 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
   !fj = (tlat+78.64)*this%ny/(90+78.64)
 
   if (fi <= 0.5) fi = 1
-
-  if (lat == 90) tlat = lat - 0.05
 
   ii    = nint(fi)
   ij    = nint(fj)

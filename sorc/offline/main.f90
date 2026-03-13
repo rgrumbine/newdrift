@@ -148,8 +148,8 @@ PROGRAM newdrift
 ! First/only time step (u,v, etc. in hand):
   !timing CALL cpu_time(start_time)
   !debug 0.2778 ~= 1 km/hr: 
-  u = +1000.0_real64 / 3600.0_real64
-  v = -0000.0_real64 / 3600.0_real64
+  u = +0000.0_real64 / 3600.0_real64
+  v = -1000.0_real64 / 3600.0_real64
   !debug: PRINT *,'calling run'
   ndiv = 1
   dtdiv = dt/ndiv
