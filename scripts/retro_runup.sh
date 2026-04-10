@@ -1,18 +1,28 @@
 #!/bin/bash 
+##ursa
+#SBATCH -J devdrift
+#SBATCH -e devdrift.err
+#SBATCH -o devdrift.out
+#SBATCH -t 7:55:00
+#SBATCH -q batch
+#SBATCH -A marine-cpu
+#SBATCH -N 1
+#SBATCH --mem=3g
 ##Wcoss2
-#PBS -N driftup
-#PBS -o driftup
-#PBS -j oe
-#PBS -A ICE-DEV
-#PBS -q dev
-#PBS -l walltime=6:00:00
-#PBS -l select=1:ncpus=1
+##PBS -N driftup
+##PBS -o driftup
+##PBS -j oe
+##PBS -A ICE-DEV
+##PBS -q dev
+##PBS -l walltime=6:00:00
+##PBS -l select=1:ncpus=1
+
 
 set -x
 
 cd $HOME/rgdev/devdrift/scripts
 
-export PDY=20251201
+export PDY=20250601
 export COMOUT=$HOME/noscrub/devdrift_retro
 if [ ! -d $COMOUT ] ; then
   mkdir -p $COMOUT

@@ -1,24 +1,24 @@
 #!/bin/bash 
-###WCOSS2
-#PBS -N driftup4
-#PBS -o driftup4
-#PBS -j oe
-#PBS -A ICE-DEV
-#PBS -q dev
-#PBS -l walltime=6:00:00
-#PBS -l select=1:ncpus=1
-
-#ursa
-#SBATCH -J devdrift09
-#SBATCH -e devdrift09.err
-#SBATCH -o devdrift09.out
+##ursa
+#SBATCH -J rtofsdrift
+#SBATCH -e rtofsdrift.err
+#SBATCH -o rtofsdrift.out
 #SBATCH -t 7:55:00
 #SBATCH -q batch
 #SBATCH -A marine-cpu
 #SBATCH -N 1
 #SBATCH --mem=3g
 #SBATCH --mail-type FAIL
-#SBATCH --mail-user USER@system
+#SBATCH --mail-user robert.grumbine@noaa.gov
+###WCOSS2
+##PBS -N driftup4
+##PBS -o driftup4
+##PBS -j oe
+##PBS -A ICE-DEV
+##PBS -q dev
+##PBS -l walltime=6:00:00
+##PBS -l select=1:ncpus=1
+
 
 set -xe
 pid=$$
@@ -31,10 +31,10 @@ pid=$$
 mkdir -p /scratch3/NCEPDEV/stmp/wx21rg/devdrift.$pid
 cd /scratch3/NCEPDEV/stmp/wx21rg/devdrift.$pid
 
-export PDY=20260226
+export PDY=20250301
 export COMOUT=$HOME/noscrub/devdrift
 export end=`date +"%Y%m%d"`
-export end=20260226
+export end=20260331
 
 while [ $PDY -le $end ]
 do
