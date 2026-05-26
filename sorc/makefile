@@ -1,5 +1,5 @@
 #Shared:
-SHARE = math.o metric.o drifter.o io_nc.o irreg_ll2ij_cice.o 
+SHARE = math.o metric.o drifter.o io_nc.o irreg_ll2ij_cice.o kd.o kdfind.o 
 
 #Offline:
 OBJ = $(SHARE) main.o 

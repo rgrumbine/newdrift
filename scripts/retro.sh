@@ -18,6 +18,7 @@ PDY=${PDY:-20250601}
 #COMIN=$HOME/noscrub/retros/gfs.$PDY/00/model/ice/history/
 
 #ursa:
+ . /etc/profile.d/modules.sh
 module load intel-oneapi-compilers
 module load hpc-x/2.18.1-icc
 module load netcdf-c/4.9.2
@@ -40,7 +41,7 @@ cp $HOME/rgdev/devdrift/fix/merged.nc drift_in.nc
 #forecast hours 000 to 384 by 6
 
 EXDIR=${EXDIR:-$HOME/rgdev/devdrift/exec}
-PDY=${PDY:-20260101}
+PDY=${PDY:-20260501}
 
 hhh=006
 count=0
@@ -95,7 +96,7 @@ done
 
 
 #mv outputs to $com
-if [ -f drift_f192.nc ] ; then
+if [ -f drift_f024.nc ] ; then
   mkdir -p $COMOUT/$PDY
   mv *.nc ${PDY}.out $COMOUT/$PDY
 fi

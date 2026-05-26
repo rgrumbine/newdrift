@@ -17,25 +17,34 @@
 ##PBS -l walltime=6:00:00
 ##PBS -l select=1:ncpus=1
 
-
 set -x
 
-cd $HOME/rgdev/devdrift/scripts
+pid=$$
 
-export PDY=20250601
+##Wcoss2
+#mkdir -p /lfs/h2/emc/ptmp/wx21rg/devdrift.$pid
+#cd /lfs/h2/emc/ptmp/wx21rg/devdrift.$pid
+
+##ursa
+mkdir -p /scratch3/NCEPDEV/stmp/wx21rg/devdrift.$pid
+cd /scratch3/NCEPDEV/stmp/wx21rg/devdrift.$pid
+
+export PDY=20260501
+#export PDY=`date +"%Y%m%d"`
 export COMOUT=$HOME/noscrub/devdrift_retro
 if [ ! -d $COMOUT ] ; then
   mkdir -p $COMOUT
 fi
 
 export end=`date +"%Y%m%d"`
-export end=20260409
+#export end=20260409
 #export end=$PDY
 
 while [ $PDY -le $end ]
 do
+  #time $HOME/rgdev/devdrift/scripts/retro.sh > ${PDY}.out
   if [ ! -d $COMOUT/$PDY ] ; then
-    time ./retro.sh > ${PDY}.out
+    time $HOME/rgdev/devdrift/scripts/retro.sh > ${PDY}.out
   else
     echo zzz have $PDY already
   fi

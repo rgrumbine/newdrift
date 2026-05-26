@@ -238,20 +238,24 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
   bad_count = bad_count - 1 
   !RG: now call mass searcher irreg_
   !debug: PRINT *,'calling irreg'
-  !timing CALL cpu_time(start_time)
-!  ALLOCATE(tmp_lat(xmetric%nx, xmetric%ny), tmp_lon(xmetric%nx, xmetric%ny))
-!  tmp_lat = xmetric%ulat
-!  tmp_lon = xmetric%ulon
-!  CALL irreg_ll2ij_cice(xmetric%nx, xmetric%ny, tmp_lat, tmp_lon, &
-!          bad_count, bad_lat, bad_lon, bad_fi, bad_fj)
-  bad_fi = flag
-  bad_fj = flag
-  !timing CALL cpu_time(end_time)
-  !timing PRINT *,'sub readin_drifters irreg timing ',end_time - start_time
+  !timing 
+  CALL cpu_time(start_time)
+  ALLOCATE(tmp_lat(xmetric%nx, xmetric%ny), tmp_lon(xmetric%nx, xmetric%ny))
+  tmp_lat = xmetric%ulat
+  tmp_lon = xmetric%ulon
+  CALL kdfind(xmetric%nx, xmetric%ny, tmp_lat, tmp_lon, &
+          bad_count, bad_lat, bad_lon, bad_fi, bad_fj)
+  !bad_fi = flag
+  !bad_fj = flag
+  !timing 
+  CALL cpu_time(end_time)
+  !timing 
+  PRINT *,'sub readin_drifters kdfind timing ',end_time - start_time
 
   very_bad = 0
   DO i = 1, bad_count
-    !debug: WRITE(*,9010) i, bad_fi(i), bad_fj(i), bad_lat(i), bad_lon(i)
+    !debug: 
+    WRITE(*,9010) i, bad_fi(i), bad_fj(i), bad_lat(i), bad_lon(i)
  9010 FORMAT('retry ',I7,4F10.4)
     IF (bad_fi(i) < 1 .or. bad_fi(i) >= flag .or. ieee_is_nan(bad_fi(i)) .or. &
         bad_fj(i) < 1 .or. bad_fj(i) >= flag .or. ieee_is_nan(bad_fj(i)) ) THEN
@@ -360,7 +364,7 @@ SUBROUTINE outvars(ncid, varid, nvar, buoys, nbuoy)
   INTEGER, intent(in) :: ncid, nvar
   INTEGER, intent(in) :: varid(nvar)
   INTEGER, intent(in) :: nbuoy
-  TYPE(drifter), intent(in) :: buoys(nbuoy)
+  CLASS(drifter), intent(in) :: buoys(nbuoy)
 
   INTEGER retcode
   REAL(kind=real64), allocatable :: var(:,:)
@@ -430,7 +434,8 @@ SUBROUTINE writeout(ncid_out, varid_out, nvar_out, buoys, nbuoy, closeout)
   INTEGER, intent(in) ::  ncid_out, nvar_out, nbuoy
   INTEGER, intent(in) ::  varid_out(nvar_out)
   LOGICAL, intent(in) :: closeout
-  TYPE(drifter), intent(in) :: buoys(nbuoy)
+  !TYPE(drifter), intent(in) :: buoys(nbuoy)
+  CLASS(drifter), intent(in) :: buoys(nbuoy)
 
   CALL outvars(ncid_out, varid_out, nvar_out, buoys, nbuoy )
   IF (closeout) THEN

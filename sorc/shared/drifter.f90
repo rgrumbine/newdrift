@@ -142,7 +142,7 @@ SUBROUTINE run(buoys, nbuoy, u, v, xmetric, dt)
   REAL(kind=real64), intent(in) :: u(xmetric%nx, xmetric%ny), v(xmetric%nx, xmetric%ny)
   REAL(kind=real64), intent(in) :: dt
 
-  TYPE(drifter), intent(inout) ::  buoys(nbuoy)
+  CLASS(drifter), intent(inout) ::  buoys(nbuoy)
 
   INTEGER k, track
 
