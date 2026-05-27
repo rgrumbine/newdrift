@@ -1,5 +1,6 @@
 
 ! Code base from Gemini implementing a k-d tree and searching it in fortran
+! Robert Grumbine
 ! 21 May 2026
 
 SUBROUTINE kdfind( nx, ny, lats, lons, bad_count, bad_lat, bad_lon, bad_fi, bad_fj)

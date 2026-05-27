@@ -1,4 +1,6 @@
 PROGRAM newdrift
+! Robert Grumbine
+! 27 May 2026
 
   USE constants
   USE drifter_mod

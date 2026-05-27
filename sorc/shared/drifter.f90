@@ -3,6 +3,9 @@
 !    grid type (B/C/...) and lat-longs of velocity points.
 !    also time step to extrapolate over
 MODULE drifter_mod
+! Robert Grumbine
+! 27 May 2026
+
   USE metric_mod
   USE constants
 

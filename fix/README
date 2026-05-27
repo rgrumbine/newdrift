@@ -13,3 +13,6 @@ Skiles points plus 25 km-thinned RTOFS grid, built by thin.py
 Skiles points, text and .nc, format by reformat_points.py
 -rw-r--r-- 1 robert.grumbine couple   7038 Oct  3  2023 seaice_forecast.points
 -rw-r--r-- 1 robert.grumbine couple   8063 Oct  3  2023 skiles_pts.nc
+
+Robert Grumbine
+31 January 2024

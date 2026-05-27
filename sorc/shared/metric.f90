@@ -1,4 +1,7 @@
 MODULE metric_mod
+!Robert Grumbine
+! 27 May 2026
+
     USE constants
 
     !module

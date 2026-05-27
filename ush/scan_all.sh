@@ -1,5 +1,8 @@
 #!/bin/sh
 #
+# Robert Grumbine
+# 27 May 2026
+
 f=000
 #set -x
 while [ $f -le 192 ]
