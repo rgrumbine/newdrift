@@ -1,5 +1,7 @@
-The output is at ftp://ftpprd.ncep.noaa.gov/pub/data/nccf/com/rtofs/prod/rtofs.YYYYMMDD
+Most recent RTOFS output is at https://nomads.ncep.noaa.gov/pub/data/nccf/com/rtofs/prod/rtofs.YYYYMMDD
 where YYYYMMDD is the 8 digit date, 20220201 today.
+
+The last year, maybe more, is at https://noaa-nws-rtofs-pds.s3.amazonaws.com/index.html
 
 The files to use are rtofs_glo_2ds_fHHH_ice.nc
 where f is forecast, HHH is hours, 
@@ -10,3 +12,5 @@ Also rtofs_glo_2ds_nHHH_ice.nc
 where n is nowcast, and hours is hours before now HHH is 
   000 to 024 by 1
 
+Robert Grumbine
+27 May 2026

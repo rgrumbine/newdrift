@@ -1,9 +1,3 @@
-import sys
-from datetime import date
-
-import numpy as np
-import netCDF4 as nc
-#-------------------------------------------------
 """
 Read in a text file of lat-lon points, optionally with names (for future)
 and write out a netcdf file with those as initial latitude-longitudes for
@@ -13,9 +7,14 @@ Robert Grumbine
 26 July 2023
 
 """
+import sys
+from datetime import date
+
+import numpy as np
+import netCDF4 as nc
 
 #-------------------------------------------------
-fin = open(sys.argv[1],"r")
+fin = open(sys.argv[1],"r", encoding='utf-8')
 
 lats = []
 lons = []
@@ -38,8 +37,7 @@ npts = len(lats)
 # Open the file for output and establish its side:
 ncfile = nc.Dataset(sys.argv[2], mode='w', format='NETCDF4')
 nbuoy  = ncfile.createDimension('nbuoy', size=npts)
-#debug: 
-print(nbuoy)
+#debug: print(nbuoy)
 #debug: exit(0)
 #Generic global header info:   --------------------------------------------
 ncfile.title = sys.argv[2]
@@ -57,7 +55,7 @@ ncfile.setncattr("creator_email","Robert.Grumbine@noaa.gov")
 # Buoy information --------------------------------------------
 dtype = np.dtype('float32')
 
-#For python 3.10 / netcdf 1.6.4
+#For python 3.10 / netcdf 1.6.4 or more recent
 ncfile.createVariable('initial_longitude', dtype, dimensions=( nbuoy ) )
 ncfile.createVariable('initial_latitude', dtype, dimensions=( nbuoy )  )
 
