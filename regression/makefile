@@ -28,8 +28,16 @@ TARGETS   = $(TEST_SRCS:.f90=)
 # ====================================================================
 
 # 'all' builds every single executable listed in $(TARGETS)
+
+.PHONY: all run
+
 all: $(TARGETS)
 
+run: $(TARGETS)
+	@echo "trying to run targets"
+	@for exec in $(TARGETS); do \
+		./$$exec; \
+	done
 
 # Pattern Rule for Linking Executables
 # This rule tells Make: "To create an executable named X, look for X.o
