@@ -20,11 +20,9 @@ program test_drifter_kinematics
         end do
     end do
     call dynamic_mesh%local_metric()
-    PRINT *,'dx = ',dynamic_mesh%dx
+    !debug: PRINT *,'dx = ',dynamic_mesh%dx
 
     
-    !dynamic_mesh%dx = 1000.0_real64  ! 1 km resolution boxes
-    !dynamic_mesh%dy = 1000.0_real64
     allocate(u(10, 10), v(10, 10))
     u = 10.0_real64                  ! Constant eastward drift force (10 m/s)
     v = 0.0_real64
@@ -43,8 +41,11 @@ program test_drifter_kinematics
 
     ! Expected position displacement calculation: 
     ! di delta = (u * dt) / dx = (10 * 100) / 1000 = 1.0 complete grid node step forward
-    if (abs(test_buoy%x - 6.0_real64) > 1.0e-2) then
+    if (abs((test_buoy%clon - test_buoy%ilon)*dynamic_mesh%dx(5,5) - 1000.0_real64) > 1.0e-2) then
         print *, "[FAIL] Kinetic movement updates missed tracking displacement targets: ", test_buoy%x
+        PRINT *,test_buoy%x, test_buoy%y, test_buoy%clat, test_buoy%clon
+        PRINT *,test_buoy%clon, test_buoy%ilon, dynamic_mesh%dx(5,5)
+        PRINT *,(test_buoy%clon - test_buoy%ilon)*dynamic_mesh%dx(5,5)
         stop 1
     else
         print *, "[PASS] Buoy object updated coordinate displacements cleanly."

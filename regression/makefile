@@ -1,7 +1,7 @@
 
 # 1. Compiler and Flag Definitions
 FC       = gfortran
-FFLAGS   = -O3 -march=native -funroll-loops -ffast-math
+FFLAGS   = -O3 -march=native -funroll-loops -ffast-math -std=f2018
 
 # 2. Shared Source Dependencies
 # These are the baseline module files required by the test programs.
@@ -30,11 +30,13 @@ TARGETS   = $(TEST_SRCS:.f90=)
 # 'all' builds every single executable listed in $(TARGETS)
 all: $(TARGETS)
 
+
 # Pattern Rule for Linking Executables
 # This rule tells Make: "To create an executable named X, look for X.o
 # and combine it with all the shared object binaries."
 %: %.o $(SHARED_OBJS)
 	$(FC) $(FFLAGS) -o $@ $^
+	$@	
 
 # Pattern Rule for Compiling Object Files (.f90 -> .o)
 # Applies universally to both shared files and individual test files.
@@ -63,3 +65,5 @@ test_drifter_kinematics.o: drifter.o metric.o
 #==============================
 clean:
 	rm *.o *.mod
+distclean: clean
+	rm $(TARGETS)
