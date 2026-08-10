@@ -1,4 +1,12 @@
 #!/bin/bash 
+###WCOSS2
+#PBS -N driftup
+#PBS -o driftup
+#PBS -j oe
+#PBS -A ICE-DEV
+#PBS -q dev
+#PBS -l walltime=8:00:00
+#PBS -l select=1:ncpus=1
 ##ursa
 #SBATCH -J rtofsdrifta
 #SBATCH -e rtofsdrifta.err
@@ -10,14 +18,6 @@
 #SBATCH --mem=3g
 #SBATCH --mail-type FAIL
 #SBATCH --mail-user robert.grumbine@noaa.gov
-###WCOSS2
-##PBS -N driftup4
-##PBS -o driftup4
-##PBS -j oe
-##PBS -A ICE-DEV
-##PBS -q dev
-##PBS -l walltime=6:00:00
-##PBS -l select=1:ncpus=1
 
 #Robert Grumbine
 #27 May 2026
@@ -33,7 +33,7 @@ cd /lfs/h2/emc/ptmp/wx21rg/devdrift.$pid
 #mkdir -p /scratch3/NCEPDEV/stmp/wx21rg/devdrift.$pid
 #cd /scratch3/NCEPDEV/stmp/wx21rg/devdrift.$pid
 
-export PDY=20260501
+export PDY=20260601
 export COMOUT=$HOME/noscrub/devdrift
 export end=`date +"%Y%m%d"`
 #export end=20260331
