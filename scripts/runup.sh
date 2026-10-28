@@ -9,9 +9,9 @@
 #PBS -l select=1:ncpus=1
 
 #ursa
-#SBATCH -J devdrift09
-#SBATCH -e devdrift09.err
-#SBATCH -o devdrift09.out
+#SBATCH -J newdrift
+#SBATCH -e newdrift.err
+#SBATCH -o newdrift.out
 #SBATCH -t 7:55:00
 #SBATCH -q batch
 #SBATCH -A marine-cpu
