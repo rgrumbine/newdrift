@@ -1,5 +1,7 @@
 '''
 Simple plots of drift for various regions
+Robert Grumbine
+27 May 2026
 '''
 
 import sys
