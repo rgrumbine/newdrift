@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#Robert Grumbine
+#28 October 2026
+
 #modules :
 
 ## wcoss2:
