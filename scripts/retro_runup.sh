@@ -32,7 +32,7 @@ pid=$$
 mkdir -p /scratch3/NCEPDEV/stmp/wx21rg/devdrift.$pid
 cd /scratch3/NCEPDEV/stmp/wx21rg/devdrift.$pid
 
-export PDY=20260501
+export PDY=20260901
 #export PDY=`date +"%Y%m%d"`
 export COMOUT=$HOME/noscrub/devdrift_retro
 if [ ! -d $COMOUT ] ; then
