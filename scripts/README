@@ -1,0 +1,19 @@
+Due to variability in paths, details of netcdf files, and the like, in 
+    general there are 3 files for each model:
+
+.vars -- lists the .nc variable names and, on the first line, flags 
+            whether nx is output before (1) or after (2) ny in the .nc
+model.sh -- for each model, has the details about running the processor 
+            for that model
+model_runup.sh -- for each model, controls running up over a history
+  
+ufs.vars
+retro.sh
+retro_runup.sh
+
+rtofs.vars
+rtofs.sh
+runup.sh
+
+Robert Grumbine
+27 May 2026
