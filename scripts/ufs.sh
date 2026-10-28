@@ -9,7 +9,7 @@
 
 set -xe
 
-PDY=${PDY:-20250601}
+PDY=${PDY:-20260801}
 
 ##wcoss2
 module load intel netcdf
@@ -21,7 +21,7 @@ COMIN=$HOME/noscrub/v17/gfs.$PDY/00/model/ice/history/
 #module load intel-oneapi-compilers
 #module load hpc-x/2.18.1-icc
 #module load netcdf-c/4.9.2
-#module load netcdf-fortran/4.6.1
+#module load netcdf-fortran/4.6.2
 #export NETCDF=$NETCDF_FORTRAN_ROOT
 #COMIN=$HOME/clim_data/rtofs/rtofs.$PDY/
 #COMIN=$HOME/clim_data/stream4/gfs.${PDY}/00/model/ice/history/
@@ -39,8 +39,23 @@ cp $HOME/rgdev/devdrift/fix/merged.nc drift_in.nc
 #Loop:
 #forecast hours 000 to 384 by 6
 
+cp $HOME/rgdev/devdrift/fix/merged.nc drift_in.nc
+#cp $HOME/rgdev/newdrift/fix/skiles_pts.nc drift_in.nc
+#cp $HOME/rgdev/newdrift/fix/seaice_edge.nc drift_in.nc
+
+#Loop -- rtofs
+#forecast hours 000 to 072 by 1
+#forecast hours 072 to 192 by 3
+#Loop -- ufs
+#forecast hours 006 to 240 by 6
+
 EXDIR=${EXDIR:-$HOME/rgdev/devdrift/exec}
-PDY=${PDY:-20260101}
+tag=${tag:-20260801}
+#macos: base=/Volumes/Data/rtofs/
+#hera: base=$HOME/clim_data/rtofs/rtofs.$tag/
+#wcoss2:
+#base=$HOME/noscrub/model_intercompare/rtofs_cice/rtofs.$tag/
+base=$HOME/noscrub/retros/gfs.$tag/00/model/ice/history/
 
 hhh=006
 count=0
