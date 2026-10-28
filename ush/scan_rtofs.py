@@ -1,5 +1,10 @@
+'''
+Scan rtofs output file for valid ice velocities and print out concentration, velocity, speed
+27 May 2026
+Robert Grumbine
+'''
 import sys
-from math import *
+from math import sqrt
 import netCDF4
 
 buoys = netCDF4.Dataset(sys.argv[1], 'r')

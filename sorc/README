@@ -1,3 +1,6 @@
+#Robert Grumbine
+#27 May 2026
+
 Input:
 cice.nc     -- file with ice velocities 
 output.nc   -- output file name

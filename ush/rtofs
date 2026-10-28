@@ -1,4 +1,4 @@
-The output is at ftp://ftpprd.ncep.noaa.gov/pub/data/nccf/com/rtofs/prod/rtofs.YYYYMMDD
+The output is at https://nomads.ncep.noaa.gov/pub/data/nccf/com/rtofs/prod/rtofs.YYYYMMDD
 where YYYYMMDD is the 8 digit date, 20220201 today.
 
 The files to use are rtofs_glo_2ds_fHHH_ice.nc
@@ -10,3 +10,5 @@ Also rtofs_glo_2ds_nHHH_ice.nc
 where n is nowcast, and hours is hours before now HHH is 
   000 to 024 by 1
 
+
+On AWS cloud https://noaa-nws-rtofs-pds.s3.amazonaws.com/index.html

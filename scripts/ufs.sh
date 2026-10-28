@@ -1,5 +1,5 @@
 #!/bin/bash 
-#PBS -N newdrift
+#PBS -N devdrift
 #PBS -o driftout
 #PBS -j oe
 #PBS -A ICE-DEV
@@ -7,18 +7,39 @@
 #PBS -l walltime=6:00:00
 #PBS -l select=1:ncpus=1
 
-#set -xe
+set -xe
+
+PDY=${PDY:-20260801}
+
+##wcoss2
+module load intel netcdf
+module load prod_envir wgrib2
+COMIN=$HOME/noscrub/model_intercompare/rtofs_cice/rtofs.$PDY/
+COMIN=$HOME/noscrub/v17/gfs.$PDY/00/model/ice/history/
+
+#ursa:
+#module load intel-oneapi-compilers
+#module load hpc-x/2.18.1-icc
+#module load netcdf-c/4.9.2
+#module load netcdf-fortran/4.6.2
+#export NETCDF=$NETCDF_FORTRAN_ROOT
+#COMIN=$HOME/clim_data/rtofs/rtofs.$PDY/
+#COMIN=$HOME/clim_data/stream4/gfs.${PDY}/00/model/ice/history/
+
+#macos: COMIN=/Volumes/Data/rtofs/
+
+#cd $HOME/rgdev/devdrift/sorc/
 
 #initialize
 #drift_in -- file with full 6 values drifters, set to -99 for i,j,clat, clon
 #  at readin/initialize, set i,j and clat/clon = ilat/ilon
-module load intel netcdf
-module load prod_envir wgrib2
-#module list
+cp $HOME/rgdev/devdrift/fix/merged.nc drift_in.nc
+#cp $HOME/rgdev/devdrift/fix/skiles_pts.nc drift_in.nc
 
-#cd $HOME/rgdev/newdrift/sorc/
+#Loop:
+#forecast hours 000 to 384 by 6
 
-cp $HOME/rgdev/newdrift/fix/merged.nc drift_in.nc
+cp $HOME/rgdev/devdrift/fix/merged.nc drift_in.nc
 #cp $HOME/rgdev/newdrift/fix/skiles_pts.nc drift_in.nc
 #cp $HOME/rgdev/newdrift/fix/seaice_edge.nc drift_in.nc
 
@@ -28,8 +49,8 @@ cp $HOME/rgdev/newdrift/fix/merged.nc drift_in.nc
 #Loop -- ufs
 #forecast hours 006 to 240 by 6
 
-EXDIR=${EXDIR:-$HOME/rgdev/newdrift/exec}
-tag=${tag:-20250101}
+EXDIR=${EXDIR:-$HOME/rgdev/devdrift/exec}
+tag=${tag:-20260801}
 #macos: base=/Volumes/Data/rtofs/
 #hera: base=$HOME/clim_data/rtofs/rtofs.$tag/
 #wcoss2:
@@ -41,19 +62,20 @@ count=0
 # Pick up from partial run:
 #cp drift_f010.nc drift_in.nc
 #hhh=011
-while [ $hhh -le 240 ] 
+
+while [ $hhh -le 384 ] 
 #while [ $hhh -le 024 ] 
 #while [ $hhh -le 000 ] 
 do
-  fname=gfs.ice.t00z.6hr_avg.f${hhh}.nc
-  if [ ! -f ${base}/$fname ] ; then
-    echo could not find ${base}/$fname
+  fname=gfs.t00z.6hr_avg.f${hhh}.nc
+  if [ ! -f ${COMIN}/$fname ] ; then
+    echo could not find ${COMIN}/$fname
     exit 1
   #else
-  #  ls -l ${base}/$fname 
+  #  ls -l ${COMIN}/$fname 
   fi
 
-  echo \'${base}/$fname\' > runin 
+  echo \'${COMIN}/$fname\' > runin 
   echo \'drift_in.nc\'   >> runin
   echo \'out_${hhh}.nc\' >> runin
   if [ $hhh -lt 72 ] ; then
@@ -70,8 +92,8 @@ do
   else
     echo .TRUE. >> runin
   fi
-  cat ufs.vars >> runin
-  echo runin | time $EXDIR/drifter_retro
+  cat $HOME/rgdev/devdrift/scripts/ufs.vars >> runin
+  echo runin | time $EXDIR/drifter
 
   cp out_${hhh}.nc drift_f${hhh}.nc
   mv out_${hhh}.nc drift_in.nc
@@ -89,6 +111,6 @@ done
 
 #mv outputs to $com
 if [ -f drift_f192.nc ] ; then
-  mkdir -p $COMOUT/$tag
-  mv *.nc ${tag}.out $COMOUT/$tag
+  mkdir -p $COMOUT/$PDY
+  mv *.nc ${PDY}.out $COMOUT/$PDY
 fi

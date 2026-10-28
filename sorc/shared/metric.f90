@@ -1,4 +1,7 @@
 MODULE metric_mod
+!Robert Grumbine
+! 27 May 2026
+
     USE constants
 
     !module
@@ -98,8 +101,6 @@ SUBROUTINE local_metric(this)
   !debug: PRINT *,'dlatdi max min',MAXVAL(this%dlatdi), MINVAL(this%dlatdi)
   !debug: PRINT *,'dlondi max min',MAXVAL(this%dlondi), MINVAL(this%dlondi)
   
-  !rot = atan2(?,?)
-
   RETURN
 END subroutine local_metric
 
@@ -108,21 +109,32 @@ SUBROUTINE local_cartesian(this)
   USE constants
   IMPLICIT none
   CLASS(metric), intent(inout) :: this
-  INTEGER k
   INTEGER i, j
+  REAL(kind=real64) :: harcdis
 
 ! From WGS84 via Amy Solomon, ESRL
 ! Meters per degree
   DO j = 1, this%ny
   DO i = 1, this%nx
-    this%dy(i,j) = 111132.92 - 559.82*cos(2*this%ulat(i,j)*rpd) + &
-                           1.175 *cos(4*this%ulat(i,j)*rpd) - &
-                           0.0023*cos(6*this%ulat(i,j)*rpd)
-    this%dx(i,j) = 111412.84 *cos(  this%ulat(i,j)*rpd) - &
-                       93.5  *cos(3*this%ulat(i,j)*rpd) + &
-                        0.118*cos(5*this%ulat(i,j)*rpd)
+    this%dy(i,j) = 111132.92_real64 - &
+                      559.82_real64  *cos(2.0_real64*this%ulat(i,j)*rpd) + &
+                        1.175_real64 *cos(4.0_real64*this%ulat(i,j)*rpd) - &
+                        0.0023_real64*cos(6.0_real64*this%ulat(i,j)*rpd)
+    this%dx(i,j) = 111412.84_real64 *cos(  this%ulat(i,j)*rpd) - &
+                       93.5_real64  *cos(3.0_real64*this%ulat(i,j)*rpd) + &
+                        0.118_real64*cos(5.0_real64*this%ulat(i,j)*rpd)
   ENDDO
   ENDDO
+
+!! Spherical
+!  DO j = 1, this%ny
+!  DO i = 1, this%nx
+!    this%dy(i,j) = 111111.0
+!    this%dx(i,j) = 111111.0 * cos(this%ulat(i,j)*rpd)
+!  ENDDO
+!  ENDDO
+
+  !debug: PRINT *,'cartesian dx',MAXVAL(this%dx), MINVAL(this%dx)
 
   RETURN
 END subroutine local_cartesian
@@ -140,8 +152,9 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
   REAL(kind=real64) :: ratio, wrap
   REAL(kind=real64) :: flat, flon
 
-! if flag values (lat or lon >= flag) skip, assign xy to flag, flag
-  IF (lat >= flag .or. lon >= flag) THEN
+! if flag values (lat or lon >= flag) skip, assign xy to flag
+! also skip for exactly on north pole
+  IF (lat >= flag .or. lon >= flag .or. lat == 90.0_real64) THEN
     x = flag
     y = flag
     RETURN
@@ -150,7 +163,7 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
 ! Use something like Newton method with starting point as if grid were linear
   itmax = 90
   iter  = 0
-  toler = 1./8192. ! degrees
+  toler = 1./1024./1024. ! degrees
   ratio = 1.0
 
   tlon = lon
@@ -164,8 +177,6 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
   !fj = (tlat+78.64)*this%ny/(90+78.64)
 
   if (fi <= 0.5) fi = 1
-
-  if (lat == 90) tlat = lat - 0.05
 
   ii    = nint(fi)
   ij    = nint(fj)
@@ -233,10 +244,6 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
       dlon = tlon - flon
       !debug: PRINT *,'dlat dlon ',dlat, dlon
     ENDIF
-    !dlat = tlat - this%ulat(ii,ij)
-    !tlon = this%ulon(ii,ij)
-    !if (tlon > 360. .or. tlon < 0) tlon = wrap(tlon)
-    !dlon = lon - tlon
 
 !debug2:     WRITE(*,9001) iter, dfi, dfj, fi, fj, dlat, dlon, lat, lon, flat, flon
     IF (iter > nint(0.6*itmax) ) THEN
@@ -252,8 +259,7 @@ SUBROUTINE ll_to_xy(this, lat, lon, x, y)
   IF (iter .eq. itmax) THEN  ! need brute force or something to cross seam
     fi = flag 
     fj = flag 
-    !debug: 
-    WRITE(*,9004) iter, dfi, dfj, fi, fj, dlat, dlon, lat, lon, flat, flon
+    !debug: WRITE(*,9004) iter, dfi, dfj, fi, fj, dlat, dlon, lat, lon, flat, flon
   ENDIF
  9004 FORMAT('itmax ',I3,6(F10.3,1x),4F10.3)
 

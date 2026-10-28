@@ -1,5 +1,8 @@
 MODULE constants
-  USE iso_fortran_env, only : real64
+! Robert Grumbine
+! 27 May 2026
+
+  USE iso_fortran_env, only : real64, real32
   IMPLICIT none
 
   PUBLIC
@@ -17,9 +20,6 @@ MODULE constants
 
 END module constants
 
-!haversine arcdis
-!  http://www.movable-type.co.uk/scripts/gis-faq-5.1.html
-!assumes lat lon in degrees, distance in km
 REAL(kind=real64) FUNCTION rearth(lat)
   USE constants
   IMPLICIT none
@@ -28,12 +28,15 @@ REAL(kind=real64) FUNCTION rearth(lat)
   RETURN
 END function rearth
 
+!haversine arcdis
+!  http://www.movable-type.co.uk/scripts/gis-faq-5.1.html
+!assumes lat lon in degrees, distance in km
 REAL(kind=real64) FUNCTION harcdis(lat1, lon1, lat2, lon2)
   USE constants
   IMPLICIT none
   REAL(kind=real64), intent(in) :: lat1, lon1, lat2, lon2
   REAL(kind=real64) :: dlat, dlon, mlat
-  REAL(kind=real64) :: a, c
+  REAL(kind=real64) :: a, c, rearth
 
   dlon = lon2 - lon1
   dlat = lat2 - lat1
@@ -44,7 +47,8 @@ REAL(kind=real64) FUNCTION harcdis(lat1, lon1, lat2, lon2)
   c = 2.*atan2(sqrt(a), sqrt(1._real64 - a) )
 
 ! approximating ellipsoidal flattening RG WGS84
-  harcdis = c * (6378.137 - 21.385*sin(mlat*rpd) )
+  harcdis = c * rearth(mlat)
+  !harcdis = c * 6371.2_real64 !spherical earth
 !  RETURN 
 END function harcdis
 
@@ -61,7 +65,7 @@ SUBROUTINE bearing(lat1, lon1, lat2, lon2, dist, dir)
   IMPLICIT none
   REAL(kind=real64), intent(in) :: lat1, lon1, lat2, lon2
   REAL(kind=real64), intent(out) :: dist, dir
-  REAL(kind=real64) :: harcdis
+  REAL(kind=real64) :: harcdis, dlon
 
   IF (lat1 >= flag .or. lon1 >= flag .or. lat2 >= flag .or. lon2 >= flag) THEN
     dist = flag
@@ -70,9 +74,10 @@ SUBROUTINE bearing(lat1, lon1, lat2, lon2, dist, dir)
   ENDIF
 
   dist = harcdis(lat1, lon1, lat2, lon2)
-  dir  = atan2(sin((lon1-lon2)*rpd)*cos(lat2*rpd) , &
+  dlon = lon2-lon1
+  dir  = atan2(sin(dlon*rpd)*cos(lat2*rpd) , &
                cos(lat1*rpd)*sin(lat2*rpd) -        &
-               sin(lat1*rpd)*cos(lat2*rpd)*cos((lon1-lon2)*rpd) )
+               sin(lat1*rpd)*cos(lat2*rpd)*cos(dlon*rpd) )
   dir = dir / rpd
   IF (dir < 0.) THEN
     dir = dir + 360.

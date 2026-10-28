@@ -1,4 +1,7 @@
 MODULE io
+! Robert Grumbine
+! 27 May 2026
+
   USE netcdf
   USE drifter_mod
   USE metric_mod
@@ -6,11 +9,11 @@ MODULE io
 
 CONTAINS
 
-SUBROUTINE initialize_in(nvar, fname, ncid, varid, varnames, xname, yname, nx, ny)
+SUBROUTINE initialize_in(nvar, fname, ncid, varid, varnames, xname, yname, nx, ny, model)
 !  USE metric_mod
   IMPLICIT none
 
-  INTEGER, intent(in) :: nvar
+  INTEGER, intent(in) :: nvar, model
   CHARACTER(*), intent(in) :: fname
   INTEGER, intent(out) :: nx, ny
   INTEGER, intent(out) :: ncid
@@ -25,48 +28,7 @@ SUBROUTINE initialize_in(nvar, fname, ncid, varid, varnames, xname, yname, nx, n
   INTEGER retcode
 
   !debug: PRINT *,'entered initialize_in'
-!! This is the rtofs cice_inst variable set -- much more extensive
-!  varnames(1) = "TLON"
-!  varnames(2) = "TLAT"
-!  varnames(3) = "ULON"
-!  varnames(4) = "ULAT"
-!  varnames(5) = "hi"
-!  varnames(6) = "hs"
-!  varnames(7) = "Tsfc"
-!  varnames(8) = "aice"
-!  varnames(9) = "uvel"
-!  varnames(10) = "vvel"
-!  varnames(11) = "fswdn"
-!  varnames(12) = "flwdn"
-!  varnames(13) = "snow"
-!  varnames(14) = "snow_ai"
-!  varnames(15) = "rain_ai"
-!  varnames(16) = "sst"
-!  varnames(17) = "uocn"
-!  varnames(18) = "vocn"
-!  varnames(19) = "meltt"
-!  varnames(20) = "meltb"
-!  varnames(21) = "meltl"
-!  varnames(22) = "strength"
-!  varnames(23) = "divu"
-!  varnames(24) = "Tair"
-!RG: make file type an input parameter 2ds_ice:
-  !RTOFS
-  !varnames(1) = "Longitude"
-  !varnames(2) = "Latitude"
-  !varnames(3) = "ice_coverage"
-  !varnames(4) = "ice_temperature"
-  !varnames(5) = "ice_thickness"
-  !varnames(6) = "ice_uvelocity"
-  !varnames(7) = "ice_vvelocity"
-  !UFS
-  !varnames(1) = "TLON"
-  !varnames(2) = "TLAT"
-  !varnames(3) = "aice_h"
-  !varnames(4) = "Tsfc_h"
-  !varnames(5) = "hi_h"
-  !varnames(6) = "uvel_h"
-  !varnames(7) = "vvel_h"
+!Note: varnames are defined in files like rtofs.vars
   
   !debug: PRINT *,'trying to open ',fname, len(fname)
   retcode = nf90_open(fname, NF90_NOWRITE, ncid)
@@ -83,17 +45,22 @@ SUBROUTINE initialize_in(nvar, fname, ncid, varid, varnames, xname, yname, nx, n
   nyname = yname
   !debug: PRINT *,'xname, yname',xname, yname
   !RG: Read nx, ny in from netcdf file -- 
-  ! rtofs
-  retcode = nf90_inquire_dimension(ncid, 3, nxname, nx)
-  CALL check(retcode)
-  retcode = nf90_inquire_dimension(ncid, 2, nyname, ny)
-  CALL check(retcode)
 
+  IF (model .eq. RTOFS) THEN
+    retcode = nf90_inquire_dimension(ncid, 3, nxname, nx)
+    CALL check(retcode)
+    retcode = nf90_inquire_dimension(ncid, 2, nyname, ny)
+    CALL check(retcode)
+  ELSEIF (model .eq. UFS) THEN
   !!ufs
-  !retcode = nf90_inquire_dimension(ncid, 2, nxname, nx)
-  !CALL check(retcode)
-  !retcode = nf90_inquire_dimension(ncid, 3, nyname, ny)
-  !CALL check(retcode)
+    retcode = nf90_inquire_dimension(ncid, 2, nxname, nx)
+    CALL check(retcode)
+    retcode = nf90_inquire_dimension(ncid, 3, nyname, ny)
+    CALL check(retcode)
+  ELSE
+    PRINT *,'model number is out of range ',model
+    STOP
+  ENDIF
 
   !debug: PRINT *,'leaving initialize_in', nx, ny
 
@@ -127,20 +94,22 @@ SUBROUTINE initial_read(fname, nvar, ncid, varid, &
   xmetric%ulat = allvars(:,:,2)
   xmetric%ulon = allvars(:,:,1)
   !debug: PRINT *,'ulon nc readin ',MAXVAL(xmetric%ulon), MINVAL(xmetric%ulon)
-  WHERE(xmetric%ulon > 720) xmetric%ulon = xmetric%ulon - 720
-  WHERE(xmetric%ulon > 360) xmetric%ulon = xmetric%ulon - 360
+  xmetric%ulon = modulo(xmetric%ulon,360.0_real64)
   !debug: PRINT *,'ulat nc readin ',MAXVAL(xmetric%ulat), MINVAL(xmetric%ulat)
   !debug: PRINT *,'ulon nc readin after cleanup',MAXVAL(xmetric%ulon), MINVAL(xmetric%ulon)
-  !debug -- regular latlon grid:
-  !dlat = 180./xmetric%ny
-  !dlon = 360./xmetric%nx
+
+  !!debug -- regular latlon grid:
+  !dlat = 180._real64/xmetric%ny
+  !dlon = 360._real64/xmetric%nx
   !DO j = 1, xmetric%ny
-  !  xmetric%ulat(:,j) = j*dlat - 90.0 - dlat/2.
+  !  xmetric%ulat(:,j) = (j-0.5_real64)*dlat - 90.0_real64
   !ENDDO
   !DO i = 1, xmetric%nx
-  !  xmetric%ulon(i,:) = i*dlon - dlon/2.
+  !  xmetric%ulon(i,:) = (i-0.5_real64)*dlon
   !ENDDO
-  !end debug
+  !!debug: PRINT *,'ulat max min',MAXVAL(xmetric%ulat), MINVAL(xmetric%ulat)
+  !!debug: PRINT *,'ulon max min',MAXVAL(xmetric%ulon), MINVAL(xmetric%ulon)
+  !!end debug
 
   !timing CALL cpu_time(start_time)
   CALL xmetric%local_metric()
@@ -205,8 +174,9 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
   INTEGER i, retcode, bad_count, very_bad
   REAL(kind=real64) :: tlon(nbuoy), tlat(nbuoy)
   REAL(kind=real64) :: clon(nbuoy), clat(nbuoy)
-  REAL(kind=real64), allocatable :: bad_lat(:), bad_lon(:)
-  REAL(kind=real64), allocatable :: bad_fi(:), bad_fj(:)
+  REAL(kind=real32), allocatable :: bad_lat(:), bad_lon(:)
+  REAL(kind=real32), allocatable :: tmp_lat(:,:), tmp_lon(:,:)
+  REAL(kind=real32), allocatable :: bad_fi(:), bad_fj(:)
   INTEGER, allocatable :: bad_index(:)
 
   REAL start_time, end_time
@@ -251,8 +221,7 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
 
 ! Processing en masse all buoys which have bad locations 
 ! RG: make this its own routine for general use
-  !debug:
-  PRINT *,'count of bad locations: ',bad_count
+  !debug: PRINT *,'count of bad locations: ',bad_count
   ALLOCATE(bad_index(bad_count), bad_lat(bad_count), bad_lon(bad_count))
   ALLOCATE(bad_fi(bad_count), bad_fj(bad_count))
   bad_count = 1
@@ -271,31 +240,44 @@ SUBROUTINE readin_drifters(nbuoy, nvar_drift, ncid_drift, varid_drift, buoylist,
   ENDDO
   bad_count = bad_count - 1 
   !RG: now call mass searcher irreg_
-  !timing CALL cpu_time(start_time)
-!  CALL irreg_ll2ij_cice(xmetric%nx, xmetric%ny, xmetric%ulat, xmetric%ulon, &
-!          bad_count, bad_lat, bad_lon, bad_fi, bad_fj)
-  !timing CALL cpu_time(end_time)
-  !timing PRINT *,'sub readin_drifters irreg timing ',end_time - start_time
+  !debug: PRINT *,'calling irreg'
+  !timing 
+  CALL cpu_time(start_time)
+  ALLOCATE(tmp_lat(xmetric%nx, xmetric%ny), tmp_lon(xmetric%nx, xmetric%ny))
+  tmp_lat = xmetric%ulat
+  tmp_lon = xmetric%ulon
+  CALL kdfind(xmetric%nx, xmetric%ny, tmp_lat, tmp_lon, &
+          bad_count, bad_lat, bad_lon, bad_fi, bad_fj)
+  !bad_fi = flag
+  !bad_fj = flag
+  !timing 
+  CALL cpu_time(end_time)
+  !timing 
+  PRINT *,'sub readin_drifters kdfind timing ',end_time - start_time
 
   very_bad = 0
   DO i = 1, bad_count
-    !debug: PRINT *,'retry ',i,bad_fi(i), bad_fj(i), bad_lat(i), bad_lon(i)
+    !debug: 
+    WRITE(*,9010) i, bad_fi(i), bad_fj(i), bad_lat(i), bad_lon(i)
+ 9010 FORMAT('retry ',I7,4F10.4)
     IF (bad_fi(i) < 1 .or. bad_fi(i) >= flag .or. ieee_is_nan(bad_fi(i)) .or. &
         bad_fj(i) < 1 .or. bad_fj(i) >= flag .or. ieee_is_nan(bad_fj(i)) ) THEN
-      !debug: PRINT *,'could not place ',buoylist(bad_index(i))%ilat, buoylist(bad_index(i))%ilon
-      buoylist(bad_index(i))%x = flag
-      buoylist(bad_index(i))%y = flag
+      buoylist(bad_index(i))%ilat = flag
+      buoylist(bad_index(i))%ilon = flag
+      buoylist(bad_index(i))%x    = flag
+      buoylist(bad_index(i))%y    = flag
       buoylist(bad_index(i))%clat = flag
       buoylist(bad_index(i))%clon = flag
       very_bad = very_bad + 1
     ELSE
-      buoylist(bad_index(i))%x = bad_fi(i)
-      buoylist(bad_index(i))%y = bad_fj(i)
+      buoylist(bad_index(i))%x    = bad_fi(i)
+      buoylist(bad_index(i))%y    = bad_fj(i)
       buoylist(bad_index(i))%clat = bad_lat(i)
       buoylist(bad_index(i))%clon = bad_lon(i)
     ENDIF
   ENDDO
-  !debug: PRINT *,'could not place points: ',very_bad
+  !debug: 
+  PRINT *,'could not place points: ',very_bad
   
   !debug: PRINT *,' leaving drifter read in'
   RETURN
@@ -315,7 +297,7 @@ SUBROUTINE readin(nx, ny, nvars, ncid, varid, allvars)
     CALL check(retcode)
     !debug: PRINT *,'readin',retcode, i, MAXVAL(allvars(:,:,i)), MINVAL(allvars(:,:,i))
     if (retcode < 0) then
-      PRINT *,'error on ',ncid, varid(i)
+      PRINT *,'error on nf90_get_var in readin',ncid, varid(i)
       STOP
     endif
   ENDDO
@@ -385,7 +367,7 @@ SUBROUTINE outvars(ncid, varid, nvar, buoys, nbuoy)
   INTEGER, intent(in) :: ncid, nvar
   INTEGER, intent(in) :: varid(nvar)
   INTEGER, intent(in) :: nbuoy
-  TYPE(drifter), intent(in) :: buoys(nbuoy)
+  CLASS(drifter), intent(in) :: buoys(nbuoy)
 
   INTEGER retcode
   REAL(kind=real64), allocatable :: var(:,:)
@@ -455,7 +437,8 @@ SUBROUTINE writeout(ncid_out, varid_out, nvar_out, buoys, nbuoy, closeout)
   INTEGER, intent(in) ::  ncid_out, nvar_out, nbuoy
   INTEGER, intent(in) ::  varid_out(nvar_out)
   LOGICAL, intent(in) :: closeout
-  TYPE(drifter), intent(in) :: buoys(nbuoy)
+  !TYPE(drifter), intent(in) :: buoys(nbuoy)
+  CLASS(drifter), intent(in) :: buoys(nbuoy)
 
   CALL outvars(ncid_out, varid_out, nvar_out, buoys, nbuoy )
   IF (closeout) THEN

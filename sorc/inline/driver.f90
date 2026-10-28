@@ -1,4 +1,6 @@
 PROGRAM driver
+! Robert Grumbine
+! 27 May 2026
 
   USE drifter_mod
   USE io
@@ -8,7 +10,7 @@ PROGRAM driver
 ! Not needed by drifter inline
   INTEGER nvar
   PARAMETER (nvar = 7)
-  INTEGER ncid, varid(nvar), nx, ny
+  INTEGER ncid, varid(nvar), nx, ny, model
   CHARACTER(len=40) :: varnames(nvar)
   CHARACTER(len=50) :: xname, yname
   REAL(kind=real64), allocatable  :: allvars(:,:,:)
@@ -38,6 +40,7 @@ PROGRAM driver
   READ (10,*) restart
 
 ! Read in .nc variable names
+  READ (10,*) model
   DO i = 1, nvar
     READ (10,*) varnames(i)
     ENDDO
@@ -45,7 +48,7 @@ PROGRAM driver
   READ (10,*) yname
 
 ! Initialize input Forcing / velocities
-  CALL initialize_in(nvar, trim(fname), ncid, varid, varnames, xname, yname, nx, ny)
+  CALL initialize_in(nvar, trim(fname), ncid, varid, varnames, xname, yname, nx, ny, model)
 
   ALLOCATE(allvars(nx, ny, nvar))
   ALLOCATE(u(nx, ny), v(nx, ny), aice(nx, ny) )

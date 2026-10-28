@@ -35,16 +35,18 @@ PROGRAM newdrift
 
 ! Utilities for main
   INTEGER i, j
-  INTEGER n, nstep
+  INTEGER n, nstep, ndiv
   REAL start_time, end_time
+  REAL(kind=real64) :: dtdiv
+
 
 !For drifter 
-  CLASS(drifter), allocatable :: buoys(:)
+  CLASS(drifter), DIMENSION(:), allocatable :: buoys
   INTEGER nbuoys
   CHARACTER(300) drift_name
 
 ! Read from .nc file (or argument to main)
-  INTEGER nx, ny
+  INTEGER model, nx, ny
 ! Names
   CHARACTER(300) fname, outname, tmp, tmp2
   LOGICAL closeout
@@ -71,6 +73,7 @@ PROGRAM newdrift
   !debug: PRINT *,'dt, nstep, outfreq, restart = ',dt, nstep, outfreq, restart
 
 ! RG: Read in .nc variable names
+  READ (10,*) model
   DO i = 1, nvar
     READ (10,*) varnames(i)
   ENDDO
@@ -83,7 +86,7 @@ PROGRAM newdrift
 ! Initialize input Forcing / velocities
   !debug: PRINT *,'calling initialize_in'
 ! RG: add varnames to arg list
-  CALL initialize_in(nvar, trim(fname), ncid, varid, varnames, xname, yname, nx, ny)
+  CALL initialize_in(nvar, trim(fname), ncid, varid, varnames, xname, yname, nx, ny, model)
 !RG: really initialize_io
   !Get first set of data and construct the local metric for drifting
   ! also constructs xmetric
@@ -146,10 +149,14 @@ PROGRAM newdrift
 ! First/only time step (u,v, etc. in hand):
   !timing CALL cpu_time(start_time)
   !debug 0.2778 ~= 1 km/hr: 
-  !u = 0.2778
-  !v = 0.2778 
+  !u = +1000.0_real64 / 3600.0_real64
+  !v = -0000.0_real64 / 3600.0_real64
   !debug: PRINT *,'calling run'
-  CALL run(buoys, nbuoys, u, v, xmetric, dt)
+  ndiv = 1
+  dtdiv = dt/ndiv
+  DO i = 1, ndiv
+    CALL run(buoys, nbuoys, u, v, xmetric, dtdiv)
+  ENDDO
   !debug: PRINT *,'back from run'
   closeout = .TRUE.
   CALL writeout(ncid_out, varid_out, nvar_out, buoys, nbuoys, closeout)

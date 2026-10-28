@@ -6,7 +6,7 @@ while [ $f -le 192 ]
 do
   if [ -f drift_f$f.nc ] ; then
     if [ ! -f f$f ] ; then
-      python3 /u/robert.grumbine/rgdev/newdrift/sorc/scan_buoy.py drift_f$f.nc >  f$f
+      python3 /u/robert.grumbine/rgdev/devdrift/sorc/scan_buoy.py drift_f$f.nc >  f$f
       sort -nr -k 4 f$f | grep -iv e > g$f
     fi
   fi
