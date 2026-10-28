@@ -2,6 +2,9 @@ SUBROUTINE driftmain(dt, restart, closeout, &
         drift_in, drift_out, &
         xmetric, u, v, aice, &
         phase )
+! Robert Grumbine
+! 27 May 2026
+
   USE drifter_mod
   USE io
   USE metric_mod

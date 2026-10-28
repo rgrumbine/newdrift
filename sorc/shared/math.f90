@@ -1,4 +1,7 @@
 MODULE constants
+! Robert Grumbine
+! 27 May 2026
+
   USE iso_fortran_env, only : real64, real32
   IMPLICIT none
 

@@ -1,5 +1,8 @@
 ! Convert from buoy's lat-lon location to its ij coordinate (x,y in buoy member)
 ! given a first guess x,y
+! Robert Grumbine
+! 27 May 2026
+
 SUBROUTINE newton(this, lat, lon, x, y)
   USE constants
   IMPLICIT none

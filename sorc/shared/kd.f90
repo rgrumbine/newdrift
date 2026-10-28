@@ -1,4 +1,5 @@
 ! Code from Gemini to implement a k-d tree on the surface of a sphere
+! Robert Grumbine
 ! 21 May 2026
 
 module kd_tree_mod
