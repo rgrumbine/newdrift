@@ -17,12 +17,12 @@ ln -sf mk.wcoss2 mk.this
 #ln -sf mk.gaea mk.this
 
 ## ursa:
-#module load intel-oneapi-compilers
-#module load hpc-x/2.18.1-icc
-#module load netcdf-c/4.9.2
-#module load netcdf-fortran/4.6.1
-#export NETCDF=$NETCDF_FORTRAN_ROOT
-#ln -sf mk.ursa mk.this
+module load intel-oneapi-compilers
+module load hpc-x/2.18.1-icc
+module load netcdf-c/4.9.2
+module load netcdf-fortran/4.6.2
+export NETCDF=$NETCDF_FORTRAN_ROOT
+ln -sf mk.ursa mk.this
 
 ## hera:
 #module load hpc/1.2.0  hpc-intel/2022.1.2
@@ -32,10 +32,10 @@ ln -sf mk.wcoss2 mk.this
 ## desk
 #ln -sf mk.desk mk.this
 
+set -x
+
 echo zzz NETCDF 
 echo `env | grep  NETCDF`
-
-#cp -p shared/*.f90 .
 
 make
 mv drifter in_drifter ../exec
