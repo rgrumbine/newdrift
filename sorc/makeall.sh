@@ -20,7 +20,7 @@
 module load intel-oneapi-compilers
 module load hpc-x/2.18.1-icc
 module load netcdf-c/4.9.2
-module load netcdf-fortran/4.6.1
+module load netcdf-fortran/4.6.2
 export NETCDF=$NETCDF_FORTRAN_ROOT
 ln -sf mk.ursa mk.this
 
@@ -32,10 +32,10 @@ ln -sf mk.ursa mk.this
 ## desk
 #ln -sf mk.desk mk.this
 
+set -x
+
 echo zzz NETCDF 
 echo `env | grep  NETCDF`
-
-#cp -p shared/*.f90 .
 
 make
 mv drifter in_drifter ../exec

@@ -22,7 +22,8 @@ PDY=${PDY:-20250601}
 module load intel-oneapi-compilers
 module load hpc-x/2.18.1-icc
 module load netcdf-c/4.9.2
-module load netcdf-fortran/4.6.1
+module load netcdf-fortran/4.6.2
+module list
 export NETCDF=$NETCDF_FORTRAN_ROOT
 #COMIN=$HOME/clim_data/rtofs/rtofs.$PDY/
 COMIN=$HOME/clim_data/stream4/gfs.${PDY}/00/model/ice/history/

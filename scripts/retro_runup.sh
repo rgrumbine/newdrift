@@ -3,7 +3,7 @@
 #SBATCH -J devdrift
 #SBATCH -e devdrift.err
 #SBATCH -o devdrift.out
-#SBATCH -t 7:55:00
+#SBATCH -t 1:55:00
 #SBATCH -q batch
 #SBATCH -A marine-cpu
 #SBATCH -N 1
@@ -14,7 +14,7 @@
 ##PBS -j oe
 ##PBS -A ICE-DEV
 ##PBS -q dev
-##PBS -l walltime=6:00:00
+##PBS -l walltime=1:55:00
 ##PBS -l select=1:ncpus=1
 
 set -x
@@ -26,11 +26,16 @@ pid=$$
 #cd /lfs/h2/emc/ptmp/wx21rg/devdrift.$pid
 
 ##ursa
+module load intel-oneapi-compilers
+module load hpc-x/2.18.1-icc
+module load netcdf-c/4.9.2
+module load netcdf-fortran/4.6.2
+module list
 mkdir -p /scratch3/NCEPDEV/stmp/wx21rg/devdrift.$pid
 cd /scratch3/NCEPDEV/stmp/wx21rg/devdrift.$pid
 
-export PDY=20260501
 #export PDY=`date +"%Y%m%d"`
+export PDY=20260801
 export COMOUT=$HOME/noscrub/devdrift_retro
 if [ ! -d $COMOUT ] ; then
   mkdir -p $COMOUT
