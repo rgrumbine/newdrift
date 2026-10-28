@@ -35,7 +35,7 @@ mkdir -p /scratch3/NCEPDEV/stmp/wx21rg/devdrift.$pid
 cd /scratch3/NCEPDEV/stmp/wx21rg/devdrift.$pid
 
 #export PDY=`date +"%Y%m%d"`
-export PDY=20260801
+export PDY=20260805
 export COMOUT=$HOME/noscrub/devdrift_retro
 if [ ! -d $COMOUT ] ; then
   mkdir -p $COMOUT

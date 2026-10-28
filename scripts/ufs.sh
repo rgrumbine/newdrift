@@ -1,5 +1,5 @@
 #!/bin/bash 
-#PBS -N newdrift
+#PBS -N devdrift
 #PBS -o driftout
 #PBS -j oe
 #PBS -A ICE-DEV
@@ -18,7 +18,7 @@ module load prod_envir wgrib2
 
 #cd $HOME/rgdev/newdrift/sorc/
 
-cp $HOME/rgdev/newdrift/fix/merged.nc drift_in.nc
+cp $HOME/rgdev/devdrift/fix/merged.nc drift_in.nc
 #cp $HOME/rgdev/newdrift/fix/skiles_pts.nc drift_in.nc
 #cp $HOME/rgdev/newdrift/fix/seaice_edge.nc drift_in.nc
 
@@ -28,8 +28,8 @@ cp $HOME/rgdev/newdrift/fix/merged.nc drift_in.nc
 #Loop -- ufs
 #forecast hours 006 to 240 by 6
 
-EXDIR=${EXDIR:-$HOME/rgdev/newdrift/exec}
-tag=${tag:-20250101}
+EXDIR=${EXDIR:-$HOME/rgdev/devdrift/exec}
+tag=${tag:-20260801}
 #macos: base=/Volumes/Data/rtofs/
 #hera: base=$HOME/clim_data/rtofs/rtofs.$tag/
 #wcoss2:
