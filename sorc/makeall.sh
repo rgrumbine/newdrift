@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#Robert Grumbine
+#28 October 2026
+
 #modules :
 
 ## wcoss2:
@@ -13,16 +16,19 @@ ln -sf mk.wcoss2 mk.this
 #module load intel-classic/2023.2.0
 #module load cray-hdf5/1.12.2.11
 #module load cray-netcdf/4.9.0.9
+#module load intel/2025.2
+#module load cray-hdf5/1.14.3.7
+#module load cray-netcdf/4.9.0.17
 #export NETCDF=$NETCDF_DIR
 #ln -sf mk.gaea mk.this
 
 ## ursa:
-module load intel-oneapi-compilers
-module load hpc-x/2.18.1-icc
-module load netcdf-c/4.9.2
-module load netcdf-fortran/4.6.2
-export NETCDF=$NETCDF_FORTRAN_ROOT
-ln -sf mk.ursa mk.this
+#module load intel-oneapi-compilers
+#module load hpc-x/2.18.1-icc
+#module load netcdf-c/4.9.2
+#module load netcdf-fortran/4.6.2
+#export NETCDF=$NETCDF_FORTRAN_ROOT
+#ln -sf mk.ursa mk.this
 
 ## hera:
 #module load hpc/1.2.0  hpc-intel/2022.1.2
@@ -31,11 +37,14 @@ ln -sf mk.ursa mk.this
 
 ## desk
 #ln -sf mk.desk mk.this
-
+#-------------------------------------------
 set -x
 
 echo zzz NETCDF 
 echo `env | grep  NETCDF`
 
 make
+if [ ! -d ../exec ] ; then
+  mkdir ../exec
+fi
 mv drifter in_drifter ../exec

@@ -23,10 +23,17 @@ Replacement for Grumbine, 1998 drift model -- https://github.com/NOAA-EMC/drift_
      -- -- > reference processor number that handles re-partitioning, knows tiling
 
 
-#Auxiliary:
+# Auxiliary:
 * Blender of ensemble outputs
 * RG: ?how to represent uncertainty
 * Sidfex-compatible output?
 
 
+# On different platforms:
+* edit sorc/makeall.sh
+* edit scripts/... whichever situation you're running 
+
+
+Robert Grumbine
+28 October 2026
 

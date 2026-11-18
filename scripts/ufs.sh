@@ -7,6 +7,9 @@
 #PBS -l walltime=6:00:00
 #PBS -l select=1:ncpus=1
 
+# Robert Grumbine
+# 28 October 2026
+
 set -xe
 
 PDY=${PDY:-20260801}
