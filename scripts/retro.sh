@@ -15,21 +15,21 @@ set -xe
 PDY=${PDY:-20250601}
 
 ##wcoss2
-#module load intel netcdf
-#module load prod_envir wgrib2
+module load intel netcdf
+module load prod_envir wgrib2
 #COMIN=$HOME/noscrub/model_intercompare/rtofs_cice/rtofs.$PDY/
-#COMIN=$HOME/noscrub/retros/gfs.$PDY/00/model/ice/history/
+COMIN=$HOME/noscrub/v17/gfs.$PDY/00/model/ice/history/
 
 #ursa:
- . /etc/profile.d/modules.sh
-module load intel-oneapi-compilers
-module load hpc-x/2.18.1-icc
-module load netcdf-c/4.9.2
-module load netcdf-fortran/4.6.2
-module list
-export NETCDF=$NETCDF_FORTRAN_ROOT
+# . /etc/profile.d/modules.sh
+#module load intel-oneapi-compilers
+#module load hpc-x/2.18.1-icc
+#module load netcdf-c/4.9.2
+#module load netcdf-fortran/4.6.2
+#module list
+#export NETCDF=$NETCDF_FORTRAN_ROOT
 #COMIN=$HOME/clim_data/rtofs/rtofs.$PDY/
-COMIN=$HOME/clim_data/stream4/gfs.${PDY}/00/model/ice/history/
+#COMIN=$HOME/clim_data/stream4/gfs.${PDY}/00/model/ice/history/
 
 #macos: COMIN=/Volumes/Data/rtofs/
 
@@ -45,7 +45,7 @@ cp $HOME/rgdev/devdrift/fix/merged.nc drift_in.nc
 #forecast hours 000 to 384 by 6
 
 EXDIR=${EXDIR:-$HOME/rgdev/devdrift/exec}
-PDY=${PDY:-20260501}
+PDY=${PDY:-20261001}
 
 hhh=006
 count=0
